@@ -115,6 +115,11 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'hoso_list' %}active{% endif %}" href="{{ url_for('hoso_list') }}">
                             <i class="bi bi-folder2-open me-1"></i>Quản lý Hồ sơ KH&CN
+                            {% if current_user.vai_tro == 'TacGia' and pending_corrections and pending_corrections > 0 %}
+                            <span class="badge bg-warning text-dark ms-1" title="Hồ sơ cần bổ sung/chỉnh sửa">{{ pending_corrections }}</span>
+                            {% elif current_user.vai_tro in ['CanBo', 'Admin'] and pending_reviews and pending_reviews > 0 %}
+                            <span class="badge bg-danger ms-1" title="Hồ sơ chờ thẩm định">{{ pending_reviews }}</span>
+                            {% endif %}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -185,6 +190,38 @@
     {% endif %}
 
     <main class="container-fluid px-3 px-lg-4 py-4">
+        <!-- Thông báo điều hướng quy trình xét duyệt (Revision Bước 5) -->
+        {% if current_user.vai_tro == 'TacGia' and pending_corrections and pending_corrections > 0 %}
+        <div class="alert alert-warning alert-dismissible fade show d-flex flex-wrap align-items-center justify-content-between shadow-sm border-0 mb-3" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-bell-fill fs-4 text-warning me-3"></i>
+                <div>
+                    <strong>Phản hồi thẩm định hồ sơ:</strong> Bạn có <strong>{{ pending_corrections }}</strong> hồ sơ đang ở trạng thái <span class="badge bg-warning text-dark">Yêu cầu bổ sung</span>. Vui lòng xem ý kiến cán bộ và cập nhật bổ sung minh chứng.
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+                <a href="{{ url_for('hoso_list', trangThai='Yêu cầu bổ sung') }}" class="btn btn-sm btn-warning fw-bold">
+                    <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa bổ sung
+                </a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+        {% elif current_user.vai_tro in ['CanBo', 'Admin'] and pending_reviews and pending_reviews > 0 %}
+        <div class="alert alert-info alert-dismissible fade show d-flex flex-wrap align-items-center justify-content-between shadow-sm border-0 mb-3" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-clipboard2-check-fill fs-4 text-primary me-3"></i>
+                <div>
+                    <strong>Hàng đợi kiểm tra tính hợp lệ:</strong> Hiện có <strong>{{ pending_reviews }}</strong> hồ sơ đang ở trạng thái <span class="badge bg-secondary">Chờ xét duyệt</span> (được AI tự động xếp hạng ưu tiên theo điểm rủi ro).
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+                <a href="{{ url_for('hoso_list', trangThai='Chờ xét duyệt') }}" class="btn btn-sm btn-primary fw-bold">
+                    <i class="bi bi-arrow-right-circle me-1"></i>Mở hàng đợi thẩm định
+                </a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+        {% endif %}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, msg in messages %}

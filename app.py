@@ -75,6 +75,31 @@ def role_required(*allowed_roles):
 
 @app.context_processor
 def inject_globals():
+    pending_corrections = 0
+    pending_reviews = 0
+    user_id = session.get("user_id")
+    vai_tro = session.get("vai_tro")
+
+    if user_id:
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            if vai_tro == "TacGia":
+                cur.execute(
+                    "SELECT COUNT(*) FROM HoSoKHCN WHERE maNguoiNop = ? AND trangThai = ? AND isDeleted = 0",
+                    (user_id, "Yêu cầu bổ sung")
+                )
+                pending_corrections = cur.fetchone()[0]
+            elif vai_tro in ["CanBo", "Admin"]:
+                cur.execute(
+                    "SELECT COUNT(*) FROM HoSoKHCN WHERE trangThai = ? AND isDeleted = 0",
+                    ("Chờ xét duyệt",)
+                )
+                pending_reviews = cur.fetchone()[0]
+            conn.close()
+        except Exception:
+            pass
+
     return {
         "current_user": {
             "id": session.get("user_id"),
@@ -86,6 +111,8 @@ def inject_globals():
         },
         "get_confidence_badge": ai_engine.get_confidence_badge_info,
         "now_year": 2026,
+        "pending_corrections": pending_corrections,
+        "pending_reviews": pending_reviews,
     }
 
 
@@ -188,19 +215,19 @@ def dashboard():
     cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0")
     total_hoso = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Chờ xét duyệt'")
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = ?", ("Chờ xét duyệt",))
     cho_duyet = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Đang xét duyệt'")
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = ?", ("Đang xét duyệt",))
     dang_duyet = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Đã duyệt'")
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = ?", ("Đã duyệt",))
     da_duyet = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Từ chối'")
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = ?", ("Từ chối",))
     tu_choi = cur.fetchone()[0]
 
-    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Yêu cầu bổ sung'")
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = ?", ("Yêu cầu bổ sung",))
     bo_sung = cur.fetchone()[0]
 
     cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND coCanhBao = 1")
@@ -403,7 +430,7 @@ def hoso_list():
         LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
         LEFT JOIN NguoiDung nd ON h.maNguoiNop = nd.maNguoiDung
         WHERE {where_sql}
-        ORDER BY h.coCanhBao DESC, h.maHoSo DESC
+        ORDER BY h.coCanhBao DESC, h.diemBatThuong DESC, h.maHoSo DESC
         LIMIT ? OFFSET ?
     """, params + [per_page, offset])
     records = [dict(r) for r in cur.fetchall()]
@@ -536,8 +563,8 @@ def hoso_create():
         # Ghi nhật ký khởi tạo vào bảng LichSuXetDuyet
         cur.execute("""
             INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
-            VALUES (?, ?, 'Khởi tạo mới', 'Chờ xét duyệt', 'Tác giả khai báo và nộp mới hồ sơ KH&CN lên hệ thống.')
-        """, (ma_ho_so, session["user_id"]))
+            VALUES (?, ?, ?, ?, ?)
+        """, (ma_ho_so, session["user_id"], "Khởi tạo mới", "Chờ xét duyệt", "Tác giả khai báo và nộp mới hồ sơ KH&CN lên hệ thống."))
 
         conn.commit()
         # Cập nhật đồ thị NetworkX & Phát hiện bất thường Isolation Forest
@@ -646,10 +673,21 @@ def hoso_edit(ma_ho_so):
         # Chạy lại AI phân loại & phát hiện bất thường sau khi cập nhật nội dung
         pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia)
 
+        # Nghiệp vụ 3 - Bước 5 & Nghiệp vụ 1: Vòng lặp phản hồi và chỉnh sửa (Resubmission loop)
+        # Khi tác giả chỉnh sửa hồ sơ đang ở trạng thái 'Yêu cầu bổ sung', tự động chuyển lại 'Chờ xét duyệt'
+        trang_thai_moi = hoso["trangThai"]
+        if hoso["trangThai"] == "Yêu cầu bổ sung":
+            trang_thai_moi = "Chờ xét duyệt"
+            cur.execute("""
+                INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
+                VALUES (?, ?, ?, ?, ?)
+            """, (ma_ho_so, session["user_id"], "Yêu cầu bổ sung", "Chờ xét duyệt", "Tác giả đã cập nhật nội dung/minh chứng theo yêu cầu và gửi lại để thẩm định."))
+
         cur.execute("""
             UPDATE HoSoKHCN
             SET tieuDe = ?, tomTat = ?, tuKhoa = ?, thongTinTacGia = ?, donViChuTri = ?,
                 namCongBo = ?, kyBaoCao = ?, maLinhVuc = ?, maLoai = ?, maTapChi = ?,
+                trangThai = ?,
                 fileDinhKem = ?, vanBanDaTachTu = ?, maLinhVucAI = ?, doTinCayAI = ?,
                 maLinhVucSVM = ?, doTinCaySVM = ?,
                 doi = ?, tapSo = ?, trangBaiBao = ?, chiMucTapChi = ?,
@@ -660,6 +698,7 @@ def hoso_edit(ma_ho_so):
         """, (
             tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri,
             nam_cong_bo, ky_bao_cao, ma_linh_vuc, ma_loai, ma_tap_chi,
+            trang_thai_moi,
             file_name_saved, pred["segmented_text"], pred["phobert_label_id"],
             pred["phobert_confidence"], pred["svm_label_id"], pred["svm_confidence"],
             doi, tap_so, trang_bai_bao, chi_muc_tap_chi,
@@ -671,7 +710,10 @@ def hoso_edit(ma_ho_so):
         conn.commit()
         ai_engine.build_networkx_graph_and_detect_anomalies(conn)
         conn.close()
-        flash(f"Đã cập nhật thông tin hồ sơ {ma_ho_so} và phân tích lại bằng AI.", "success")
+        if hoso["trangThai"] == "Yêu cầu bổ sung":
+            flash(f"Đã cập nhật hồ sơ {ma_ho_so} và chuyển trạng thái về 'Chờ xét duyệt' để Cán bộ thẩm định lại.", "success")
+        else:
+            flash(f"Đã cập nhật thông tin hồ sơ {ma_ho_so} và phân tích lại bằng AI.", "success")
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
     cur.execute("SELECT * FROM LinhVuc WHERE trangThai = 1 ORDER BY maLinhVuc")
@@ -769,6 +811,22 @@ def hoso_detail(ma_ho_so):
     except Exception:
         hoso["canhBaoList"] = []
 
+    # Nghiệp vụ 3 - Bước 1c: Tiếp nhận và Chuyển trạng thái xử lý
+    # Khi Cán bộ xét duyệt / Quản trị viên mở hồ sơ ở trạng thái 'Chờ xét duyệt',
+    # hệ thống tự động cập nhật trạng thái sang 'Đang xét duyệt' và ghi nhận cán bộ phụ trách vào LichSuXetDuyet để tránh trùng lặp xử lý.
+    if session.get("vai_tro") in ["CanBo", "Admin"] and hoso.get("trangThai") == "Chờ xét duyệt":
+        cur.execute("""
+            UPDATE HoSoKHCN
+            SET trangThai = ?, ngayCapNhat = CURRENT_TIMESTAMP
+            WHERE maHoSo = ?
+        """, ("Đang xét duyệt", ma_ho_so))
+        cur.execute("""
+            INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
+            VALUES (?, ?, ?, ?, ?)
+        """, (ma_ho_so, session["user_id"], "Chờ xét duyệt", "Đang xét duyệt", "Cán bộ xét duyệt mở hồ sơ tiếp nhận thẩm định tính hợp lệ (hệ thống tự động chuyển trạng thái)."))
+        conn.commit()
+        hoso["trangThai"] = "Đang xét duyệt"
+
     # Lịch sử xét duyệt (Bảng LichSuXetDuyet - Tuần 5 Mục 2b)
     cur.execute("""
         SELECT ls.*, nd.hoTen AS tenCanBo, nd.vaiTro AS vaiTroCanBo
@@ -827,6 +885,10 @@ def hoso_review_action(ma_ho_so):
 
     if not y_kien:
         flash("Vui lòng nhập nội dung ý kiến đánh giá thẩm định để lưu vào Lịch sử xét duyệt.", "warning")
+        return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
+
+    if trang_thai_moi in ("Từ chối", "Yêu cầu bổ sung") and len(y_kien) < 5:
+        flash("Bắt buộc phải nhập chi tiết lý do từ chối hoặc nội dung yêu cầu bổ sung (tối thiểu 5 ký tự) để phản hồi cho tác giả.", "warning")
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
     conn = get_db_connection()

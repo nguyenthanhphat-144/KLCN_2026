@@ -253,20 +253,28 @@ def create_revision_report():
     b_ui3.add_run("Người dùng có thể bấm nút 'Phân tích & Gợi ý Nhãn AI ngay' bất kỳ lúc nào để kích hoạt mô hình PhoBERT tiền xử lý tiếng Việt và gợi ý lĩnh vực chuyên ngành với độ tin cậy tức thì trước khi nộp.")
 
     p_c3_3 = doc.add_paragraph()
-    p_c3_3.add_run("3.3. Quy trình Kiểm tra Tính Hợp lệ & Thẩm định (hoso_detail.html & app.py)\n").bold = True
-    p_c3_3.add_run("Phân hệ thẩm định của Cán bộ xét duyệt và Quản trị viên được hoàn thiện với đầy đủ 3 nhánh quyết định chuẩn:")
+    p_c3_3.add_run("3.3. Quy trình 5 Bước Kiểm tra Tính Hợp lệ & Thẩm định (hoso_detail.html & app.py)\n").bold = True
+    p_c3_3.add_run("Quy trình thẩm định kiểm tra tính hợp lệ công trình KH&CN đã hoàn thành/công bố được chuẩn hóa trọn vẹn theo 5 bước nghiệp vụ của tài liệu Revision:")
 
     b_rev1 = doc.add_paragraph(style='List Bullet')
-    b_rev1.add_run("Phê duyệt (Đã duyệt): ").bold = True
-    b_rev1.add_run("Công nhận công trình hợp lệ, hồ sơ đạt chuẩn, khóa quyền chỉnh sửa.")
+    b_rev1.add_run("Bước 1: Tiếp nhận & Tự động chuyển trạng thái (Bước 1c): ").bold = True
+    b_rev1.add_run("Hàng đợi xét duyệt được tự động sắp xếp ưu tiên theo Điểm rủi ro AI (Risk score giảm dần). Khi Cán bộ xét duyệt (TS. Lê Thanh Phong) hoặc Admin mở xem chi tiết một hồ sơ đang ở trạng thái 'Chờ xét duyệt', hệ thống tự động chuyển trạng thái sang 'Đang xét duyệt' và ghi nhận cán bộ phụ trách vào LichSuXetDuyet để tránh trùng lặp xử lý giữa các cán bộ.")
 
     b_rev2 = doc.add_paragraph(style='List Bullet')
-    b_rev2.add_run("Yêu cầu bổ sung: ").bold = True
-    b_rev2.add_run("Cán bộ nhập chi tiết nội dung cần chỉnh sửa hoặc minh chứng thiếu. Hệ thống mở lại quyền cho tác giả bấm nút 'Chỉnh sửa Hồ sơ' để cập nhật lại.")
+    b_rev2.add_run("Bước 2: Thẩm định & Nhập ý kiến đánh giá: ").bold = True
+    b_rev2.add_run("Cán bộ đối chiếu minh chứng thực tế với gợi ý từ Mô-đun AI PhoBERT & TF-IDF+SVM (Khung 1), kiểm tra các dấu hiệu cảnh báo tạp chí rác hoặc trùng lặp từ Đồ thị NetworkX & Isolation Forest (Khung 2), và nhập ý kiến nhận xét chuyên môn.")
 
     b_rev3 = doc.add_paragraph(style='List Bullet')
-    b_rev3.add_run("Từ chối: ").bold = True
-    b_rev3.add_run("Không công nhận công trình vi phạm hoặc không đạt yêu cầu. Bắt buộc nhập lý do từ chối vào biên bản.")
+    b_rev3.add_run("Bước 3: Ra quyết định xét duyệt qua 3 nhánh: ").bold = True
+    b_rev3.add_run("Cán bộ chọn: (1) 'Đã duyệt' - Công nhận công trình hợp lệ; (2) 'Từ chối' - Bắt buộc nhập chi tiết lý do từ chối (tối thiểu 5 ký tự); (3) 'Yêu cầu bổ sung' - Bắt buộc ghi rõ nội dung cần chỉnh sửa/minh chứng cần bổ sung.")
+
+    b_rev4 = doc.add_paragraph(style='List Bullet')
+    b_rev4.add_run("Bước 4: Ghi nhận Lịch sử xét duyệt bất biến: ").bold = True
+    b_rev4.add_run("Mọi lần chuyển đổi trạng thái đều được tự động lưu vết vào bảng LichSuXetDuyet (thời gian, tài khoản thực hiện, trạng thái cũ/mới, ý kiến thẩm định). Bảng này được thiết kế bất biến (Read-only), không cho phép sửa xóa để phục vụ công tác thanh tra.")
+
+    b_rev5 = doc.add_paragraph(style='List Bullet')
+    b_rev5.add_run("Bước 5: Phản hồi thông báo & Vòng lặp nộp lại (Resubmission loop): ").bold = True
+    b_rev5.add_run("Tác giả (TS. Nguyễn Thành Tài) khi đăng nhập sẽ thấy huy hiệu (badge) và thanh thông báo (banner) màu vàng nổi bật báo có hồ sơ cần bổ sung. Tác giả mở hồ sơ, chỉnh sửa thông tin/minh chứng và bấm 'Lưu thay đổi'. Khi lưu, hệ thống tự động chuyển trạng thái từ 'Yêu cầu bổ sung' về lại 'Chờ xét duyệt' kèm nhật ký để Cán bộ tái thẩm định.")
 
     p_c3_4 = doc.add_paragraph()
     p_c3_4.add_run("3.4. Nâng cấp Thống kê Dashboard & Phân hệ Danh mục\n").bold = True
@@ -279,7 +287,7 @@ def create_revision_report():
     
     p = doc.add_paragraph("Kịch bản kiểm thử tự động toàn diện scripts/verify_revision_features.py đã được thực thi trực tiếp trên hệ thống kết nối cơ sở dữ liệu thật Microsoft SQL Server SSMS với kết quả như sau:")
 
-    tbl_test = doc.add_table(rows=6, cols=3)
+    tbl_test = doc.add_table(rows=7, cols=3)
     tbl_test.alignment = WD_TABLE_ALIGNMENT.CENTER
     test_cases = [
         ("Module kiểm thử", "Nội dung xác minh", "Kết quả thực tế"),
@@ -288,6 +296,7 @@ def create_revision_report():
         ("3. Chi tiết hồ sơ", "Hiển thị metadata DOI, tập số (HS-0001) và mã đề tài, kinh phí (HS-0007).", "ĐẠT (100% - Dữ liệu khớp chuẩn)"),
         ("4. Biểu mẫu nộp mới động", "Toggle động giữa nhóm bài báo và đề tài; kích hoạt gợi ý PhoBERT.", "ĐẠT (100% - Chuyển đổi mượt mà)"),
         ("5. Danh mục chuẩn hóa", "Hiển thị quy chuẩn Cấp đề tài, Chỉ mục học thuật, Nghiệm thu.", "ĐẠT (100% - Đồng bộ dữ liệu)"),
+        ("6. Quy trình & Luồng 5 bước", "Bước 1c tự động sang Đang xét duyệt; Quyết định Yêu cầu bổ sung; Vòng lặp nộp lại của Tác giả tự chuyển về Chờ xét duyệt.", "ĐẠT (100% - Khép kín quy trình)"),
     ]
     for idx, (m, c, r) in enumerate(test_cases):
         row = tbl_test.rows[idx]
