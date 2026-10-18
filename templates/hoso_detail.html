@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block title %}Thẩm định Hồ sơ {{ hoso.maHoSo }} - Quản lý KH&CN AI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Tổng quan</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('hoso_list') }}">Hồ sơ KH&CN</a></li>
+                <li class="breadcrumb-item active">{{ hoso.maHoSo }}</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold text-primary mb-0">
+            <i class="bi bi-file-earmark-richtext me-2"></i>Hồ Sơ KH&CN: {{ hoso.maHoSo }}
+            <span class="badge {% if hoso.trangThai == 'Đã duyệt' %}bg-success{% elif hoso.trangThai == 'Từ chối' %}bg-danger{% elif hoso.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %} ms-2 fs-6">
+                {{ hoso.trangThai }}
+            </span>
+        </h4>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        {% if hoso.trangThai == 'Chờ xét duyệt' or current_user.vai_tro == 'Admin' %}
+        <a href="{{ url_for('hoso_edit', ma_ho_so=hoso.maHoSo) }}" class="btn btn-sm btn-outline-primary fw-bold">
+            <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa Hồ sơ
+        </a>
+        {% endif %}
+
+        {% if (hoso.trangThai == 'Chờ xét duyệt' and hoso.maNguoiNop == current_user.id) or current_user.vai_tro == 'Admin' %}
+        <form method="POST" action="{{ url_for('hoso_soft_delete', ma_ho_so=hoso.maHoSo) }}" class="d-inline"
+              onsubmit="return confirm('Xác nhận xóa mềm (đưa vào thùng rác) hồ sơ này?');">
+            <button type="submit" class="btn btn-sm btn-outline-warning text-dark fw-semibold">
+                <i class="bi bi-trash me-1"></i>Xóa mềm
+            </button>
+        </form>
+        {% endif %}
+
+        {% if current_user.vai_tro == 'Admin' %}
+        <form method="POST" action="{{ url_for('hoso_hard_delete', ma_ho_so=hoso.maHoSo) }}" class="d-inline"
+              onsubmit="return confirm('CẢNH BÁO: Xóa vĩnh viễn hồ sơ này khỏi hệ thống?');">
+            <button type="submit" class="btn btn-sm btn-danger fw-bold">
+                <i class="bi bi-x-octagon-fill me-1"></i>Xóa vĩnh viễn
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- CỘT TRÁI: THÔNG TIN CHI TIẾT HỒ SƠ & LỊCH SỬ XÉT DUYỆT -->
+    <div class="col-lg-7">
+        <div class="card card-academic mb-4">
+            <div class="card-header card-header-academic">
+                <i class="bi bi-journal-text me-2"></i>1. Nội Dung Chi Tiết Hồ Sơ Khoa Học & Công Nghệ
+            </div>
+            <div class="card-body">
+                <h5 class="fw-bold text-dark mb-3">{{ hoso.tieuDe }}</h5>
+
+                <div class="row g-3 mb-3 small">
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Nhóm Tác giả:</span>
+                            {% set vn_tacgia = (hoso.thongTinTacGia or '')
+                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                            <strong class="text-dark"><i class="bi bi-people-fill text-primary me-1"></i>{{ vn_tacgia }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Đơn vị chủ trì:</span>
+                            <strong class="text-dark"><i class="bi bi-building text-primary me-1"></i>{{ hoso.donViChuTri }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Lĩnh vực đăng ký ban đầu:</span>
+                            <strong class="text-primary">[{{ hoso.maCodeLV }}] {{ hoso.tenLinhVuc }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Loại công trình:</span>
+                            <strong>{{ (hoso.tenLoai or '') | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Tạp chí công bố / Hội đồng nghiệm thu:</span>
+                            {% set vn_tc = (hoso.tenTapChi or 'Chưa chỉ định')
+                                | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                            {% set vn_xh = (hoso.xepHang or '')
+                                | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
+                                | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
+                                | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
+                                | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
+                                | replace('Predatory', 'Không uy tín')
+                                | replace('Discontinued', 'Ngừng chỉ mục') %}
+                            <strong>{{ vn_tc }}</strong>
+                            {% if hoso.chiSoISSN %}
+                            <span class="badge bg-secondary ms-1">Mã: {{ hoso.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }}</span>
+                            {% endif %}
+                            {% if hoso.tapChiUyTin == 0 %}
+                            <span class="badge bg-danger ms-1">🚨 Cảnh báo Không uy tín / Ngoài DM</span>
+                            {% else %}
+                            <span class="badge bg-success ms-1">✔ Hợp lệ ({{ vn_xh }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Kỳ báo cáo & Năm:</span>
+                            <strong>{{ hoso.kyBaoCao }} ({{ hoso.namCongBo }})</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold small text-uppercase text-secondary mb-1">Tóm tắt nội dung:</label>
+                    <div class="p-3 rounded bg-light border" style="line-height: 1.65;">
+                        {{ hoso.tomTat }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold small text-uppercase text-secondary mb-1">Từ khóa chuyên ngành:</label>
+                    <div>
+                        {% for kw in hoso.tuKhoa.split(',') %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1 px-2 py-1">{{ kw.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold small text-uppercase text-secondary mb-1">
+                        <i class="bi bi-code-slash me-1"></i>Văn bản sau Tiền xử lý & Tách từ Tiếng Việt:
+                    </label>
+                    <div class="segmented-box">{{ hoso.vanBanDaTachTu }}</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
+                    <div>
+                        <i class="bi bi-paperclip me-1 text-primary"></i>Tệp minh chứng đính kèm:
+                        <code>{{ hoso.fileDinhKem or 'Không có tệp' }}</code>
+                    </div>
+                    <div class="text-muted">
+                        {% set vn_nguoinop = (hoso.tenNguoiNop or '')
+                            | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                            | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                            | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                            | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                            | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                            | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                        Người nộp: <strong>{{ vn_nguoinop }}</strong> | Ngày nộp: {{ hoso.ngayNop }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng Lịch sử Xét duyệt -->
+        <div class="card card-academic">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>2. Nhật Ký Lịch Sử Xét Duyệt</span>
+                <span class="badge bg-secondary">{{ lich_su|length }} mốc trạng thái</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Thời gian</th>
+                                <th>Cán bộ thực hiện</th>
+                                <th>Chuyển đổi trạng thái</th>
+                                <th class="pe-3">Ý kiến đánh giá thẩm định</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ls in lich_su %}
+                            {% set st_cu = (ls.trangThaiCu or '') | replace('Kh?i t?o m?i', 'Khởi tạo mới') | replace('Ch? xét duy?t', 'Chờ xét duyệt') | replace('Đang xét duy?t', 'Đang xét duyệt') | replace('Đã duy?t', 'Đã duyệt') | replace('T? ch?i', 'Từ chối') %}
+                            {% set st_moi = (ls.trangThaiMoi or '') | replace('Kh?i t?o m?i', 'Khởi tạo mới') | replace('Ch? xét duy?t', 'Chờ xét duyệt') | replace('Đang xét duy?t', 'Đang xét duyệt') | replace('Đã duy?t', 'Đã duyệt') | replace('T? ch?i', 'Từ chối') %}
+                            {% set y_kien = (ls.yKienDanhGia or '')
+                                | replace('Tác gi? khai báo và n?p m?i h? so KH&CN lên h? th?ng.', 'Tác giả khai báo và nộp mới hồ sơ KH&CN lên hệ thống.')
+                                | replace('Predatory', 'Không uy tín') %}
+                            {% set vn_canbo = (ls.tenCanBo or '')
+                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                            <tr>
+                                <td class="ps-3 text-nowrap text-muted">{{ ls.thoiGian }}</td>
+                                <td class="fw-semibold">
+                                    {{ vn_canbo }}
+                                    <span class="badge bg-light text-dark border">
+                                        {% if ls.vaiTroCanBo == 'Admin' %}Quản trị viên{% elif ls.vaiTroCanBo == 'CanBo' %}Cán bộ duyệt{% else %}Tác giả{% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <span class="badge bg-secondary">{{ st_cu }}</span>
+                                    <i class="bi bi-arrow-right mx-1"></i>
+                                    <span class="badge {% if st_moi == 'Đã duyệt' %}bg-success{% elif st_moi == 'Từ chối' %}bg-danger{% elif st_moi == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %}">
+                                        {{ st_moi }}
+                                    </span>
+                                </td>
+                                <td class="pe-3">{{ y_kien }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: KHUNG GỢI Ý AI, FEEDBACK LOOP, PHÁT HIỆN BẤT THƯỜNG & QUYẾT ĐỊNH XÉT DUYỆT -->
+    <div class="col-lg-5">
+        <!-- KHUNG 1: GỢI Ý PHÂN LOẠI TỪ AI -->
+        <div class="card card-academic mb-4 border-top border-4 border-{{ badge_info.color_class }}">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-robot me-2 text-primary"></i>Gợi Ý Phân Loại Tự Động Từ AI</span>
+                <span class="badge bg-{{ badge_info.color_class }}">{{ badge_info.icon }} {{ "%.1f"|format(hoso.doTinCayAI or 0) }}%</span>
+            </div>
+            <div class="card-body">
+                <!-- Mã màu trực quan theo độ tin cậy -->
+                <div class="p-3 rounded mb-3 border" style="background-color: {{ badge_info.bg_hex }};">
+                    <div class="small fw-semibold text-uppercase text-muted mb-1">Nhãn lĩnh vực dự đoán (PhoBERT):</div>
+                    <div class="fs-5 fw-bold" style="color: {{ badge_info.hex }};">
+                        {{ badge_info.icon }} [{{ hoso.maCodeLVAI }}] {{ hoso.tenLinhVucAI }}
+                    </div>
+                    <div class="mt-2 mb-1 d-flex justify-content-between small fw-bold">
+                        <span>Mức độ tin cậy:</span>
+                        <span>{{ "%.1f"|format(hoso.doTinCayAI or 0) }}%</span>
+                    </div>
+                    <div class="progress bg-white border" style="height: 12px;">
+                        <div class="progress-bar bg-{{ badge_info.color_class }} progress-bar-striped"
+                             role="progressbar" style="width: {{ hoso.doTinCayAI or 0 }}%;"></div>
+                    </div>
+                    <div class="small mt-2 fw-semibold" style="color: {{ badge_info.hex }};">
+                        {{ badge_info.label }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center small p-2 rounded bg-light border mb-3">
+                    <span class="text-muted">Mô hình đối chiếu (TF-IDF + SVM):</span>
+                    <strong class="text-dark">{{ hoso.tenLinhVucSVM }} ({{ "%.1f"|format(hoso.doTinCaySVM or 0) }}%)</strong>
+                </div>
+
+                {% if hoso.maLinhVuc != hoso.maLinhVucAI %}
+                <div class="alert alert-warning py-2 px-3 small mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Phát hiện lệch nhãn:</strong> Tác giả đăng ký <em>"{{ hoso.tenLinhVuc }}"</em> nhưng mô hình AI dự đoán thuộc <em>"{{ hoso.tenLinhVucAI }}"</em>.
+                </div>
+                {% endif %}
+
+                <!-- Cơ chế Phản hồi Nhãn AI -->
+                {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
+                <div class="border-top pt-3">
+                    <h6 class="fw-bold text-primary small text-uppercase mb-2">
+                        <i class="bi bi-arrow-repeat me-1"></i>Xác nhận hoặc Điều chỉnh Nhãn Lĩnh vực
+                    </h6>
+
+                    <!-- Nút 1: Xác nhận nhãn AI chính xác -->
+                    <form method="POST" action="{{ url_for('hoso_ai_feedback', ma_ho_so=hoso.maHoSo) }}" class="mb-2">
+                        <input type="hidden" name="actionType" value="confirm">
+                        <button type="submit" class="btn btn-success btn-sm w-100 fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i>Xác nhận Nhãn AI Chính xác ({{ hoso.tenLinhVucAI }})
+                        </button>
+                    </form>
+
+                    <!-- Nút 2: Điều chỉnh và chọn lại nhãn đúng từ danh mục chuẩn -->
+                    <form method="POST" action="{{ url_for('hoso_ai_feedback', ma_ho_so=hoso.maHoSo) }}" class="p-2 rounded bg-light border">
+                        <input type="hidden" name="actionType" value="adjust">
+                        <label class="form-label small fw-semibold mb-1">Hoặc điều chỉnh & chọn lại nhãn đúng từ danh mục chuẩn:</label>
+                        <div class="input-group input-group-sm mb-2">
+                            <select name="maLinhVucThucTe" class="form-select">
+                                {% for lv in linh_vucs %}
+                                <option value="{{ lv.maLinhVuc }}" {% if lv.maLinhVuc == hoso.maLinhVucAI %}selected{% endif %}>
+                                    [{{ lv.maCode }}] {{ lv.tenLinhVuc }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-warning fw-bold">Lưu điều chỉnh</button>
+                        </div>
+                        <input type="text" name="ghiChuPhanHoi" class="form-control form-control-sm"
+                               placeholder="Ghi chú lý do điều chỉnh nhãn (tùy chọn)...">
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- KHUNG 2: PHÁT HIỆN BẤT THƯỜNG -->
+        <div class="card card-academic mb-4 border-top border-4 {% if hoso.coCanhBao == 1 %}border-danger{% else %}border-success{% endif %}">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-diagram-3-fill me-2 text-danger"></i>Phát Hiện Bất Thường & Kiểm Tra Chéo</span>
+                <span class="badge {% if hoso.coCanhBao == 1 %}bg-danger{% else %}bg-success{% endif %}">
+                    Điểm rủi ro: {{ "%.2f"|format(hoso.diemBatThuong or 0) }}
+                </span>
+            </div>
+            <div class="card-body small">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Điểm rủi ro bất thường:</span>
+                            <strong class="{% if hoso.coCanhBao == 1 %}text-danger{% else %}text-success{% endif %}">
+                                {{ "%.2f"|format(hoso.diemBatThuong or 0) }} (Ngưỡng &lt; 0.50)
+                            </strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Độ tương đồng nội dung:</span>
+                            <strong class="{% if (hoso.doTuongDongMax or 0) >= 62 %}text-danger{% else %}text-dark{% endif %}">
+                                {{ "%.1f"|format(hoso.doTuongDongMax or 0) }}%
+                                {% if hoso.hoSoTuongDongNhat %}({{ hoso.hoSoTuongDongNhat }}){% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if hoso.canhBaoList %}
+                <div class="alert alert-danger mb-0 py-2 px-3">
+                    <div class="fw-bold mb-1"><i class="bi bi-Bell-fill me-1"></i>Phát hiện {{ hoso.canhBaoList|length }} dấu hiệu bất thường cần thẩm định kỹ:</div>
+                    <ul class="mb-0 ps-3">
+                        {% for reason in hoso.canhBaoList %}
+                        <li class="mb-1">{{ reason | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <div class="alert alert-success mb-0 py-2 px-3">
+                    <i class="bi bi-shield-check me-1"></i>
+                    <strong>Hồ sơ an toàn:</strong> Không phát hiện bất thường trên đồ thị liên kết Tác giả - Lĩnh vực, tạp chí thuộc danh mục uy tín và không trùng lặp nội dung.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- KHUNG 3: QUY TRÌNH XÉT DUYỆT HỒ SƠ -->
+        {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
+        <div class="card card-academic border-top border-4 border-primary">
+            <div class="card-header card-header-academic">
+                <i class="bi bi-clipboard2-check-fill me-2"></i>Quyết Định Thẩm Định & Chuyển Trạng Thái
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('hoso_review_action', ma_ho_so=hoso.maHoSo) }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Chuyển trạng thái hồ sơ (*)</label>
+                        <select name="trangThaiMoi" class="form-select form-select-sm fw-bold">
+                            {% for st in ['Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Từ chối'] %}
+                            <option value="{{ st }}" {% if hoso.trangThai == st %}selected{% endif %}>{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Ý kiến đánh giá của Cán bộ xét duyệt (*)</label>
+                        <textarea name="yKienDanhGia" rows="3" class="form-control form-control-sm"
+                                  placeholder="Nhập nhận xét thẩm định về minh chứng, tạp chí, mức độ phù hợp lĩnh vực chuyên ngành..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                        <i class="bi bi-send-check-fill me-1"></i>CẬP NHẬT TRẠNG THÁI XÉT DUYỆT
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

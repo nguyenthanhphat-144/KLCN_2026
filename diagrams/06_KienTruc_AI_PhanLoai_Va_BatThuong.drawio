@@ -1,0 +1,142 @@
+<mxfile host="65bd71144e">
+  <diagram id="ai-pipeline-architecture" name="Kiến Trúc AI NLP &amp; Anomaly">
+    <mxGraphModel dx="1500" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1550" pageHeight="950" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="KIẾN TRÚC PIPELINE TRÍ TUỆ NHÂN TẠO: TIỀN XỬ LÝ TIẾNG VIỆT, PHÂN LOẠI TỰ ĐỘNG &amp; PHÁT HIỆN BẤT THƯỜNG&#xa;(TF-IDF + LINEAR SVM | FINE-TUNING PHOBERT | ĐỒ THỊ NETWORKX + ISOLATION FOREST | FEEDBACK LOOP)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="175" y="15" width="1200" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Stage 1: Input & Preprocessing -->
+        <mxCell id="stg1" value="GIAI ĐOẠN 1: TIỀN XỬ LÝ DỮ LIỆU TIẾNG VIỆT&#xa;(Tuần 6 - Mục 1a, 1b, 1c)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="320" height="780" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1_b1" value="1a. Trích xuất &amp; Hợp nhất 4 trường&#xa;───────────────────────&#xa;[Tiêu đề] + [Tóm tắt Abstract]&#xa;+ [Từ khóa] + [Thông tin Tác giả]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="65" width="270" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1_b2" value="1b. Làm sạch &amp; Chuẩn hóa văn bản&#xa;───────────────────────&#xa;• Chuyển chữ thường (lowercase)&#xa;• Chuẩn hóa bảng mã Unicode dựng sẵn&#xa;• Xóa thẻ HTML, URL, ký tự đặc biệt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="200" width="270" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1_b3" value="1b. Loại bỏ Từ dừng (Stop-words)&#xa;───────────────────────&#xa;Lọc bỏ các từ hư tiếng Việt:&#xa;'và', 'của', 'các', 'trong', 'cho', 'với'..." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="350" width="270" height="95" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1_b4" value="1c. Tách từ tiếng Việt chuyên dụng&#xa;(Vietnamese Word Segmentation)&#xa;───────────────────────&#xa;Sử dụng PyVi / Underthesea gắn kết&#xa;từ ghép bằng dấu gạch dưới (_):&#xa;'công_nghệ_thông_tin', 'trí_tuệ_nhân_tạo'" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="485" width="270" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1_b5" value="Chuỗi đặc trưng đầu vào chuẩn hóa&#xa;(Clean Segmented Corpus)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#FFFFFF;strokeColor=#000000;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="655" width="270" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1_1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg1" source="s1_b1" target="s1_b2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1_2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg1" source="s1_b2" target="s1_b3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1_3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg1" source="s1_b3" target="s1_b4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1_4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg1" source="s1_b4" target="s1_b5"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Stage 2: NLP Classification Models -->
+        <mxCell id="stg2" value="GIAI ĐOẠN 2: PHÂN LOẠI TỰ ĐỘNG HỒ SƠ KH&amp;CN (CHỨC NĂNG 5)&#xa;Nhánh Baseline (TF-IDF + SVM) &amp; Nhánh Deep Learning (Fine-tuning PhoBERT)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="410" y="80" width="660" height="470" as="geometry" />
+        </mxCell>
+
+        <!-- Branch A: Baseline -->
+        <mxCell id="s2_ba1" value="Nhánh 2A: Mô hình Baseline&#xa;Trích xuất ma trận TF-IDF&#xa;(scikit-learn TfidfVectorizer&#xa;ngram_range=(1,2))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg2">
+          <mxGeometry x="30" y="65" width="275" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_ba2" value="Bộ phân loại LinearSVC&#xa;+ CalibratedClassifierCV&#xa;───────────────────────&#xa;Ưu điểm: Tốc độ cực nhanh (&lt;5ms),&#xa;nhẹ tài nguyên, độ ổn định cao" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg2">
+          <mxGeometry x="30" y="185" width="275" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Branch B: PhoBERT -->
+        <mxCell id="s2_bb1" value="Nhánh 2B: Mô hình Deep Learning&#xa;vinai/phobert-base (RoBERTa)&#xa;(Byte-level BPE Tokenizer +&#xa;Đóng băng các tầng ẩn bên dưới)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg2">
+          <mxGeometry x="355" y="65" width="275" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_bb2" value="Classification Head + Fine-tuning&#xa;(LR=2e-5, Batch=16, AdamW)&#xa;───────────────────────&#xa;Ưu điểm: Hiểu sâu ngữ cảnh khoa học,&#xa;Precision / Recall / F1-score vượt trội" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg2">
+          <mxGeometry x="355" y="185" width="275" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Evaluation & Confidence Output -->
+        <mxCell id="s2_eval" value="2c. Kiểm thử Độc lập &amp; So sánh Thực nghiệm: Precision | Recall | Macro F1-Score | Thời gian phản hồi (ms)&#xa;Kết xuất Nhãn Lĩnh Vực Dự Đoán + Độ Tin Cậy (%) kèm Mã Màu: Xanh (&gt;80%) | Vàng (50-80%) | Đỏ (&lt;50%)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg2">
+          <mxGeometry x="30" y="340" width="600" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2_1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg2" source="s2_ba1" target="s2_ba2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2_2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg2" source="s2_bb1" target="s2_bb2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2_3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg2" source="s2_ba2" target="s2_eval"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2_4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg2" source="s2_bb2" target="s2_eval"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Stage 3: Anomaly Detection (NetworkX + Isolation Forest) -->
+        <mxCell id="stg3" value="GIAI ĐOẠN 3: PHÁT HIỆN BẤT THƯỜNG KẾT HỢP NETWORKX &amp; ISOLATION FOREST&#xa;(Tuần 3 - Mục 2b)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="410" y="575" width="660" height="285" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3_nx" value="Đồ thị Quan hệ Tri thức (NetworkX)&#xa;───────────────────────&#xa;• Đỉnh (Nodes): Tác giả, Công trình,&#xa;  Lĩnh vực, Tạp chí công bố&#xa;• Đặc trưng đồ thị: Degree Centrality,&#xa;  Tỷ lệ lệch lĩnh vực lịch sử tác giả" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg3">
+          <mxGeometry x="30" y="60" width="280" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3_if" value="Thuật toán Isolation Forest&#xa;───────────────────────&#xa;• Vector đặc trưng: [Độ lệch nhãn AI,&#xa;  Độ tương đồng trùng lặp Cosine,&#xa;  Uy tín tạp chí, Điểm lệch đồ thị NX]&#xa;• Phát hiện hồ sơ dị biệt / rủi ro cao" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg3">
+          <mxGeometry x="350" y="60" width="280" height="125" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3_out" value="Cảnh báo thông minh trên Giao diện Xét duyệt: Khai sai lĩnh vực | Tạp chí ngoài danh mục | Nghi vấn trùng lặp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg3">
+          <mxGeometry x="30" y="210" width="600" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3_1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg3" source="s3_nx" target="s3_if"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3_2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg3" source="s3_if" target="s3_out"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Stage 4: Web Integration & Feedback Loop -->
+        <mxCell id="stg4" value="GIAI ĐOẠN 4: TÍCH HỢP WEB &amp;&#xa;CƠ CHẾ PHẢN HỒI (FEEDBACK LOOP)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="80" width="380" height="780" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4_ui" value="Giao diện Thẩm định Hồ sơ&#xa;───────────────────────&#xa;Hiển thị Nhãn AI + % Độ tin cậy&#xa;(Mã màu Xanh / Vàng / Đỏ)&#xa;&amp; Cảnh báo Bất thường" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+          <mxGeometry x="35" y="80" width="310" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4_act" value="Thao tác của Cán bộ Xét duyệt&#xa;───────────────────────&#xa;1. [Xác nhận nhãn AI] nếu đúng&#xa;2. [Điều chỉnh &amp; chọn lại nhãn đúng]&#xa;   từ danh mục chuẩn nếu AI lệch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+          <mxGeometry x="35" y="265" width="310" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4_db" value="Lưu CSDL Bảng PhanHoiAI&#xa;───────────────────────&#xa;Ghi nhận cặp đối sánh:&#xa;(Nhãn AI đề xuất vs Nhãn thực tế)&#xa;cùng văn bản đã tách từ" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+          <mxGeometry x="50" y="460" width="280" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s4_retrain" value="Huấn luyện Bổ sung &amp; Fine-tuning&#xa;(Active Learning / Retraining)&#xa;───────────────────────&#xa;Nâng cao độ chính xác mô hình&#xa;trong các kỳ xét duyệt tiếp theo" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+          <mxGeometry x="35" y="650" width="310" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e4_1" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg4" source="s4_ui" target="s4_act"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4_2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg4" source="s4_act" target="s4_db"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4_3" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg4" source="s4_db" target="s4_retrain"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- Inter-stage arrows -->
+        <mxCell id="inter1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" edge="1" parent="1" source="s1_b5" target="s2_ba1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inter2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" edge="1" parent="1" source="s1_b5" target="s2_bb1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inter3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" edge="1" parent="1" source="s1_b5" target="s3_nx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inter4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" edge="1" parent="1" source="s2_eval" target="s4_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inter5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;" edge="1" parent="1" source="s3_out" target="s4_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inter6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;endArrow=classic;" edge="1" parent="1" source="s4_retrain" target="stg2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

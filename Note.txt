@@ -1,0 +1,5 @@
+Xây dựng hệ thống phát hiện xâm nhập mạng bất thường sử dụng mô hình học sâu kết hợp trí tuệ nhân tạo
+
+Nghiên cứu đề xuất kiến trúc mạng nơ ron học sâu và thuật toán học máy nhằm phân tích lưu lượng mạng máy tính thời gian thực, nâng cao độ chính xác trong phát hiện tấn công mạng và bảo đảm an toàn thông tin cho hệ thống đám mây.
+
+trí tuệ nhân tạo, học sâu, an toàn thông tin, mạng máy tính, học máy

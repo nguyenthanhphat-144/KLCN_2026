@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Quản lý Danh mục Hệ thống{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold text-primary mb-1">
+        <i class="bi bi-bookmarks-fill me-2"></i>Quản Lý Danh Mục Chuẩn Hệ Thống
+    </h4>
+    <p class="text-muted small mb-0">
+        Quản lý danh mục Lĩnh vực nghiên cứu, Loại công trình KH&CN và Danh mục Tạp chí hợp lệ.
+    </p>
+</div>
+
+<div class="row g-4">
+    <!-- 1. Danh mục Lĩnh vực -->
+    <div class="col-12">
+        <div class="card card-academic">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-layers-fill me-2"></i>1. Danh Mục Lĩnh Vực Nghiên Cứu Chuẩn</span>
+                <span class="badge bg-primary">{{ linh_vucs|length }} lĩnh vực</span>
+            </div>
+            <div class="card-body">
+                {% if current_user.vai_tro == 'Admin' %}
+                <form method="POST" action="{{ url_for('catalog_add_linhvuc') }}" class="row g-2 mb-3 p-3 rounded bg-light border">
+                    <div class="col-md-2">
+                        <input type="text" name="maCode" class="form-control form-control-sm" placeholder="Mã (VD: LV-YSH)" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="tenLinhVuc" class="form-control form-control-sm" placeholder="Tên lĩnh vực chuyên ngành..." required>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="moTa" class="form-control form-control-sm" placeholder="Mô tả phạm vi chuyên ngành...">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">+ Thêm Lĩnh vực</button>
+                    </div>
+                </form>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Mã Lĩnh Vực</th>
+                                <th>Tên Lĩnh Vực Chuyên Ngành</th>
+                                <th>Mô tả phạm vi</th>
+                                <th class="text-center">Hồ sơ liên kết</th>
+                                <th class="text-center">Trạng thái</th>
+                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end">Thao tác</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lv in linh_vucs %}
+                            <tr>
+                                <td class="fw-bold">{{ lv.maLinhVuc }}</td>
+                                <td><code>{{ lv.maCode }}</code></td>
+                                <td class="fw-bold text-primary">{{ lv.tenLinhVuc }}</td>
+                                <td>{{ lv.moTa }}</td>
+                                <td class="text-center"><span class="badge bg-secondary">{{ lv.soHoSoLienKet }}</span></td>
+                                <td class="text-center">
+                                    {% if lv.trangThai == 1 %}
+                                    <span class="badge bg-success">Đang kích hoạt</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Đã vô hiệu hóa</span>
+                                    {% endif %}
+                                </td>
+                                {% if current_user.vai_tro == 'Admin' %}
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='linhvuc', item_id=lv.maLinhVuc) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            {% if lv.trangThai == 1 %}Vô hiệu hóa{% else %}Kích hoạt lại{% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Danh mục Loại công trình -->
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                <i class="bi bi-award-fill me-2"></i>2. Danh Mục Loại Công Trình
+            </div>
+            <div class="card-body">
+                {% if current_user.vai_tro == 'Admin' %}
+                <form method="POST" action="{{ url_for('catalog_add_loai') }}" class="row g-2 mb-3 p-2 rounded bg-light border">
+                    <div class="col-md-3">
+                        <input type="text" name="maCodeLoai" class="form-control form-control-sm" placeholder="Mã loại" required>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="tenLoai" class="form-control form-control-sm" placeholder="Tên loại công trình" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">Thêm</button>
+                    </div>
+                </form>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên loại công trình</th>
+                                <th class="text-center">Trạng thái</th>
+                                {% if current_user.vai_tro == 'Admin' %}<th></th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lct in loai_cts %}
+                            <tr>
+                                <td><code>{{ lct.maCodeLoai }}</code></td>
+                                <td class="fw-semibold">
+                                    {{ lct.tenLoai
+                                       | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)')
+                                       | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if lct.trangThai == 1 %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ 'Hoạt động' if lct.trangThai == 1 else 'Tạm ẩn' }}
+                                    </span>
+                                </td>
+                                {% if current_user.vai_tro == 'Admin' %}
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='loai', item_id=lct.maLoai) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0">Đổi TT</button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Danh mục Tạp chí hợp lệ & Cảnh báo -->
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                <i class="bi bi-journal-check me-2"></i>3. Danh Mục Tạp Chí Hợp Lệ & Kiểm Tra Chéo
+            </div>
+            <div class="card-body">
+                {% if current_user.vai_tro == 'Admin' %}
+                <form method="POST" action="{{ url_for('catalog_add_tapchi') }}" class="row g-2 mb-3 p-2 rounded bg-light border">
+                    <div class="col-md-4">
+                        <input type="text" name="tenTapChi" class="form-control form-control-sm" placeholder="Tên tạp chí..." required>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="Mã ISSN" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="uyTin" class="form-select form-select-sm">
+                            <option value="1">✔ Tạp chí Uy tín (Quốc tế / HĐGSNN)</option>
+                            <option value="0">🚨 Cảnh báo Không uy tín</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">+ Thêm Tạp chí</button>
+                    </div>
+                </form>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên Tạp chí / Hội đồng</th>
+                                <th>Mã số ISSN</th>
+                                <th>Xếp hạng / Độ uy tín</th>
+                                {% if current_user.vai_tro == 'Admin' %}<th></th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tc in tap_chis %}
+                            {% set vn_xh = tc.xepHang
+                                | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
+                                | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
+                                | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
+                                | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
+                                | replace('Predatory', 'Không uy tín')
+                                | replace('Discontinued', 'Ngừng chỉ mục') %}
+                            {% set vn_tc = tc.tenTapChi
+                                | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                            <tr>
+                                <td class="fw-semibold">{{ vn_tc }}</td>
+                                <td><code>{{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }}</code></td>
+                                <td>
+                                    {% if tc.uyTin == 1 %}
+                                    <span class="badge bg-success">✔ {{ vn_xh }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">🚨 {{ vn_xh }}</span>
+                                    {% endif %}
+                                </td>
+                                {% if current_user.vai_tro == 'Admin' %}
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='tapchi', item_id=tc.maTapChi) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0">Đổi TT</button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Chỉnh sửa Hồ sơ {{ hoso.maHoSo }}{% else %}Khai báo & Nộp mới Hồ sơ KH&CN{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card card-academic">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-file-earmark-medical-fill me-2"></i>
+                    {% if mode == 'edit' %}
+                        Chỉnh Sửa Thông Tin Hồ Sơ KH&CN: {{ hoso.maHoSo }}
+                    {% else %}
+                        Biểu Mẫu Khai Báo & Nộp Mới Hồ Sơ KH&CN
+                    {% endif %}
+                </span>
+                <span class="badge bg-warning text-dark">Trạng thái mặc định: Chờ xét duyệt</span>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">1. Tiêu đề công trình Khoa học và Công nghệ (*)</label>
+                            <input type="text" name="tieuDe" id="inpTieuDe" class="form-control"
+                                   value="{{ hoso.tieuDe if hoso else '' }}"
+                                   placeholder="VD: Nghiên cứu ứng dụng mô hình ngôn ngữ PhoBERT trong phân loại văn bản khoa học tiếng Việt..." required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">2. Tóm tắt nội dung công trình (*)</label>
+                            <textarea name="tomTat" id="inpTomTat" rows="4" class="form-control"
+                                      placeholder="Nhập tóm tắt mục tiêu, phương pháp nghiên cứu và kết quả chính của công trình..." required>{{ hoso.tomTat if hoso else '' }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">3. Từ khóa chuyên ngành (*)</label>
+                            <input type="text" name="tuKhoa" id="inpTuKhoa" class="form-control"
+                                   value="{{ hoso.tuKhoa if hoso else '' }}"
+                                   placeholder="VD: trí tuệ nhân tạo, học sâu, phobert, phân loại văn bản" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">4. Thông tin nhóm Tác giả (*)</label>
+                            {% set raw_tg = hoso.thongTinTacGia if hoso else current_user.ho_ten %}
+                            {% set clean_tg = (raw_tg or '')
+                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                            <input type="text" name="thongTinTacGia" id="inpTacGia" class="form-control"
+                                   value="{{ clean_tg }}" required>
+                        </div>
+
+                        <!-- Live AI Preview Box -->
+                        <div class="col-12">
+                            <div class="p-3 rounded border" style="background-color: #f8fafc;">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                    <div>
+                                        <strong class="text-primary"><i class="bi bi-robot me-1"></i>Trợ lý AI Phân tích & Gợi ý Nhãn Lĩnh vực Tức thời</strong>
+                                        <div class="small text-muted">Tự động xử lý văn bản tiếng Việt và gợi ý lĩnh vực chuyên ngành phù hợp nhất</div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="runLiveAIPreview()">
+                                        <i class="bi bi-magic me-1"></i>Phân tích & Gợi ý Nhãn AI ngay
+                                    </button>
+                                </div>
+                                <div id="aiPreviewResult" class="d-none mt-2 pt-2 border-top">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-7">
+                                            <div class="small fw-semibold text-secondary mb-1">Chuỗi văn bản sau khi làm sạch & tách từ ghép tiếng Việt:</div>
+                                            <div id="previewSegmented" class="segmented-box small"></div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="p-2 rounded border bg-white">
+                                                <div class="small text-muted">Nhãn lĩnh vực AI đề xuất:</div>
+                                                <div id="previewPhobertLabel" class="fw-bold text-primary fs-6"></div>
+                                                <div id="previewConfidenceBadge" class="mt-1"></div>
+                                                <div class="small text-muted mt-1">Mô hình đối chiếu: <span id="previewSvmLabel" class="fw-semibold"></span></div>
+                                                <button type="button" class="btn btn-xs btn-sm btn-success mt-2 w-100" onclick="applyAISuggestion()">
+                                                    <i class="bi bi-check2-all me-1"></i>Chọn lĩnh vực này vào biểu mẫu
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">5. Lĩnh vực chuyên ngành đăng ký (*)</label>
+                            <select name="maLinhVuc" id="selMaLinhVuc" class="form-select" required>
+                                {% for lv in linh_vucs %}
+                                <option value="{{ lv.maLinhVuc }}" {% if hoso and hoso.maLinhVuc == lv.maLinhVuc %}selected{% endif %}>
+                                    [{{ lv.maCode }}] {{ lv.tenLinhVuc }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">6. Loại công trình KH&CN (*)</label>
+                            <select name="maLoai" class="form-select" required>
+                                {% for lct in loai_cts %}
+                                <option value="{{ lct.maLoai }}" {% if hoso and hoso.maLoai == lct.maLoai %}selected{% endif %}>
+                                    {{ lct.tenLoai | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">7. Tạp chí công bố / Hội đồng nghiệm thu (Đối chiếu danh mục)</label>
+                            <select name="maTapChi" class="form-select">
+                                {% for tc in tap_chis %}
+                                {% set vn_xh = tc.xepHang
+                                    | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
+                                    | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
+                                    | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
+                                    | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
+                                    | replace('Predatory', 'Không uy tín')
+                                    | replace('Discontinued', 'Ngừng chỉ mục') %}
+                                {% set vn_tc = tc.tenTapChi
+                                    | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                    | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                    | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                    | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                    | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                    | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                    | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                    | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                                <option value="{{ tc.maTapChi }}" {% if hoso and hoso.maTapChi == tc.maTapChi %}selected{% endif %}>
+                                    {{ vn_tc }} (Mã: {{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }} - {{ vn_xh }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">8. Đơn vị chủ trì (*)</label>
+                            <input type="text" name="donViChuTri" class="form-control"
+                                   value="{{ hoso.donViChuTri if hoso else current_user.don_vi }}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">9. Năm công bố</label>
+                            <input type="number" name="namCongBo" class="form-control"
+                                   value="{{ hoso.namCongBo if hoso else 2026 }}" min="2015" max="2030">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">10. Kỳ báo cáo thống kê</label>
+                            <select name="kyBaoCao" class="form-select">
+                                {% for ky in ['Đợt 1 - Năm học 2025-2026', 'Đợt 2 - Năm học 2025-2026', 'Đợt 2 - Năm học 2024-2025'] %}
+                                <option value="{{ ky }}" {% if hoso and hoso.kyBaoCao == ky %}selected{% endif %}>{{ ky }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">11. Tệp minh chứng đính kèm (PDF/DOCX/ZIP)</label>
+                            <div class="input-group">
+                                <label class="btn btn-outline-primary mb-0 fw-semibold" for="fileDinhKemInput">
+                                    <i class="bi bi-folder2-open me-1"></i>Chọn tệp
+                                </label>
+                                <input type="file" name="fileDinhKem" id="fileDinhKemInput" class="d-none"
+                                       onchange="document.getElementById('fileDinhKemText').value = this.files.length ? this.files[0].name : 'Chưa có tệp nào được chọn'">
+                                <input type="text" id="fileDinhKemText" class="form-control bg-white"
+                                       value="Chưa có tệp nào được chọn" readonly
+                                       onclick="document.getElementById('fileDinhKemInput').click()" style="cursor: pointer;">
+                            </div>
+                            {% if hoso and hoso.fileDinhKem %}
+                            <div class="form-text small">Tệp hiện tại: <code>{{ hoso.fileDinhKem }}</code></div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('hoso_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Hủy & Quay lại
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-cloud-arrow-up-fill me-2"></i>
+                            {% if mode == 'edit' %}LƯU CẬP NHẬT & CHẠY LẠI PHÂN TÍCH AI{% else %}NỘP HỒ SƠ & KÍCH HOẠT AI PHÂN LOẠI{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let suggestedLabelId = null;
+
+async function runLiveAIPreview() {
+    const tieuDe = document.getElementById('inpTieuDe').value;
+    const tomTat = document.getElementById('inpTomTat').value;
+    const tuKhoa = document.getElementById('inpTuKhoa').value;
+    const tacGia = document.getElementById('inpTacGia').value;
+
+    if (!tieuDe && !tomTat) {
+        alert('Vui lòng nhập Tiêu đề và Tóm tắt trước khi chạy gợi ý AI!');
+        return;
+    }
+
+    const resp = await fetch("{{ url_for('api_ai_preview') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tieuDe, tomTat, tuKhoa, thongTinTacGia: tacGia })
+    });
+    const data = await resp.json();
+    suggestedLabelId = data.phobert_label_id;
+
+    document.getElementById('aiPreviewResult').classList.remove('d-none');
+    document.getElementById('previewSegmented').textContent = data.segmented_text || '(Trống)';
+    document.getElementById('previewPhobertLabel').textContent = data.phobert_label_name;
+    document.getElementById('previewSvmLabel').textContent = `${data.svm_label_name} (${data.svm_confidence}%)`;
+
+    const badge = data.badge;
+    document.getElementById('previewConfidenceBadge').innerHTML =
+        `<span class="badge bg-${badge.color_class}">${badge.icon} Độ tin cậy: ${data.phobert_confidence}% - ${badge.label}</span>`;
+}
+
+function applyAISuggestion() {
+    if (suggestedLabelId) {
+        document.getElementById('selMaLinhVuc').value = String(suggestedLabelId);
+    }
+}
+</script>
+{% endblock %}

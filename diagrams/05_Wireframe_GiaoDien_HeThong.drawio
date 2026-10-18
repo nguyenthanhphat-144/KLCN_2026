@@ -1,0 +1,88 @@
+<mxfile host="65bd71144e">
+  <diagram id="wireframe-core-screens" name="Wireframe Giao Diện Cốt Lõi">
+    <mxGraphModel dx="1600" dy="1150" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1250" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="THIẾT KẾ GIAO DIỆN WIREFRAME CÁC MÀN HÌNH CỐT LÕI CỦA HỆ THỐNG WEB (TUẦN 3 - MỤC 2A)&#xa;1. TRANG CHỦ QUẢN LÝ HỒ SƠ &amp; DASHBOARD   |   2. BIỂU MẪU KHAI BÁO HỒ SƠ   |   3. GIAO DIỆN XÉT DUYỆT ƯU TIÊN TÍCH HỢP AI" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#1A365D;" vertex="1" parent="1">
+          <mxGeometry x="150" y="15" width="1350" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SCREEN 1: DASHBOARD & DANH SÁCH HỒ SƠ ==================== -->
+        <mxCell id="scr1_frame" value="MÀN HÌNH 1: TRANG CHỦ DASHBOARD &amp; QUẢN LÝ HỒ SƠ KH&amp;CN" style="swimlane;whiteSpace=wrap;html=1;startSize=32;fillColor=#F8FAFC;strokeColor=#2B6CB0;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="75" width="760" height="530" as="geometry" />
+        </mxCell>
+        <!-- Top Navbar -->
+        <mxCell id="s1_nav" value="🏛️ HỆ THỐNG QUẢN LÝ KH&amp;CN (CNTT-KLCN001)     |   Dashboard   |   Hồ sơ KH&amp;CN   |   Xét duyệt AI   |   Danh mục   |   👤 PGS.TS Nguyễn Văn A (Cán bộ)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1E3A8A;fontColor=#FFFFFF;fontStyle=1;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="10" y="40" width="740" height="35" as="geometry" />
+        </mxCell>
+        <!-- KPI Cards -->
+        <mxCell id="s1_kpi1" value="Tổng hồ sơ kỳ này&#xa;128 Hồ sơ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF8FF;strokeColor=#3182CE;fontStyle=1;fontSize=12;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="15" y="90" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s1_kpi2" value="Chờ xét duyệt&#xa;34 Hồ sơ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEFCBF;strokeColor=#D69E2E;fontStyle=1;fontSize=12;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="200" y="90" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s1_kpi3" value="AI Phân loại Khớp&#xa;92.4% (PhoBERT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6F6D5;strokeColor=#2F855A;fontStyle=1;fontSize=12;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="385" y="90" width="175" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s1_kpi4" value="⚠️ Cảnh báo bất thường&#xa;05 Hồ sơ cần rà soát" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FED7D7;strokeColor=#C53030;fontStyle=1;fontSize=12;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="575" y="90" width="170" height="60" as="geometry" />
+        </mxCell>
+        <!-- Filter Bar -->
+        <mxCell id="s1_filter" value="🔍 [Tìm kiếm tiêu đề, tóm tắt, từ khóa...        ]   [Lĩnh vực: Tất cả ▼]   [Loại CT: Tất cả ▼]   [Trạng thái ▼]   [Lọc]   [📊 Xuất Excel] [📄 Xuất PDF]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF2F7;strokeColor=#A0AEC0;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="15" y="165" width="730" height="40" as="geometry" />
+        </mxCell>
+        <!-- Data Table -->
+        <mxCell id="s1_table" value="BẢNG DANH SÁCH HỒ SƠ KHOA HỌC &amp; CÔNG NGHỆ (PHÂN TRANG)&#xa;─────────────────────────────────────────────────────────────────────────────────────&#xa;Mã HS        | Tiêu đề công trình                   | Lĩnh vực khai báo | Nhãn AI (Tin cậy)      | Cảnh báo   | Trạng thái     | Thao tác&#xa;─────────────────────────────────────────────────────────────────────────────────────&#xa;HS-2026-001 | Ứng dụng PhoBERT phân loại văn bản... | CNTT &amp; TT         | 🟢 CNTT (94.8%)       | Bình thường| Chờ xét duyệt  | [Thẩm định] [Sửa]&#xa;HS-2026-002 | Tối ưu hóa mạng cảm biến IoT...       | Điện - Điện tử    | 🟡 CNTT (68.2%)       | ⚠️ Lệch nhãn| Đang xét duyệt | [Thẩm định]&#xa;HS-2026-003 | Nghiên cứu tổng hợp vật liệu nano...  | Kinh tế Quản lý   | 🔴 Hóa - Sinh (38.5%) | 🚨 Cao (IF) | Chờ xét duyệt  | [Thẩm định]&#xa;HS-2026-004 | Phân tích chuỗi cung ứng xanh...      | Kinh tế Quản lý   | 🟢 Kinh tế (91.2%)    | Bình thường| Đã duyệt       | [Xem chi tiết]&#xa;─────────────────────────────────────────────────────────────────────────────────────&#xa;Hiển thị 1-10 / 128 hồ sơ                                                                      [« Trước] [1] [2] [3] ... [Tiếp »]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E0;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="scr1_frame">
+          <mxGeometry x="15" y="220" width="730" height="285" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SCREEN 2: BIỂU MẪU KHAI BÁO HỒ SƠ ==================== -->
+        <mxCell id="scr2_frame" value="MÀN HÌNH 2: BIỂU MẪU KHAI BÁO &amp; NỘP MỚI HỒ SƠ KH&amp;CN (TÁC GIẢ / GIẢNG VIÊN)" style="swimlane;whiteSpace=wrap;html=1;startSize=32;fillColor=#F8FAFC;strokeColor=#2F855A;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#22543D;" vertex="1" parent="1">
+          <mxGeometry x="840" y="75" width="760" height="530" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_header" value="📝 KHAI BÁO HỒ SƠ KHOA HỌC &amp; CÔNG NGHỆ MỚI (Trạng thái mặc định: Chờ xét duyệt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C6F6D5;strokeColor=#2F855A;fontStyle=1;fontSize=12;align=left;spacingLeft=12;" vertex="1" parent="scr2_frame">
+          <mxGeometry x="15" y="45" width="730" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_form" value="1. Tiêu đề công trình KH&amp;CN (*):&#xa;   [ Nghiên cứu mô hình học sâu kết hợp đồ thị tri thức trong phân loại tài liệu khoa học tiếng Việt         ]&#xa;&#xa;2. Tóm tắt nội dung - Abstract (*):&#xa;   [ Bài báo đề xuất phương pháp kết hợp kiến trúc Pre-trained PhoBERT và thuật toán Isolation Forest trên đồ  ]&#xa;   [ thị NetworkX nhằm tự động phân loại chuyên ngành và phát hiện các bất thường trong hồ sơ nghiên cứu... ]&#xa;&#xa;3. Từ khóa - Keywords (*):                                4. Thông tin nhóm tác giả &amp; Đơn vị (*):&#xa;   [ PhoBERT; Học máy; Phân loại văn bản; NLP ]              [ TS. Lê Văn B, ThS. Trần Thị C - Khoa CNTT       ]&#xa;&#xa;5. Lĩnh vực chuyên ngành đăng ký (*):                     6. Loại công trình KH&amp;CN (*):&#xa;   [ Công nghệ thông tin và Truyền thông        ▼ ]          [ Bài báo tạp chí quốc tế uy tín (Scopus/ISI)  ▼ ]&#xa;&#xa;7. Tạp chí / Hội nghị công bố (Đối chiếu danh mục):       8. Đính kèm tệp minh chứng (PDF/DOCX - Toàn văn):&#xa;   [ Journal of Computer Science and Cybernetics ▼ ]          [ 📎 Chọn tệp: BaiBao_ToanVan_2026.pdf (2.4 MB)   ]&#xa;&#xa;🤖 [Nút Gợi ý AI Nhanh trước khi nộp]: AI dự đoán nhãn 'Công nghệ thông tin &amp; Truyền thông' (Độ tin cậy: 95.4%)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#A0AEC0;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=12;" vertex="1" parent="scr2_frame">
+          <mxGeometry x="15" y="95" width="730" height="365" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_btn_submit" value="✅ NỘP HỒ SƠ &amp; KÍCH HOẠT AI PHÂN TÍCH" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2F855A;fontColor=#FFFFFF;fontStyle=1;fontSize=12;" vertex="1" parent="scr2_frame">
+          <mxGeometry x="450" y="472" width="295" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="s2_btn_cancel" value="Hủy / Lưu nháp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E2E8F0;strokeColor=#718096;fontStyle=1;fontSize=12;" vertex="1" parent="scr2_frame">
+          <mxGeometry x="300" y="472" width="135" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== SCREEN 3: GIAO DIỆN XÉT DUYỆT ƯU TIÊN & AI PANEL ==================== -->
+        <mxCell id="scr3_frame" value="MÀN HÌNH 3: GIAO DIỆN THẨM ĐỊNH &amp; XÉT DUYỆT ƯU TIÊN TÍCH HỢP AI PHÂN LOẠI &amp; PHÁT HIỆN BẤT THƯỜNG (TUẦN 6 - MỤC 2D)" style="swimlane;whiteSpace=wrap;html=1;startSize=32;fillColor=#F8FAFC;strokeColor=#6B46C1;strokeWidth=2;fontStyle=1;fontSize=13;fontColor=#44337A;" vertex="1" parent="1">
+          <mxGeometry x="40" y="635" width="1560" height="570" as="geometry" />
+        </mxCell>
+
+        <!-- Left Pane: Thông tin hồ sơ chi tiết -->
+        <mxCell id="s3_left" value="📄 THÔNG TIN CHI TIẾT HỒ SƠ CẦN THẨM ĐỊNH: [HS-2026-001]&#xa;─────────────────────────────────────────────────────────────────────────────&#xa;• Tiêu đề: Ứng dụng mô hình ngôn ngữ tiền huấn luyện PhoBERT trong phân loại tự động hồ sơ KH&amp;CN&#xa;• Tác giả: TS. Nguyễn Minh Quân, ThS. Phạm Hoàng Nam (Khoa Công nghệ Thông tin)&#xa;• Loại công trình: Bài báo khoa học trên tạp chí quốc tế Scopus (Q1)&#xa;• Tạp chí công bố: Engineering Applications of Artificial Intelligence (ISSN: 0952-1976) - [✔ Thuộc DM Hợp lệ]&#xa;• Lĩnh vực do Tác giả khai báo: [ Công nghệ thông tin và Truyền thông ]&#xa;• Từ khóa: PhoBERT, TF-IDF, Support Vector Machine, Phân loại văn bản tiếng Việt, Quản lý KH&amp;CN&#xa;• Tóm tắt (Abstract):&#xa;  Nghiên cứu này trình bày quy trình tiền xử lý văn bản khoa học tiếng Việt sử dụng thư viện tách từ PyVi&#xa;  kết hợp với mô hình học sâu PhoBERT (vinai/phobert-base) được fine-tune nhằm tự động gán nhãn chuyên ngành...&#xa;• Tệp minh chứng đính kèm: [📥 Toàn_văn_bài_báo_HS2026001.pdf]   [📥 Minh_chứng_Scopus_Indexing.pdf]&#xa;&#xa;📜 LỊCH SỬ XÉT DUYỆT (Bảng LichSuXetDuyet):&#xa;  - 10/10/2026 08:30 | Hệ thống | Khởi tạo hồ sơ -&gt; Trạng thái: 'Chờ xét duyệt'&#xa;  - 11/10/2026 09:15 | ThS. Lê Thanh Tùng | Chuyển sang 'Đang xét duyệt' - Đã kiểm tra minh chứng hợp lệ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#CBD5E0;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=14;" vertex="1" parent="scr3_frame">
+          <mxGeometry x="15" y="45" width="760" height="505" as="geometry" />
+        </mxCell>
+
+        <!-- Right Top Pane: Khung Gợi ý phân loại từ AI (Chức năng 5 - 2d) -->
+        <mxCell id="s3_ai_box" value="🤖 KHUNG GỢI Ý PHÂN LOẠI TỰ ĐỘNG TỪ AI &amp; FEEDBACK LOOP (CHỨC NĂNG 5)&#xa;─────────────────────────────────────────────────────────────────────────────&#xa;• Chuỗi sau tách từ (PyVi): ung_dung mo_hinh ngon_ngu tien_huan_luyen phobert trong phan_loai tu_dong...&#xa;• Nhãn lĩnh vực AI dự đoán (PhoBERT):  [ Công nghệ thông tin và Truyền thông ]&#xa;• Nhãn dự đoán đối chiếu (TF-IDF+SVM): [ Công nghệ thông tin và Truyền thông ]&#xa;• Mức độ tin cậy (Confidence Score):   [██████████████████████████░░] 94.6%&#xa;• Mã màu trực quan tự động:&#xa;   [🟢 XANH LÁ (&gt; 80%): Độ tin cậy Rất cao]   (Vàng: 50% - 80% | Đỏ: &lt; 50% Cảnh báo xem xét kỹ)&#xa;&#xa;🔄 CƠ CHẾ PHẢN HỒI CỦA CÁN BỘ (FEEDBACK LOOP PHỤC VỤ FINE-TUNING):&#xa;   [ ✔ Xác nhận nhãn AI chính xác ]    HOẶC   Điều chỉnh nhãn thực tế: [ Chọn lại danh mục chuẩn ▼ ] [Lưu điều chỉnh]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FFF4;strokeColor=#2F855A;strokeWidth=2;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=14;" vertex="1" parent="scr3_frame">
+          <mxGeometry x="795" y="45" width="745" height="215" as="geometry" />
+        </mxCell>
+
+        <!-- Right Middle Pane: Khung Cảnh báo bất thường NetworkX + Isolation Forest -->
+        <mxCell id="s3_anom_box" value="🕸️ KHUNG PHÂN TÍCH ĐỒ THỊ NETWORKX &amp; PHÁT HIỆN BẤT THƯỜNG (ISOLATION FOREST)&#xa;─────────────────────────────────────────────────────────────────────────────&#xa;• Điểm bất thường (Anomaly Score): 0.12 (Ngưỡng an toàn &lt; 0.50) -&gt; Trạng thái: [🟢 HỒ SƠ BÌNH THƯỜNG]&#xa;• Kiểm tra trùng lặp nội dung (Cosine Similarity): Tương đồng cao nhất 14.2% với HS-2025-089 (An toàn)&#xa;• Kiểm tra liên kết Đồ thị Tác giả - Lĩnh vực (NetworkX): Tác giả có 8 công trình cùng nút 'CNTT &amp; TT'&#xa;• Kiểm tra danh mục Tạp chí: Hợp lệ (Thuộc danh mục ISI/Scopus chuẩn của Nhà trường)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF5F5;strokeColor=#C53030;strokeWidth=1.5;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=14;" vertex="1" parent="scr3_frame">
+          <mxGeometry x="795" y="275" width="745" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Right Bottom Pane: Quyết định Xét duyệt của Cán bộ -->
+        <mxCell id="s3_decision_box" value="⚖️ QUYẾT ĐỊNH THẨM ĐỊNH &amp; GHI NHẬN LỊCH SỬ XÉT DUYỆT (CHỨC NĂNG 3)&#xa;─────────────────────────────────────────────────────────────────────────────&#xa;• Ý kiến đánh giá của Cán bộ xét duyệt (*):&#xa;  [ Hồ sơ đầy đủ minh chứng, bài báo đăng trên tạp chí Q1 uy tín, đúng lĩnh vực chuyên ngành AI gợi ý. ]&#xa;&#xa;  [ ✅ PHÊ DUYỆT HỒ SƠ (Đã duyệt) ]     [ ⏳ ĐANG XÉT DUYỆT ]     [ ❌ TỪ CHỐI HỒ SƠ ]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D69E2E;strokeWidth=2;fontFamily=Courier New;fontSize=11;align=left;spacingLeft=14;" vertex="1" parent="scr3_frame">
+          <mxGeometry x="795" y="415" width="745" height="135" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

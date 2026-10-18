@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Trung tâm Phân tích AI - Phân loại Tự động & Phát hiện Bất thường{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h4 class="fw-bold text-primary mb-0">
+            <i class="bi bi-cpu-fill me-2"></i>Trung Tâm Phân Tích AI: Phân Loại Tự Động & Phát Hiện Bất Thường
+        </h4>
+    </div>
+    {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
+    <form method="POST" action="{{ url_for('ai_retrain') }}">
+        <button type="submit" class="btn btn-primary fw-bold shadow-sm">
+            <i class="bi bi-arrow-repeat me-1"></i>Huấn luyện lại Mô hình AI
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- 1. Bảng So sánh Hiệu năng Mô hình -->
+<div class="card card-academic mb-4">
+    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-bar-chart-steps me-2"></i>1. Đánh Giá & So Sánh Hiệu Năng Mô Hình AI</span>
+        <span class="badge bg-success">Đánh giá thực nghiệm</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>Tên Mô hình Phân loại Hồ sơ KH&CN</th>
+                        <th>Độ chính xác</th>
+                        <th>Độ nhạy</th>
+                        <th>Điểm F1 (Tổng hợp)</th>
+                        <th>Độ chuẩn xác</th>
+                        <th>Thời gian phản hồi TB</th>
+                        <th>Đặc tả Kiến trúc & Ưu thế</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in metrics %}
+                    <tr>
+                        <td class="fw-bold text-primary">
+                            {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'Mô hình Cơ sở: TF-IDF + Học máy SVM') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt') }}
+                        </td>
+                        <td class="text-center fw-bold">{{ "%.2f"|format(m.precisionScore) }}%</td>
+                        <td class="text-center fw-bold">{{ "%.2f"|format(m.recallScore) }}%</td>
+                        <td class="text-center">
+                            <span class="badge {% if 'PhoBERT' in m.tenMoHinh %}bg-success{% else %}bg-primary{% endif %} fs-6 px-3 py-2">
+                                {{ "%.2f"|format(m.f1Score) }}%
+                            </span>
+                        </td>
+                        <td class="text-center fw-semibold">{{ "%.2f"|format(m.accuracyScore) }}%</td>
+                        <td class="text-center text-nowrap fw-semibold text-secondary">{{ "%.2f"|format(m.thoiGianPhanHoiMs) }} ms</td>
+                        <td class="small">
+                            {{ m.moTaChiTiet
+                               | replace('TfidfVectorizer(ngram_range=(1,2)) + LinearSVC; tốc độ huấn luyện và phản hồi cực nhanh, tốn ít tài nguyên phần cứng.', 'Biểu diễn trọng số từ vựng TF-IDF kết hợp bộ phân lớp tuyến tính SVM; tốc độ huấn luyện và phản hồi rất nhanh, tiết kiệm tài nguyên phần cứng.')
+                               | replace('Pre-trained vinai/phobert-base, đóng băng tầng ẩn dưới + Classification Head (LR=2e-5, Batch=16, AdamW); hiểu sâu ngữ cảnh khoa học phức tạp.', 'Mô hình ngôn ngữ tiền huấn luyện PhoBERT tiếng Việt kết hợp tầng phân loại chuyên sâu; nắm bắt chính xác ngữ cảnh học thuật phức tạp.') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Danh sách Hồ sơ Cảnh báo Bất thường -->
+<div class="card card-academic mb-4">
+    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-exclamation-octagon-fill me-2 text-danger"></i>2. Danh Sách Hồ Sơ Cảnh Báo Bất Thường</span>
+        <span class="badge bg-danger">{{ anomalies|length }} hồ sơ cảnh báo</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Mã HS</th>
+                        <th>Tiêu đề & Tác giả</th>
+                        <th class="text-center">Điểm rủi ro</th>
+                        <th>Lý do cảnh báo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in anomalies %}
+                    {% set vn_tg = (a.thongTinTacGia or '')
+                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-danger text-nowrap">{{ a.maHoSo }}</td>
+                        <td style="max-width: 360px;">
+                            <div class="fw-bold text-dark">{{ a.tieuDe }}</div>
+                            <div class="text-muted"><i class="bi bi-person me-1"></i>{{ vn_tg }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger">{{ "%.2f"|format(a.diemBatThuong) }}</span>
+                        </td>
+                        <td>
+                            <ul class="mb-0 ps-3 text-danger">
+                                {% for r in a.reasons %}
+                                <li>{{ r | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td class="pe-3 text-end text-nowrap">
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=a.maHoSo) }}" class="btn btn-sm btn-outline-danger fw-semibold">Rà soát</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Kho dữ liệu Phản hồi của Cán bộ -->
+<div class="card card-academic">
+    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-database-fill-up me-2 text-success"></i>3. Lịch Sử Xác Nhận & Điều Chỉnh Nhãn AI</span>
+        <span class="badge bg-success">{{ feedbacks|length }} bản ghi huấn luyện bổ sung</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Mã HS</th>
+                        <th>Cán bộ xác nhận / điều chỉnh</th>
+                        <th>Nhãn do AI đề xuất</th>
+                        <th>Nhãn thực tế chuẩn</th>
+                        <th class="text-center">Đối sánh</th>
+                        <th>Ghi chú & Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fb in feedbacks %}
+                    {% set vn_cb = (fb.tenCanBo or '')
+                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                    <tr>
+                        <td class="ps-3 fw-bold"><a href="{{ url_for('hoso_detail', ma_ho_so=fb.maHoSo) }}">{{ fb.maHoSo }}</a></td>
+                        <td class="fw-semibold">{{ vn_cb }}</td>
+                        <td><span class="badge bg-primary-subtle text-primary border">{{ fb.tenNhanAI }} ({{ "%.1f"|format(fb.doTinCayLucDo) }}%)</span></td>
+                        <td><span class="badge bg-success-subtle text-success border">{{ fb.tenNhanThucTe }}</span></td>
+                        <td class="text-center">
+                            {% if fb.ketQuaKhop == 1 %}
+                            <span class="badge bg-success">✔ Xác nhận đúng</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">✎ Đã điều chỉnh nhãn</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ fb.ghiChuPhanHoi }} ({{ fb.thoiGian }})</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

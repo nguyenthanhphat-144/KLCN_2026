@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Danh sách & Tra cứu Hồ sơ KH&CN{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">
+            <i class="bi bi-folder2-open me-2"></i>Quản Lý, Tra Cứu & Lọc Hồ Sơ Khoa Học Công Nghệ
+        </h4>
+        <p class="text-muted small mb-0">
+            Hỗ trợ tìm kiếm theo từ khóa trong tiêu đề, tóm tắt, từ khóa và lọc đa tiêu chí
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('hoso_create') }}" class="btn btn-primary btn-sm fw-bold">
+            <i class="bi bi-plus-lg me-1"></i>Thêm mới Hồ sơ KH&CN
+        </a>
+        <a href="{{ url_for('export_excel', maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}" class="btn btn-success btn-sm fw-bold">
+            <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
+        </a>
+        <a href="{{ url_for('export_pdf', maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}" class="btn btn-danger btn-sm fw-bold">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Xuất PDF
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card card-academic mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('hoso_list') }}" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề / Tóm tắt / Từ khóa / Tác giả)</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ filters.q }}" class="form-control"
+                           placeholder="Nhập từ khóa tìm kiếm...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Lĩnh vực chuyên ngành</label>
+                <select name="maLinhVuc" class="form-select form-select-sm">
+                    <option value="">-- Tất cả lĩnh vực --</option>
+                    {% for lv in linh_vucs %}
+                    <option value="{{ lv.maLinhVuc }}" {% if filters.maLinhVuc == lv.maLinhVuc|string %}selected{% endif %}>
+                        {{ lv.tenLinhVuc }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Loại công trình</label>
+                <select name="maLoai" class="form-select form-select-sm">
+                    <option value="">-- Tất cả loại CT --</option>
+                    {% for lct in loai_cts %}
+                    <option value="{{ lct.maLoai }}" {% if filters.maLoai == lct.maLoai|string %}selected{% endif %}>
+                        {{ lct.tenLoai }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Trạng thái duyệt</label>
+                <select name="trangThai" class="form-select form-select-sm">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    {% for st in ['Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Từ chối'] %}
+                    <option value="{{ st }}" {% if filters.trangThai == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <div class="flex-grow-1">
+                    <label class="form-label small fw-semibold mb-1">Cảnh báo AI</label>
+                    <select name="coCanhBao" class="form-select form-select-sm">
+                        <option value="">Tất cả</option>
+                        <option value="1" {% if filters.coCanhBao == '1' %}selected{% endif %}>⚠️ Có cảnh báo</option>
+                        <option value="0" {% if filters.coCanhBao == '0' %}selected{% endif %}>🟢 Bình thường</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">Lọc</button>
+                <a href="{{ url_for('hoso_list') }}" class="btn btn-sm btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Legend for AI Confidence Colors -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2 small">
+    <div>
+        Hiển thị <strong>{{ records|length }}</strong> trên tổng số <strong>{{ pagination.total_records }}</strong> hồ sơ KH&CN (Trang {{ pagination.page }}/{{ pagination.total_pages }})
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="text-muted fw-semibold">Mức độ tin cậy AI:</span>
+        <span class="badge badge-ai-green">🟢 Xanh lá: &gt; 80% (Cao)</span>
+        <span class="badge badge-ai-yellow">🟡 Vàng: 50% - 80% (Trung bình)</span>
+        <span class="badge badge-ai-red">🔴 Đỏ: &lt; 50% (Thấp / Cần kiểm tra)</span>
+    </div>
+</div>
+
+<!-- Records Table -->
+<div class="card card-academic">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Mã HS</th>
+                        <th>Thông tin Công trình KH&CN</th>
+                        <th>Lĩnh vực Khai báo</th>
+                        <th>Khung Gợi ý Phân loại AI (PhoBERT)</th>
+                        <th>Phát hiện Bất thường</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-3">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for r in records %}
+                        {% set badge = get_confidence_badge(r.doTinCayAI or 0) %}
+                        <tr>
+                            <td class="ps-3">
+                                <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="fw-bold text-decoration-none text-primary">
+                                    {{ r.maHoSo }}
+                                </a>
+                                <div class="small text-muted">{{ r.namCongBo }}</div>
+                            </td>
+                            <td style="max-width: 360px;">
+                                <div class="fw-bold text-dark mb-1">{{ r.tieuDe }}</div>
+                                {% set vn_tg = (r.thongTinTacGia or '')
+                                    | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                    | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                    | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                    | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                    | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                    | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                                <div class="small text-muted mb-1">
+                                    <i class="bi bi-people-fill me-1"></i>{{ vn_tg }} | <span class="text-secondary">{{ r.donViChuTri }}</span>
+                                </div>
+                                <div class="small">
+                                    <span class="badge bg-secondary-subtle text-secondary border">
+                                        {{ (r.tenLoai or '') | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
+                                    </span>
+                                    {% if r.tenTapChi %}
+                                    {% set vn_tc = r.tenTapChi
+                                        | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                        | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                        | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                        | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                        | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                        | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                        | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                        | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                                    <span class="badge {% if r.tapChiUyTin == 0 %}bg-danger-subtle text-danger border border-danger{% else %}bg-light text-dark border{% endif %}">
+                                        {{ vn_tc[:38] }}...
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-2 py-1">{{ r.tenLinhVuc }}</span>
+                                {% if r.maLinhVuc != r.maLinhVucAI %}
+                                <div class="small text-danger fw-semibold mt-1">
+                                    <i class="bi bi-exclamation-circle"></i> Lệch với nhãn AI
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="mb-1">
+                                    <span class="badge {% if badge.color_class == 'success' %}badge-ai-green{% elif badge.color_class == 'warning' %}badge-ai-yellow{% else %}badge-ai-red{% endif %} px-2 py-1">
+                                        {{ badge.icon }} {{ r.tenLinhVucAI }} ({{ "%.1f"|format(r.doTinCayAI or 0) }}%)
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 6px; max-width: 180px;">
+                                    <div class="progress-bar bg-{{ badge.color_class }}" style="width: {{ r.doTinCayAI or 0 }}%"></div>
+                                </div>
+                                {% if r.daXacNhanAI == 1 %}
+                                <small class="text-success"><i class="bi bi-patch-check-fill"></i> Đã xác nhận nhãn</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.coCanhBao == 1 %}
+                                <span class="badge bg-danger mb-1">
+                                    <i class="bi bi-shield-exclamation me-1"></i>Cảnh báo (Rủi ro: {{ "%.2f"|format(r.diemBatThuong) }})
+                                </span>
+                                <div class="small text-danger">Cần cán bộ kiểm tra</div>
+                                {% else %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                    <i class="bi bi-shield-check me-1"></i>An toàn ({{ "%.2f"|format(r.diemBatThuong) }})
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %}">
+                                    {{ r.trangThai }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="btn btn-primary" title="Xem chi tiết & Thẩm định AI">
+                                        <i class="bi bi-clipboard2-check me-1"></i>Chi tiết
+                                    </a>
+                                    {% if r.trangThai == 'Chờ xét duyệt' or current_user.vai_tro == 'Admin' %}
+                                    <a href="{{ url_for('hoso_edit', ma_ho_so=r.maHoSo) }}" class="btn btn-outline-secondary" title="Chỉnh sửa hồ sơ">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                Không tìm thấy hồ sơ KH&CN nào khớp với tiêu chí lọc.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.total_pages > 1 %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+        <span class="small text-muted">Trang {{ pagination.page }} / {{ pagination.total_pages }}</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {% if pagination.page <= 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('hoso_list', page=pagination.page-1, q=filters.q, maLinhVuc=filters.maLinhVuc, maLoai=filters.maLoai, trangThai=filters.trangThai, coCanhBao=filters.coCanhBao) }}">&laquo; Trước</a>
+                </li>
+                {% for p in range(1, pagination.total_pages + 1) %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('hoso_list', page=p, q=filters.q, maLinhVuc=filters.maLinhVuc, maLoai=filters.maLoai, trangThai=filters.trangThai, coCanhBao=filters.coCanhBao) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if pagination.page >= pagination.total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('hoso_list', page=pagination.page+1, q=filters.q, maLinhVuc=filters.maLinhVuc, maLoai=filters.maLoai, trangThai=filters.trangThai, coCanhBao=filters.coCanhBao) }}">Tiếp &raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
