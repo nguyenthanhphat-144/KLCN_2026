@@ -24,12 +24,35 @@
     </div>
 </div>
 
+<!-- Nhóm công trình Tabs (Revision 2026) -->
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link {% if not filters.nhom %}active fw-bold{% else %}bg-light text-dark border me-2{% endif %}"
+           href="{{ url_for('hoso_list', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
+            <i class="bi bi-collection-fill me-1"></i>Tất cả Hồ sơ KH&CN
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if filters.nhom == 'baibao' %}active fw-bold{% else %}bg-light text-dark border me-2{% endif %}"
+           href="{{ url_for('hoso_list', nhom='baibao', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
+            <i class="bi bi-journal-text me-1"></i>Bài Báo Khoa Học
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if filters.nhom == 'detai' %}active fw-bold{% else %}bg-light text-dark border{% endif %}"
+           href="{{ url_for('hoso_list', nhom='detai', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
+            <i class="bi bi-kanban-fill me-1"></i>Đề Tài NCKH
+        </a>
+    </li>
+</ul>
+
 <!-- Search & Filter Card -->
 <div class="card card-academic mb-4">
     <div class="card-body">
         <form method="GET" action="{{ url_for('hoso_list') }}" class="row g-2 align-items-end">
+            <input type="hidden" name="nhom" value="{{ filters.nhom or '' }}">
             <div class="col-md-4">
-                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề / Tóm tắt / Từ khóa / Tác giả)</label>
+                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề / Tóm tắt / Từ khóa / Tác giả / Mã đề tài)</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" value="{{ filters.q }}" class="form-control"
@@ -62,7 +85,7 @@
                 <label class="form-label small fw-semibold mb-1">Trạng thái duyệt</label>
                 <select name="trangThai" class="form-select form-select-sm">
                     <option value="">-- Tất cả trạng thái --</option>
-                    {% for st in ['Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Từ chối'] %}
+                    {% for st in ['Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Yêu cầu bổ sung', 'Từ chối'] %}
                     <option value="{{ st }}" {% if filters.trangThai == st %}selected{% endif %}>{{ st }}</option>
                     {% endfor %}
                 </select>
@@ -189,7 +212,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %}">
+                                <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Yêu cầu bổ sung' %}bg-warning text-dark{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-secondary text-white{% endif %}">
                                     {{ r.trangThai }}
                                 </span>
                             </td>
@@ -198,7 +221,7 @@
                                     <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="btn btn-primary" title="Xem chi tiết & Thẩm định AI">
                                         <i class="bi bi-clipboard2-check me-1"></i>Chi tiết
                                     </a>
-                                    {% if r.trangThai == 'Chờ xét duyệt' or current_user.vai_tro == 'Admin' %}
+                                    {% if r.trangThai in ['Chờ xét duyệt', 'Yêu cầu bổ sung'] or current_user.vai_tro == 'Admin' %}
                                     <a href="{{ url_for('hoso_edit', ma_ho_so=r.maHoSo) }}" class="btn btn-outline-secondary" title="Chỉnh sửa hồ sơ">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>

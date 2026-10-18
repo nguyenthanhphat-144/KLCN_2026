@@ -14,21 +14,42 @@
                         Biểu Mẫu Khai Báo & Nộp Mới Hồ Sơ KH&CN
                     {% endif %}
                 </span>
-                <span class="badge bg-warning text-dark">Trạng thái mặc định: Chờ xét duyệt</span>
+                <span class="badge bg-warning text-dark">Trạng thái: {% if hoso %}{{ hoso.trangThai }}{% else %}Chờ xét duyệt{% endif %}</span>
             </div>
 
             <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="hosoForm">
+                    <!-- 0. Chọn nhóm công trình trọng tâm (Revision 2026) -->
+                    <div class="p-3 mb-4 rounded border bg-light">
+                        <label class="form-label fw-bold text-primary mb-2">
+                            <i class="bi bi-diagram-2-fill me-1"></i>Lựa chọn Nhóm Công Trình Trọng Tâm
+                        </label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="nhomCongTrinhRadio" id="radioBaiBao" value="baibao" checked onchange="onRadioNhomChange('baibao')">
+                                <label class="form-check-label fw-semibold" for="radioBaiBao">
+                                    <i class="bi bi-journal-bookmark-fill text-primary me-1"></i>Bài Báo Khoa Học & Công Bố Học Thuật
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="nhomCongTrinhRadio" id="radioDeTai" value="detai" onchange="onRadioNhomChange('detai')">
+                                <label class="form-check-label fw-semibold" for="radioDeTai">
+                                    <i class="bi bi-kanban-fill text-success me-1"></i>Đề Tài Nghiên Cứu Khoa Học & Dự Án
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label fw-bold">1. Tiêu đề công trình Khoa học và Công nghệ (*)</label>
+                            <label class="form-label fw-bold" id="lblTieuDe">1. Tiêu đề công trình / Tên bài báo (*)</label>
                             <input type="text" name="tieuDe" id="inpTieuDe" class="form-control"
                                    value="{{ hoso.tieuDe if hoso else '' }}"
                                    placeholder="VD: Nghiên cứu ứng dụng mô hình ngôn ngữ PhoBERT trong phân loại văn bản khoa học tiếng Việt..." required>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold">2. Tóm tắt nội dung công trình (*)</label>
+                            <label class="form-label fw-bold" id="lblTomTat">2. Tóm tắt nội dung công trình (*)</label>
                             <textarea name="tomTat" id="inpTomTat" rows="4" class="form-control"
                                       placeholder="Nhập tóm tắt mục tiêu, phương pháp nghiên cứu và kết quả chính của công trình..." required>{{ hoso.tomTat if hoso else '' }}</textarea>
                         </div>
@@ -41,7 +62,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">4. Thông tin nhóm Tác giả (*)</label>
+                            <label class="form-label fw-bold" id="lblTacGia">4. Thông tin nhóm Tác giả (*)</label>
                             {% set raw_tg = hoso.thongTinTacGia if hoso else current_user.ho_ten %}
                             {% set clean_tg = (raw_tg or '')
                                 | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
@@ -54,7 +75,7 @@
                                    value="{{ clean_tg }}" required>
                         </div>
 
-                        <!-- Live AI Preview Box -->
+                        <!-- Live AI Preview Box (PhoBERT & TF-IDF+SVM) -->
                         <div class="col-12">
                             <div class="p-3 rounded border" style="background-color: #f8fafc;">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
@@ -101,56 +122,164 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">6. Loại công trình KH&CN (*)</label>
-                            <select name="maLoai" class="form-select" required>
+                            <select name="maLoai" id="selMaLoai" class="form-select" onchange="onLoaiSelectChange()" required>
                                 {% for lct in loai_cts %}
-                                <option value="{{ lct.maLoai }}" {% if hoso and hoso.maLoai == lct.maLoai %}selected{% endif %}>
-                                    {{ lct.tenLoai | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
+                                <option value="{{ lct.maLoai }}"
+                                        data-nhom="{{ lct.nhomCongTrinh }}"
+                                        {% if hoso and hoso.maLoai == lct.maLoai %}selected{% endif %}>
+                                    [{{ lct.nhomCongTrinh }}] {{ lct.tenLoai | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">7. Tạp chí công bố / Hội đồng nghiệm thu (Đối chiếu danh mục)</label>
-                            <select name="maTapChi" class="form-select">
-                                {% for tc in tap_chis %}
-                                {% set vn_xh = tc.xepHang
-                                    | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
-                                    | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
-                                    | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
-                                    | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
-                                    | replace('Predatory', 'Không uy tín')
-                                    | replace('Discontinued', 'Ngừng chỉ mục') %}
-                                {% set vn_tc = tc.tenTapChi
-                                    | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
-                                    | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
-                                    | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
-                                    | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
-                                    | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
-                                    | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
-                                    | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
-                                    | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
-                                <option value="{{ tc.maTapChi }}" {% if hoso and hoso.maTapChi == tc.maTapChi %}selected{% endif %}>
-                                    {{ vn_tc }} (Mã: {{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }} - {{ vn_xh }})
-                                </option>
-                                {% endfor %}
-                            </select>
+                        <!-- ======================================================== -->
+                        <!-- PHẦN A: CÁC TRƯỜNG ĐẶC THÙ CỦA BÀI BÁO KHOA HỌC (Revision) -->
+                        <!-- ======================================================== -->
+                        <div id="sectionBaiBao" class="col-12">
+                            <div class="p-3 rounded border border-primary bg-light mb-2">
+                                <h6 class="fw-bold text-primary mb-3">
+                                    <i class="bi bi-journal-text me-1"></i>Thông Tin Chi Tiết Bài Báo Khoa Học (Mô tả nghiệp vụ Revision)
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-semibold">Tên Tạp chí / Hội thảo công bố (Đối chiếu danh mục hợp lệ)</label>
+                                        <select name="maTapChi" class="form-select">
+                                            <option value="">-- Chọn tạp chí trong danh mục (nếu có) --</option>
+                                            {% for tc in tap_chis %}
+                                            {% set vn_xh = tc.xepHang
+                                                | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
+                                                | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
+                                                | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
+                                                | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
+                                                | replace('Predatory', 'Không uy tín')
+                                                | replace('Discontinued', 'Ngừng chỉ mục') %}
+                                            {% set vn_tc = tc.tenTapChi
+                                                | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                                | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                                | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                                | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                                | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                                | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                                | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                                | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                                            <option value="{{ tc.maTapChi }}" {% if hoso and hoso.maTapChi == tc.maTapChi %}selected{% endif %}>
+                                                {{ vn_tc }} (Mã: {{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }} - {{ vn_xh }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Mã định danh DOI</label>
+                                        <input type="text" name="doi" class="form-control"
+                                               value="{{ hoso.doi if hoso and hoso.doi else '' }}"
+                                               placeholder="VD: 10.1016/j.engappai.2025.106821">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Tập (Volume) / Số (Issue)</label>
+                                        <input type="text" name="tapSo" class="form-control"
+                                               value="{{ hoso.tapSo if hoso and hoso.tapSo else '' }}"
+                                               placeholder="VD: Tập 138, Số 2">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Trang bài báo</label>
+                                        <input type="text" name="trangBaiBao" class="form-control"
+                                               value="{{ hoso.trangBaiBao if hoso and hoso.trangBaiBao else '' }}"
+                                               placeholder="VD: 104-118">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Cơ sở dữ liệu chỉ mục</label>
+                                        <select name="chiMucTapChi" class="form-select">
+                                            <option value="">-- Chọn chỉ mục công bố --</option>
+                                            {% for cm in ['Scopus Q1 / Web of Science (SCIE)', 'Scopus Q2 / Web of Science', 'Hội đồng GSNN (1.0 điểm)', 'Hội đồng GSNN (0.75 điểm)', 'Hội thảo Quốc tế / IEEE Xplore', 'Tạp chí Khoa học Quốc gia'] %}
+                                            <option value="{{ cm }}" {% if hoso and hoso.chiMucTapChi == cm %}selected{% endif %}>{{ cm }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- ======================================================== -->
+                        <!-- PHẦN B: CÁC TRƯỜNG ĐẶC THÙ CỦA ĐỀ TÀI NCKH (Revision)   -->
+                        <!-- ======================================================== -->
+                        <div id="sectionDeTai" class="col-12 d-none">
+                            <div class="p-3 rounded border border-success bg-light mb-2">
+                                <h6 class="fw-bold text-success mb-3">
+                                    <i class="bi bi-kanban me-1"></i>Thông Tin Chi Tiết Đề Tài Nghiên Cứu Khoa Học (Mô tả nghiệp vụ Revision)
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Mã số đề tài</label>
+                                        <input type="text" name="maDeTai" class="form-control"
+                                               value="{{ hoso.maDeTai if hoso and hoso.maDeTai else '' }}"
+                                               placeholder="VD: DT-2025-DH01">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Cấp quản lý đề tài</label>
+                                        <select name="capDeTai" class="form-select">
+                                            {% for cdt in ['Cấp Nhà nước', 'Cấp Bộ / Tỉnh', 'Cấp Đại học / Trường', 'Cấp Cơ sở / Khoa'] %}
+                                            <option value="{{ cdt }}" {% if hoso and hoso.capDeTai == cdt %}selected{% endif %}>{{ cdt }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Chủ nhiệm đề tài</label>
+                                        <input type="text" name="chuNhiemDeTai" class="form-control"
+                                               value="{{ hoso.chuNhiemDeTai if hoso and hoso.chuNhiemDeTai else current_user.ho_ten }}"
+                                               placeholder="Họ tên chủ nhiệm...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Thành viên tham gia nghiên cứu</label>
+                                        <input type="text" name="thanhVienThamGia" class="form-control"
+                                               value="{{ hoso.thanhVienThamGia if hoso and hoso.thanhVienThamGia else '' }}"
+                                               placeholder="Danh sách các thành viên tham gia...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold">Thời gian thực hiện</label>
+                                        <input type="text" name="thoiGianThucHien" class="form-control"
+                                               value="{{ hoso.thoiGianThucHien if hoso and hoso.thoiGianThucHien else '01/2025 - 12/2026' }}"
+                                               placeholder="VD: 01/2025 - 12/2026">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold">Kinh phí thực hiện (VNĐ)</label>
+                                        <input type="number" name="kinhPhi" class="form-control"
+                                               value="{{ hoso.kinhPhi if hoso and hoso.kinhPhi else '0' }}"
+                                               min="0" step="1000000" placeholder="VD: 150000000">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-semibold">Sản phẩm nghiên cứu dự kiến</label>
+                                        <input type="text" name="sanPhamDuKien" class="form-control"
+                                               value="{{ hoso.sanPhamDuKien if hoso and hoso.sanPhamDuKien else '' }}"
+                                               placeholder="VD: 02 bài báo quốc tế, 01 phần mềm ứng dụng AI">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold">Kết quả đánh giá / Nghiệm thu</label>
+                                        <select name="ketQuaNghiemThu" class="form-select">
+                                            {% for kq in ['Đang thực hiện', 'Xuất sắc', 'Tốt', 'Đạt', 'Không đạt'] %}
+                                            <option value="{{ kq }}" {% if hoso and hoso.ketQuaNghiemThu == kq %}selected{% endif %}>{{ kq }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin hành chính & Minh chứng -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">8. Đơn vị chủ trì (*)</label>
+                            <label class="form-label fw-bold">7. Đơn vị chủ trì (*)</label>
                             <input type="text" name="donViChuTri" class="form-control"
                                    value="{{ hoso.donViChuTri if hoso else current_user.don_vi }}" required>
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">9. Năm công bố</label>
+                            <label class="form-label fw-bold">8. Năm công bố / Thực hiện</label>
                             <input type="number" name="namCongBo" class="form-control"
                                    value="{{ hoso.namCongBo if hoso else 2026 }}" min="2015" max="2030">
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">10. Kỳ báo cáo thống kê</label>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">9. Kỳ báo cáo</label>
                             <select name="kyBaoCao" class="form-select">
                                 {% for ky in ['Đợt 1 - Năm học 2025-2026', 'Đợt 2 - Năm học 2025-2026', 'Đợt 2 - Năm học 2024-2025'] %}
                                 <option value="{{ ky }}" {% if hoso and hoso.kyBaoCao == ky %}selected{% endif %}>{{ ky }}</option>
@@ -158,8 +287,8 @@
                             </select>
                         </div>
 
-                        <div class="col-md-5">
-                            <label class="form-label fw-bold">11. Tệp minh chứng đính kèm (PDF/DOCX/ZIP)</label>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">10. Tệp minh chứng công bố / Thuyết minh đề tài (PDF/DOCX/ZIP)</label>
                             <div class="input-group">
                                 <label class="btn btn-outline-primary mb-0 fw-semibold" for="fileDinhKemInput">
                                     <i class="bi bi-folder2-open me-1"></i>Chọn tệp
@@ -196,6 +325,63 @@
 {% block extra_scripts %}
 <script>
 let suggestedLabelId = null;
+
+function updateFormFieldsByNhom(nhom) {
+    const secBaiBao = document.getElementById('sectionBaiBao');
+    const secDeTai = document.getElementById('sectionDeTai');
+    const lblTieuDe = document.getElementById('lblTieuDe');
+    const lblTomTat = document.getElementById('lblTomTat');
+    const lblTacGia = document.getElementById('lblTacGia');
+
+    if (nhom === 'detai') {
+        secBaiBao.classList.add('d-none');
+        secDeTai.classList.remove('d-none');
+        lblTieuDe.textContent = '1. Tên đề tài Nghiên cứu Khoa học / Dự án (*)';
+        lblTomTat.textContent = '2. Mục tiêu nghiên cứu & Nội dung chính của đề tài (*)';
+        lblTacGia.textContent = '4. Ban chủ nhiệm & Thành viên đề tài (*)';
+    } else {
+        secBaiBao.classList.remove('d-none');
+        secDeTai.classList.add('d-none');
+        lblTieuDe.textContent = '1. Tiêu đề bài báo khoa học (*)';
+        lblTomTat.textContent = '2. Tóm tắt nội dung bài báo (Abstract) (*)';
+        lblTacGia.textContent = '4. Thông tin nhóm Tác giả (*)';
+    }
+}
+
+function onRadioNhomChange(nhom) {
+    updateFormFieldsByNhom(nhom);
+    // Tự động chọn 1 option loại công trình tương ứng
+    const selLoai = document.getElementById('selMaLoai');
+    for (let opt of selLoai.options) {
+        const optNhom = (opt.getAttribute('data-nhom') || '').toLowerCase();
+        if (nhom === 'detai' && optNhom.includes('đề tài')) {
+            selLoai.value = opt.value;
+            break;
+        } else if (nhom === 'baibao' && optNhom.includes('bài báo')) {
+            selLoai.value = opt.value;
+            break;
+        }
+    }
+}
+
+function onLoaiSelectChange() {
+    const selLoai = document.getElementById('selMaLoai');
+    const selectedOpt = selLoai.options[selLoai.selectedIndex];
+    const optNhom = (selectedOpt.getAttribute('data-nhom') || '').toLowerCase();
+
+    if (optNhom.includes('đề tài')) {
+        document.getElementById('radioDeTai').checked = true;
+        updateFormFieldsByNhom('detai');
+    } else {
+        document.getElementById('radioBaiBao').checked = true;
+        updateFormFieldsByNhom('baibao');
+    }
+}
+
+// Khởi chạy khi load trang
+document.addEventListener('DOMContentLoaded', function() {
+    onLoaiSelectChange();
+});
 
 async function runLiveAIPreview() {
     const tieuDe = document.getElementById('inpTieuDe').value;

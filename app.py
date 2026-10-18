@@ -200,6 +200,9 @@ def dashboard():
     cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Từ chối'")
     tu_choi = cur.fetchone()[0]
 
+    cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND trangThai = 'Yêu cầu bổ sung'")
+    bo_sung = cur.fetchone()[0]
+
     cur.execute("SELECT COUNT(*) FROM HoSoKHCN WHERE isDeleted = 0 AND coCanhBao = 1")
     canh_bao_count = cur.fetchone()[0]
 
@@ -208,7 +211,7 @@ def dashboard():
         SELECT lv.tenLinhVuc, lv.maCode, COUNT(h.maHoSo) AS soLuong
         FROM LinhVuc lv
         LEFT JOIN HoSoKHCN h ON lv.maLinhVuc = h.maLinhVuc AND h.isDeleted = 0
-        GROUP BY lv.maLinhVuc
+        GROUP BY lv.maLinhVuc, lv.tenLinhVuc, lv.maCode
         ORDER BY soLuong DESC
     """)
     stats_linhvuc = [dict(r) for r in cur.fetchall()]
@@ -219,10 +222,54 @@ def dashboard():
                SUM(CASE WHEN h.trangThai = 'Đã duyệt' THEN lct.gioChuanQuyDoi ELSE 0 END) AS tongGioChuan
         FROM LoaiCongTrinh lct
         LEFT JOIN HoSoKHCN h ON lct.maLoai = h.maLoai AND h.isDeleted = 0
-        GROUP BY lct.maLoai
+        GROUP BY lct.maLoai, lct.tenLoai, lct.nhomCongTrinh
         ORDER BY soLuong DESC
     """)
     stats_loai = [dict(r) for r in cur.fetchall()]
+
+    # Thống kê chuyên sâu nhóm BÀI BÁO KHOA HỌC (Revision)
+    cur.execute("""
+        SELECT namCongBo, COUNT(*) AS soLuong
+        FROM HoSoKHCN h
+        JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
+        WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Bài báo%' OR lct.tenLoai LIKE '%Bài báo%')
+        GROUP BY namCongBo
+        ORDER BY namCongBo DESC
+    """)
+    stats_baibao_nam = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT COALESCE(tc.xepHang, h.chiMucTapChi, N'Chưa phân hạng') AS chiMuc, COUNT(*) AS soLuong
+        FROM HoSoKHCN h
+        JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
+        LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
+        WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Bài báo%' OR lct.tenLoai LIKE '%Bài báo%')
+        GROUP BY COALESCE(tc.xepHang, h.chiMucTapChi, N'Chưa phân hạng')
+        ORDER BY soLuong DESC
+    """)
+    stats_baibao_chimuc = [dict(r) for r in cur.fetchall()]
+
+    # Thống kê chuyên sâu nhóm ĐỀ TÀI NCKH (Revision)
+    cur.execute("""
+        SELECT COALESCE(capDeTai, N'Cấp Cơ sở') AS capDeTai, COUNT(*) AS soLuong,
+               SUM(COALESCE(kinhPhi, 0)) AS tongKinhPhi
+        FROM HoSoKHCN h
+        JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
+        WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')
+        GROUP BY COALESCE(capDeTai, N'Cấp Cơ sở')
+        ORDER BY soLuong DESC
+    """)
+    stats_detai_cap = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT COALESCE(ketQuaNghiemThu, N'Đang thực hiện') AS ketQua, COUNT(*) AS soLuong
+        FROM HoSoKHCN h
+        JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
+        WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')
+        GROUP BY COALESCE(ketQuaNghiemThu, N'Đang thực hiện')
+        ORDER BY soLuong DESC
+    """)
+    stats_detai_nghiemthu = [dict(r) for r in cur.fetchall()]
 
     # Thống kê theo Đơn vị công tác / chủ trì
     cur.execute("""
@@ -247,7 +294,7 @@ def dashboard():
 
     # Danh sách hồ sơ ưu tiên cần xét duyệt / có cảnh báo AI
     cur.execute("""
-        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI, lct.tenLoai
+        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI, lct.tenLoai, lct.nhomCongTrinh
         FROM HoSoKHCN h
         LEFT JOIN LinhVuc lv ON h.maLinhVuc = lv.maLinhVuc
         LEFT JOIN LinhVuc lv_ai ON h.maLinhVucAI = lv_ai.maLinhVuc
@@ -272,10 +319,15 @@ def dashboard():
             "dang_duyet": dang_duyet,
             "da_duyet": da_duyet,
             "tu_choi": tu_choi,
+            "bo_sung": bo_sung,
             "canh_bao": canh_bao_count,
         },
         stats_linhvuc=stats_linhvuc,
         stats_loai=stats_loai,
+        stats_baibao_nam=stats_baibao_nam,
+        stats_baibao_chimuc=stats_baibao_chimuc,
+        stats_detai_cap=stats_detai_cap,
+        stats_detai_nghiemthu=stats_detai_nghiemthu,
         stats_donvi=stats_donvi,
         stats_ky=stats_ky,
         recent_hoso=recent_hoso,
@@ -291,6 +343,7 @@ def dashboard():
 def hoso_list():
     """Tuần 4 - Mục 2b: Tra cứu, tìm kiếm từ khóa và lọc hồ sơ theo tiêu chí có phân trang."""
     q = request.args.get("q", "").strip()
+    nhom = request.args.get("nhom", "").strip()
     ma_linh_vuc = request.args.get("maLinhVuc", "").strip()
     ma_loai = request.args.get("maLoai", "").strip()
     trang_thai = request.args.get("trangThai", "").strip()
@@ -305,9 +358,14 @@ def hoso_list():
     params = []
 
     if q:
-        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.maHoSo LIKE ? OR h.thongTinTacGia LIKE ?)")
+        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.maHoSo LIKE ? OR h.thongTinTacGia LIKE ? OR h.maDeTai LIKE ?)")
         like_q = f"%{q}%"
-        params.extend([like_q, like_q, like_q, like_q, like_q])
+        params.extend([like_q, like_q, like_q, like_q, like_q, like_q])
+
+    if nhom == "baibao":
+        where_clauses.append("(lct.nhomCongTrinh LIKE '%Bài báo%' OR lct.tenLoai LIKE '%Bài báo%')")
+    elif nhom == "detai":
+        where_clauses.append("(lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')")
 
     if ma_linh_vuc:
         where_clauses.append("h.maLinhVuc = ?")
@@ -327,7 +385,7 @@ def hoso_list():
 
     where_sql = " AND ".join(where_clauses)
 
-    cur.execute(f"SELECT COUNT(*) FROM HoSoKHCN h WHERE {where_sql}", params)
+    cur.execute(f"SELECT COUNT(*) FROM HoSoKHCN h LEFT JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai WHERE {where_sql}", params)
     total_records = cur.fetchone()[0]
     total_pages = max(1, math.ceil(total_records / per_page))
     page = min(page, total_pages)
@@ -336,7 +394,7 @@ def hoso_list():
     cur.execute(f"""
         SELECT h.*, lv.tenLinhVuc, lv.maCode AS maCodeLV,
                lv_ai.tenLinhVuc AS tenLinhVucAI,
-               lct.tenLoai, tc.tenTapChi, tc.uyTin AS tapChiUyTin,
+               lct.tenLoai, lct.nhomCongTrinh, tc.tenTapChi, tc.uyTin AS tapChiUyTin,
                nd.hoTen AS tenNguoiNop
         FROM HoSoKHCN h
         LEFT JOIN LinhVuc lv ON h.maLinhVuc = lv.maLinhVuc
@@ -365,6 +423,7 @@ def hoso_list():
         loai_cts=loai_cts,
         filters={
             "q": q,
+            "nhom": nhom,
             "maLinhVuc": ma_linh_vuc,
             "maLoai": ma_loai,
             "trangThai": trang_thai,
@@ -425,6 +484,28 @@ def hoso_create():
                 file_name_saved = f"{ma_ho_so}_{safe_name}"
                 uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], file_name_saved))
 
+        # Các trường đặc thù của Bài báo khoa học (Revision)
+        doi = request.form.get("doi", "").strip() or None
+        tap_so = request.form.get("tapSo", "").strip() or None
+        trang_bai_bao = request.form.get("trangBaiBao", "").strip() or None
+        chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
+
+        # Các trường đặc thù của Đề tài NCKH (Revision)
+        ma_de_tai = request.form.get("maDeTai", "").strip() or None
+        cap_de_tai = request.form.get("capDeTai", "").strip() or None
+        chu_nhiem_de_tai = request.form.get("chuNhiemDeTai", "").strip() or None
+        thanh_vien_tham_gia = request.form.get("thanhVienThamGia", "").strip() or None
+        thoi_gian_thuc_hien = request.form.get("thoiGianThucHien", "").strip() or None
+        try:
+            kinh_phi = float(request.form.get("kinhPhi", 0) or 0)
+        except ValueError:
+            kinh_phi = 0.0
+        san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
+        ket_qua_nghiem_thu = request.form.get("ketQuaNghiemThu", "Đang thực hiện").strip() or "Đang thực hiện"
+
+        if chu_nhiem_de_tai and not thong_tin_tac_gia:
+            thong_tin_tac_gia = chu_nhiem_de_tai
+
         # Chạy mô-đun AI Tiền xử lý tiếng Việt + Phân loại tự động (Chức năng 5)
         pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia)
 
@@ -436,14 +517,20 @@ def hoso_create():
                 maHoSo, tieuDe, tomTat, tuKhoa, thongTinTacGia, donViChuTri,
                 namCongBo, kyBaoCao, maNguoiNop, maLinhVuc, maLoai, maTapChi,
                 trangThai, fileDinhKem, vanBanDaTachTu, maLinhVucAI, doTinCayAI,
-                maLinhVucSVM, doTinCaySVM
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                maLinhVucSVM, doTinCaySVM,
+                doi, tapSo, trangBaiBao, chiMucTapChi,
+                maDeTai, capDeTai, chuNhiemDeTai, thanhVienThamGia, thoiGianThucHien,
+                kinhPhi, sanPhamDuKien, ketQuaNghiemThu
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             ma_ho_so, tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri,
             nam_cong_bo, ky_bao_cao, session["user_id"], ma_linh_vuc, ma_loai, ma_tap_chi,
             trang_thai_ban_dau, file_name_saved, pred["segmented_text"],
             pred["phobert_label_id"], pred["phobert_confidence"],
-            pred["svm_label_id"], pred["svm_confidence"]
+            pred["svm_label_id"], pred["svm_confidence"],
+            doi, tap_so, trang_bai_bao, chi_muc_tap_chi,
+            ma_de_tai, cap_de_tai, chu_nhiem_de_tai, thanh_vien_tham_gia, thoi_gian_thuc_hien,
+            kinh_phi, san_pham_du_kien, ket_qua_nghiem_thu
         ))
 
         # Ghi nhật ký khởi tạo vào bảng LichSuXetDuyet
@@ -500,11 +587,11 @@ def hoso_edit(ma_ho_so):
         flash("Không tìm thấy hồ sơ cần chỉnh sửa.", "danger")
         return redirect(url_for("hoso_list"))
 
-    # Kiểm tra điều kiện trạng thái và phân quyền
-    if hoso["trangThai"] != "Chờ xét duyệt" and session.get("vai_tro") != "Admin":
+    # Kiểm tra điều kiện trạng thái và phân quyền (Revision: Cho phép sửa khi 'Chờ xét duyệt' hoặc 'Yêu cầu bổ sung')
+    if hoso["trangThai"] not in ("Chờ xét duyệt", "Yêu cầu bổ sung") and session.get("vai_tro") != "Admin":
         conn.close()
         flash(
-            f"Chỉ được phép chỉnh sửa khi hồ sơ ở trạng thái 'Chờ xét duyệt' (Trạng thái hiện tại: {hoso['trangThai']}).",
+            f"Chỉ được phép chỉnh sửa khi hồ sơ ở trạng thái 'Chờ xét duyệt' hoặc 'Yêu cầu bổ sung' (Trạng thái hiện tại: {hoso['trangThai']}).",
             "warning"
         )
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
@@ -527,6 +614,28 @@ def hoso_edit(ma_ho_so):
         ma_tap_chi = request.form.get("maTapChi")
         ma_tap_chi = int(ma_tap_chi) if ma_tap_chi else None
 
+        # Các trường đặc thù của Bài báo khoa học (Revision)
+        doi = request.form.get("doi", "").strip() or None
+        tap_so = request.form.get("tapSo", "").strip() or None
+        trang_bai_bao = request.form.get("trangBaiBao", "").strip() or None
+        chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
+
+        # Các trường đặc thù của Đề tài NCKH (Revision)
+        ma_de_tai = request.form.get("maDeTai", "").strip() or None
+        cap_de_tai = request.form.get("capDeTai", "").strip() or None
+        chu_nhiem_de_tai = request.form.get("chuNhiemDeTai", "").strip() or None
+        thanh_vien_tham_gia = request.form.get("thanhVienThamGia", "").strip() or None
+        thoi_gian_thuc_hien = request.form.get("thoiGianThucHien", "").strip() or None
+        try:
+            kinh_phi = float(request.form.get("kinhPhi", hoso["kinhPhi"] or 0) or 0)
+        except (ValueError, TypeError):
+            kinh_phi = 0.0
+        san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
+        ket_qua_nghiem_thu = request.form.get("ketQuaNghiemThu", hoso["ketQuaNghiemThu"] or "Đang thực hiện").strip() or "Đang thực hiện"
+
+        if chu_nhiem_de_tai and not thong_tin_tac_gia:
+            thong_tin_tac_gia = chu_nhiem_de_tai
+
         file_name_saved = hoso["fileDinhKem"]
         uploaded_file = request.files.get("fileDinhKem")
         if uploaded_file and uploaded_file.filename and allowed_file(uploaded_file.filename):
@@ -542,13 +651,20 @@ def hoso_edit(ma_ho_so):
             SET tieuDe = ?, tomTat = ?, tuKhoa = ?, thongTinTacGia = ?, donViChuTri = ?,
                 namCongBo = ?, kyBaoCao = ?, maLinhVuc = ?, maLoai = ?, maTapChi = ?,
                 fileDinhKem = ?, vanBanDaTachTu = ?, maLinhVucAI = ?, doTinCayAI = ?,
-                maLinhVucSVM = ?, doTinCaySVM = ?, ngayCapNhat = CURRENT_TIMESTAMP
+                maLinhVucSVM = ?, doTinCaySVM = ?,
+                doi = ?, tapSo = ?, trangBaiBao = ?, chiMucTapChi = ?,
+                maDeTai = ?, capDeTai = ?, chuNhiemDeTai = ?, thanhVienThamGia = ?,
+                thoiGianThucHien = ?, kinhPhi = ?, sanPhamDuKien = ?, ketQuaNghiemThu = ?,
+                ngayCapNhat = CURRENT_TIMESTAMP
             WHERE maHoSo = ?
         """, (
             tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri,
             nam_cong_bo, ky_bao_cao, ma_linh_vuc, ma_loai, ma_tap_chi,
             file_name_saved, pred["segmented_text"], pred["phobert_label_id"],
             pred["phobert_confidence"], pred["svm_label_id"], pred["svm_confidence"],
+            doi, tap_so, trang_bai_bao, chi_muc_tap_chi,
+            ma_de_tai, cap_de_tai, chu_nhiem_de_tai, thanh_vien_tham_gia,
+            thoi_gian_thuc_hien, kinh_phi, san_pham_du_kien, ket_qua_nghiem_thu,
             ma_ho_so
         ))
 
@@ -704,7 +820,7 @@ def hoso_review_action(ma_ho_so):
     trang_thai_moi = request.form.get("trangThaiMoi", "").strip()
     y_kien = request.form.get("yKienDanhGia", "").strip()
 
-    valid_states = {"Chờ xét duyệt", "Đang xét duyệt", "Đã duyệt", "Từ chối"}
+    valid_states = {"Chờ xét duyệt", "Đang xét duyệt", "Đã duyệt", "Từ chối", "Yêu cầu bổ sung"}
     if trang_thai_moi not in valid_states:
         flash("Trạng thái xét duyệt không hợp lệ.", "danger")
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
@@ -853,29 +969,29 @@ def catalog_management():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT lv.*, COUNT(h.maHoSo) AS soHoSoLienKet
+        SELECT lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
         FROM LinhVuc lv
         LEFT JOIN HoSoKHCN h ON lv.maLinhVuc = h.maLinhVuc AND h.isDeleted = 0
-        GROUP BY lv.maLinhVuc
+        GROUP BY lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.trangThai
         ORDER BY lv.maLinhVuc
     """)
     linh_vucs = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT lct.*, COUNT(h.maHoSo) AS soHoSoLienKet
+        SELECT lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
         FROM LoaiCongTrinh lct
         LEFT JOIN HoSoKHCN h ON lct.maLoai = h.maLoai AND h.isDeleted = 0
-        GROUP BY lct.maLoai
+        GROUP BY lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.trangThai
         ORDER BY lct.maLoai
     """)
     loai_cts = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT tc.*, lv.tenLinhVuc, COUNT(h.maHoSo) AS soHoSoLienKet
+        SELECT tc.maTapChi, tc.tenTapChi, tc.chiSoISSN, tc.xepHang, tc.maLinhVuc, tc.uyTin, tc.trangThai, lv.tenLinhVuc, COUNT(h.maHoSo) AS soHoSoLienKet
         FROM TapChiHopLe tc
         LEFT JOIN LinhVuc lv ON tc.maLinhVuc = lv.maLinhVuc
         LEFT JOIN HoSoKHCN h ON tc.maTapChi = h.maTapChi AND h.isDeleted = 0
-        GROUP BY tc.maTapChi
+        GROUP BY tc.maTapChi, tc.tenTapChi, tc.chiSoISSN, tc.xepHang, tc.maLinhVuc, tc.uyTin, tc.trangThai, lv.tenLinhVuc
         ORDER BY tc.maTapChi
     """)
     tap_chis = [dict(r) for r in cur.fetchall()]

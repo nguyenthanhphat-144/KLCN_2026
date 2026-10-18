@@ -28,9 +28,9 @@
     </div>
 </div>
 
-<!-- KPI Cards -->
+<!-- KPI Cards (Revision: Bổ sung Yêu cầu bổ sung) -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-xl-2">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card card-academic h-100 border-start border-4 border-primary">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Tổng hồ sơ KH&CN</div>
@@ -39,25 +39,34 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card card-academic h-100 border-start border-4 border-warning">
+    <div class="col-6 col-md-3 col-xl">
+        <div class="card card-academic h-100 border-start border-4 border-secondary">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Chờ xét duyệt</div>
-                <div class="fs-3 fw-bold text-warning">{{ kpi.cho_duyet }}</div>
+                <div class="fs-3 fw-bold text-secondary">{{ kpi.cho_duyet }}</div>
                 <small class="text-secondary">Mới tiếp nhận</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-xl-2">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card card-academic h-100 border-start border-4 border-info">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Đang xét duyệt</div>
                 <div class="fs-3 fw-bold text-info">{{ kpi.dang_duyet }}</div>
-                <small class="text-secondary">Hội đồng đang thẩm định</small>
+                <small class="text-secondary">Đơn vị QL thẩm định</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-xl-2">
+    <div class="col-6 col-md-3 col-xl">
+        <div class="card card-academic h-100 border-start border-4 border-warning">
+            <div class="card-body py-3">
+                <div class="text-muted small fw-semibold">Yêu cầu bổ sung</div>
+                <div class="fs-3 fw-bold text-warning">{{ kpi.bo_sung }}</div>
+                <small class="text-secondary">Cần sửa/bổ sung</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
         <div class="card card-academic h-100 border-start border-4 border-success">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Đã phê duyệt</div>
@@ -66,16 +75,16 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-xl-2">
-        <div class="card card-academic h-100 border-start border-4 border-secondary">
+    <div class="col-6 col-md-3 col-xl">
+        <div class="card card-academic h-100 border-start border-4 border-danger">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Từ chối duyệt</div>
-                <div class="fs-3 fw-bold text-secondary">{{ kpi.tu_choi }}</div>
-                <small class="text-secondary">Không đạt yêu cầu</small>
+                <div class="fs-3 fw-bold text-danger">{{ kpi.tu_choi }}</div>
+                <small class="text-secondary">Không đạt chuẩn</small>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-xl-2">
+    <div class="col-6 col-md-3 col-xl">
         <div class="card card-academic h-100 border-start border-4 border-danger">
             <div class="card-body py-3">
                 <div class="text-muted small fw-semibold">Cảnh báo Bất thường</div>
@@ -206,6 +215,114 @@
     </div>
 </div>
 
+<!-- THỐNG KÊ CHUYÊN SÂU TÁCH BIỆT: BÀI BÁO vs ĐỀ TÀI NCKH (Revision 2026) -->
+<div class="row g-4 mb-4">
+    <!-- Nhóm 1: Thống kê Bài báo Khoa học -->
+    <div class="col-lg-6">
+        <div class="card card-academic h-100 border-start border-4 border-primary">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-journal-text me-2 text-primary"></i>Thống Kê Công Bố Bài Báo Khoa Học (Nghiệp vụ Revision)</span>
+                <span class="badge bg-primary">Bài báo học thuật</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-calendar-event me-1"></i>Số lượng theo Năm công bố:</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle small mb-0">
+                                <thead class="table-light"><tr><th>Năm</th><th class="text-center">Số bài</th></tr></thead>
+                                <tbody>
+                                    {% for bb in stats_baibao_nam %}
+                                    <tr>
+                                        <td class="fw-bold">{{ bb.namCongBo }}</td>
+                                        <td class="text-center"><span class="badge bg-primary">{{ bb.soLuong }}</span></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-award me-1"></i>Phân bổ theo Chỉ mục tạp chí:</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle small mb-0">
+                                <thead class="table-light"><tr><th>Chỉ mục</th><th class="text-center">Số bài</th></tr></thead>
+                                <tbody>
+                                    {% for cm in stats_baibao_chimuc %}
+                                    <tr>
+                                        <td class="small">{{ cm.chiMuc }}</td>
+                                        <td class="text-center"><span class="badge bg-success">{{ cm.soLuong }}</span></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhóm 2: Thống kê Đề tài NCKH -->
+    <div class="col-lg-6">
+        <div class="card card-academic h-100 border-start border-4 border-success">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-kanban-fill me-2 text-success"></i>Thống Kê Đề Tài Nghiên Cứu Khoa Học (Nghiệp vụ Revision)</span>
+                <span class="badge bg-success">Đề tài & Dự án</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-layers me-1"></i>Theo Cấp quản lý & Kinh phí:</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle small mb-0">
+                                <thead class="table-light"><tr><th>Cấp đề tài</th><th class="text-center">Số ĐT</th><th class="text-end">Kinh phí (VNĐ)</th></tr></thead>
+                                <tbody>
+                                    {% for dt in stats_detai_cap %}
+                                    <tr>
+                                        <td class="fw-semibold small">{{ dt.capDeTai }}</td>
+                                        <td class="text-center"><span class="badge bg-success">{{ dt.soLuong }}</span></td>
+                                        <td class="text-end small fw-semibold text-success">{{ "{:,.0f}".format(dt.tongKinhPhi) }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="3" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-clipboard2-check me-1"></i>Kết quả nghiệm thu:</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle small mb-0">
+                                <thead class="table-light"><tr><th>Nghiệm thu</th><th class="text-center">Số ĐT</th></tr></thead>
+                                <tbody>
+                                    {% for nt in stats_detai_nghiemthu %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge {% if nt.ketQua == 'Xuất sắc' %}bg-success{% elif nt.ketQua == 'Tốt' %}bg-primary{% elif nt.ketQua == 'Đạt' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                                {{ nt.ketQua }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center fw-bold">{{ nt.soLuong }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Priority Review Table -->
 <div class="card card-academic">
     <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
@@ -256,7 +373,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %}">
+                            <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Yêu cầu bổ sung' %}bg-warning text-dark{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-secondary text-white{% endif %}">
                                 {{ r.trangThai }}
                             </span>
                         </td>
