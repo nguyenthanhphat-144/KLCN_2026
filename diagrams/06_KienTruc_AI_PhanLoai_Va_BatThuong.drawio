@@ -6,17 +6,17 @@
         <mxCell id="1" parent="0" />
 
         <!-- Title -->
-        <mxCell id="title" value="KIẾN TRÚC PIPELINE TRÍ TUỆ NHÂN TẠO: TIỀN XỬ LÝ TIẾNG VIỆT, PHÂN LOẠI TỰ ĐỘNG &amp; PHÁT HIỆN BẤT THƯỜNG&#xa;(TF-IDF + LINEAR SVM | FINE-TUNING PHOBERT | ĐỒ THỊ NETWORKX + ISOLATION FOREST | FEEDBACK LOOP)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+        <mxCell id="title" value="KIẾN TRÚC PIPELINE TRÍ TUỆ NHÂN TẠO: TIỀN XỬ LÝ TIẾNG VIỆT, PHÂN LOẠI TỰ ĐỘNG &amp; PHÁT HIỆN BẤT THƯỜNG (REVISION 2026)&#xa;(TF-IDF + LINEAR SVM | FINE-TUNING PHOBERT | ĐỒ THỊ NETWORKX + ISOLATION FOREST | FEEDBACK LOOP VÀ VÒNG LẶP NỘP LẠI)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="175" y="15" width="1200" height="45" as="geometry" />
         </mxCell>
 
         <!-- Stage 1: Input & Preprocessing -->
-        <mxCell id="stg1" value="GIAI ĐOẠN 1: TIỀN XỬ LÝ DỮ LIỆU TIẾNG VIỆT&#xa;(Tuần 6 - Mục 1a, 1b, 1c)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+        <mxCell id="stg1" value="GIAI ĐOẠN 1: TIỀN XỬ LÝ DỮ LIỆU TIẾNG VIỆT&#xa;(Đầu vào tách biệt Bài báo KH &amp; Đề tài NCKH)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="40" y="80" width="320" height="780" as="geometry" />
         </mxCell>
 
-        <mxCell id="s1_b1" value="1a. Trích xuất &amp; Hợp nhất 4 trường&#xa;───────────────────────&#xa;[Tiêu đề] + [Tóm tắt Abstract]&#xa;+ [Từ khóa] + [Thông tin Tác giả]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
-          <mxGeometry x="25" y="65" width="270" height="95" as="geometry" />
+        <mxCell id="s1_b1" value="1a. Trích xuất văn bản theo 2 nhóm&#xa;───────────────────────&#xa;• Bài báo: [Tiêu đề] + [Tóm tắt]&#xa;  + [Từ khóa] + [Nhóm tác giả]&#xa;• Đề tài: [Tên đề tài] + [Mục tiêu&#xa;  &amp; Nội dung] + [Từ khóa] + [Chủ nhiệm]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
+          <mxGeometry x="25" y="60" width="270" height="105" as="geometry" />
         </mxCell>
 
         <mxCell id="s1_b2" value="1b. Làm sạch &amp; Chuẩn hóa văn bản&#xa;───────────────────────&#xa;• Chuyển chữ thường (lowercase)&#xa;• Chuẩn hóa bảng mã Unicode dựng sẵn&#xa;• Xóa thẻ HTML, URL, ký tự đặc biệt" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg1">
@@ -72,7 +72,7 @@
         <mxCell id="e2_4" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg2" source="s2_bb2" target="s2_eval"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Stage 3: Anomaly Detection (NetworkX + Isolation Forest) -->
-        <mxCell id="stg3" value="GIAI ĐOẠN 3: PHÁT HIỆN BẤT THƯỜNG KẾT HỢP NETWORKX &amp; ISOLATION FOREST&#xa;(Tuần 3 - Mục 2b)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+        <mxCell id="stg3" value="GIAI ĐOẠN 3: PHÁT HIỆN BẤT THƯỜNG KẾT HỢP NETWORKX &amp; ISOLATION FOREST (NGHIỆP VỤ 6)&#xa;Xếp hạng Hàng đợi Ưu tiên theo Điểm Rủi ro (Risk Score)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="410" y="575" width="660" height="285" as="geometry" />
         </mxCell>
 
@@ -80,11 +80,11 @@
           <mxGeometry x="30" y="60" width="280" height="125" as="geometry" />
         </mxCell>
 
-        <mxCell id="s3_if" value="Thuật toán Isolation Forest&#xa;───────────────────────&#xa;• Vector đặc trưng: [Độ lệch nhãn AI,&#xa;  Độ tương đồng trùng lặp Cosine,&#xa;  Uy tín tạp chí, Điểm lệch đồ thị NX]&#xa;• Phát hiện hồ sơ dị biệt / rủi ro cao" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg3">
+        <mxCell id="s3_if" value="Thuật toán Isolation Forest&#xa;───────────────────────&#xa;• Vector đặc trưng: [Độ lệch nhãn AI,&#xa;  Độ tương đồng trùng lặp Cosine,&#xa;  Uy tín tạp chí, Điểm lệch đồ thị NX]&#xa;• Tính toán Điểm rủi ro (Risk Score)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="stg3">
           <mxGeometry x="350" y="60" width="280" height="125" as="geometry" />
         </mxCell>
 
-        <mxCell id="s3_out" value="Cảnh báo thông minh trên Giao diện Xét duyệt: Khai sai lĩnh vực | Tạp chí ngoài danh mục | Nghi vấn trùng lặp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg3">
+        <mxCell id="s3_out" value="Xếp hạng Hàng đợi Ưu tiên &amp; Cảnh báo trên Giao diện: Khai sai lĩnh vực | Tạp chí ngoài danh mục | Nghi vấn trùng lặp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg3">
           <mxGeometry x="30" y="210" width="600" height="50" as="geometry" />
         </mxCell>
 
@@ -92,16 +92,16 @@
         <mxCell id="e3_2" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="stg3" source="s3_if" target="s3_out"><mxGeometry relative="1" as="geometry" /></mxCell>
 
         <!-- Stage 4: Web Integration & Feedback Loop -->
-        <mxCell id="stg4" value="GIAI ĐOẠN 4: TÍCH HỢP WEB &amp;&#xa;CƠ CHẾ PHẢN HỒI (FEEDBACK LOOP)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+        <mxCell id="stg4" value="GIAI ĐOẠN 4: TÍCH HỢP WEB, THẨM ĐỊNH HỢP LỆ&#xa;&amp; CƠ CHẾ PHẢN HỒI (FEEDBACK LOOP)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="1120" y="80" width="380" height="780" as="geometry" />
         </mxCell>
 
-        <mxCell id="s4_ui" value="Giao diện Thẩm định Hồ sơ&#xa;───────────────────────&#xa;Hiển thị Nhãn AI + % Độ tin cậy&#xa;(Mã màu Xanh / Vàng / Đỏ)&#xa;&amp; Cảnh báo Bất thường" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+        <mxCell id="s4_ui" value="Giao diện Thẩm định Tính Hợp lệ&#xa;───────────────────────&#xa;Hiển thị Nhãn AI + % Độ tin cậy&#xa;(Mã màu Xanh / Vàng / Đỏ)&#xa;&amp; Cảnh báo Bất thường rủi ro" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
           <mxGeometry x="35" y="80" width="310" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="s4_act" value="Thao tác của Cán bộ Xét duyệt&#xa;───────────────────────&#xa;1. [Xác nhận nhãn AI] nếu đúng&#xa;2. [Điều chỉnh &amp; chọn lại nhãn đúng]&#xa;   từ danh mục chuẩn nếu AI lệch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
-          <mxGeometry x="35" y="265" width="310" height="130" as="geometry" />
+        <mxCell id="s4_act" value="Thao tác Thẩm định của Cán bộ&#xa;───────────────────────&#xa;1. [Xác nhận nhãn AI] nếu đúng&#xa;2. [Điều chỉnh &amp; chọn lại nhãn đúng]&#xa;3. [Ra quyết định 3 nhánh: Đã duyệt /&#xa;    Từ chối / Yêu cầu bổ sung]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">
+          <mxGeometry x="35" y="255" width="310" height="145" as="geometry" />
         </mxCell>
 
         <mxCell id="s4_db" value="Lưu CSDL Bảng PhanHoiAI&#xa;───────────────────────&#xa;Ghi nhận cặp đối sánh:&#xa;(Nhãn AI đề xuất vs Nhãn thực tế)&#xa;cùng văn bản đã tách từ" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg4">

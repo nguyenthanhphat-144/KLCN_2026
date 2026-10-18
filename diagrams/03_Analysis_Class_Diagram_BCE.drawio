@@ -1,92 +1,92 @@
 <mxfile host="65bd71144e">
   <diagram id="analysis-class-bce" name="Analysis Class Diagram (BCE)">
-    <mxGraphModel dx="1500" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1550" pageHeight="1050" math="0" shadow="0">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <!-- Title -->
-        <mxCell id="title" value="SƠ ĐỒ LỚP PHÂN TÍCH (ANALYSIS CLASS DIAGRAM - MÔ HÌNH BCE)&#xa;BOUNDARY (LỚP BIÊN GIAO DIỆN) - CONTROL (LỚP ĐIỀU KHIỂN LOGIC) - ENTITY (LỚP THỰC THỂ CỐT LÕI)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="250" y="15" width="1050" height="50" as="geometry" />
+        <mxCell id="title" value="SƠ ĐỒ LỚP PHÂN TÍCH (ANALYSIS CLASS DIAGRAM - MÔ HÌNH BCE) - REVISION 2026&#xa;BOUNDARY (LỚP BIÊN GIAO DIỆN) - CONTROL (LỚP ĐIỀU KHIỂN LOGIC) - ENTITY (LỚP THỰC THỂ CỐT LÕI)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="15" width="1100" height="50" as="geometry" />
         </mxCell>
 
         <!-- Column 1: BOUNDARY CLASSES -->
         <mxCell id="col_boundary" value="A. LỚP BIÊN (BOUNDARY CLASSES)&#xa;Giao diện Web (Templates, Forms, Tables)" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="50" y="80" width="420" height="900" as="geometry" />
+          <mxGeometry x="40" y="80" width="440" height="960" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_auth" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;AuthBoundaryUI&#xa;(login.html / password.html)&#xa;─────────────────────&#xa;+ inputEmail: String&#xa;+ inputMatKhau: String&#xa;─────────────────────&#xa;+ hienThiFormDangNhap()&#xa;+ guiThongTinXacThuc()&#xa;+ hienThiFormDoiMatKhau()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
-          <mxGeometry x="45" y="65" width="330" height="145" as="geometry" />
+        <mxCell id="b_auth" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;AuthBoundaryUI&#xa;(login.html / change_password.html)&#xa;─────────────────────&#xa;+ inputEmail: String&#xa;+ inputMatKhau: String&#xa;─────────────────────&#xa;+ hienThiFormDangNhap()&#xa;+ guiThongTinXacThuc()&#xa;+ hienThiFormDoiMatKhau()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
+          <mxGeometry x="35" y="60" width="370" height="145" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_hoso" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;HoSoKHCNBoundaryUI&#xa;(hoso_list.html / hoso_form.html)&#xa;─────────────────────&#xa;+ formTieuDe, formTomTat, formTuKhoa&#xa;+ filterLinhVuc, filterLoai, filterTuKhoa&#xa;+ fileUploadMinhChung: File&#xa;─────────────────────&#xa;+ hienThiDanhSachPhanTrang()&#xa;+ hienThiFormKhaiBaoHoSo()&#xa;+ guiYeuCauThemSuaXoaHoSo()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
-          <mxGeometry x="45" y="235" width="330" height="175" as="geometry" />
+        <mxCell id="b_hoso" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;HoSoKHCNBoundaryUI&#xa;(hoso_list.html / hoso_form.html)&#xa;─────────────────────&#xa;+ radioNhomCongTrinh (BaiBao / DeTai)&#xa;+ formBaiBao (doi, tapSo, chiMucTapChi)&#xa;+ formDeTai (maDeTai, capDeTai, kinhPhi, spDuKien)&#xa;+ filterTabs (tatCa, baiBao, deTai)&#xa;+ fileUploadMinhChung: File&#xa;─────────────────────&#xa;+ chuyenDoiFormDongTheoNhom()&#xa;+ kichHoatLiveAIPreview()&#xa;+ hienThiDanhSachLocTheoTabs()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_boundary">
+          <mxGeometry x="35" y="225" width="370" height="195" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_xetduyet" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;XetDuyetVaAIBoundaryUI&#xa;(hoso_detail_review.html)&#xa;─────────────────────&#xa;+ badgeNhanAIDeXuat: String&#xa;+ thanhDoTinCayMauSac: Float (Xanh/Vàng/Đỏ)&#xa;+ khungCanhBaoBatThuong: List&#xa;+ formYKienDanhGia: String&#xa;─────────────────────&#xa;+ hienThiKhungGoiYPhanLoaiAI()&#xa;+ xacNhanHoacDieuChinhNhanAI()&#xa;+ guiQuyetDinhPheDuyetTuChoi()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
-          <mxGeometry x="45" y="435" width="330" height="190" as="geometry" />
+        <mxCell id="b_xetduyet" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;XetDuyetVaAIBoundaryUI&#xa;(hoso_detail.html)&#xa;─────────────────────&#xa;+ badgePhoBERT (Tin cậy % &amp; Mã màu Xanh/Vàng/Đỏ)&#xa;+ badgeLinearSVM (Mô hình đối chiếu)&#xa;+ panelPhatHienBatThuong (NetworkX + IF)&#xa;+ bannerYeuCauBoSung (Dành cho Tác giả)&#xa;+ formThamDinh (DaDuyet / TuChoi / YeuCauBoSung)&#xa;─────────────────────&#xa;+ tuDongChuyenTrangThaiBuoc1c()&#xa;+ guiKetQuaThamDinhVaYKien()&#xa;+ xacNhanHoacDieuChinhNhanAI()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_boundary">
+          <mxGeometry x="35" y="440" width="370" height="210" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_danhmuc" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DanhMucQuanTriUI&#xa;(catalog_manage.html)&#xa;─────────────────────&#xa;+ bangLinhVuc, bangLoaiCT, bangTapChi&#xa;─────────────────────&#xa;+ hienThiDanhMucChuan()&#xa;+ capNhatVoHieuHoaDanhMuc()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
-          <mxGeometry x="45" y="650" width="330" height="110" as="geometry" />
+        <mxCell id="b_danhmuc" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DanhMucQuanTriUI&#xa;(catalogs.html)&#xa;─────────────────────&#xa;+ bangCapDeTai, bangChiMucHocThuat&#xa;+ bangNghiemThu, bangTapChiHopLe&#xa;─────────────────────&#xa;+ hienThiQuyChuanDanhMucMoi()&#xa;+ capNhatVoHieuHoaDanhMuc()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
+          <mxGeometry x="35" y="670" width="370" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_baocao" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DashboardReportUI&#xa;(dashboard.html / reports.html)&#xa;─────────────────────&#xa;+ bieuDoThongKeLinhVuc, bieuDoTrangThai&#xa;─────────────────────&#xa;+ hienThiDashboardTrucQuan()&#xa;+ yeuCauXuatBaoCaoExcelPDF()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
-          <mxGeometry x="45" y="775" width="330" height="110" as="geometry" />
+        <mxCell id="b_baocao" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DashboardReportUI&#xa;(dashboard.html)&#xa;─────────────────────&#xa;+ kpiRow7The (co 'Yeu cau bo sung')&#xa;+ widgetThongKeBaiBao &amp; widgetThongKeDeTai&#xa;─────────────────────&#xa;+ hienThiBaoCaoChuyenBietTheoNhom()&#xa;+ yeuCauXuatBaoCaoExcelPDF()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
+          <mxGeometry x="35" y="810" width="370" height="125" as="geometry" />
         </mxCell>
 
         <!-- Column 2: CONTROL CLASSES -->
         <mxCell id="col_control" value="B. LỚP ĐIỀU KHIỂN (CONTROL CLASSES)&#xa;Điều phối Nghiệp vụ, RBAC, DB &amp; Kết nối Mô-đun AI" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="555" y="80" width="440" height="900" as="geometry" />
+          <mxGeometry x="540" y="80" width="460" height="960" as="geometry" />
         </mxCell>
 
         <mxCell id="c_auth" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;AuthRBACController&#xa;─────────────────────&#xa;+ xacThucDangNhap(email, matKhau): Session&#xa;+ kiemTraMatKhauBam(hash, raw): Boolean&#xa;+ roleRequiredDecorator(vaiTroChoPhep)&#xa;+ capNhatMatKhauMoi(maND, mkCu, mkMoi)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="65" width="350" height="135" as="geometry" />
+          <mxGeometry x="40" y="60" width="380" height="135" as="geometry" />
         </mxCell>
 
-        <mxCell id="c_hoso" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;HoSoKHCNController&#xa;─────────────────────&#xa;+ taoMoiHoSo(duLieuForm, fileDinhKem): HoSoKHCN&#xa;+ timKiemVaLocHoSo(tuKhoa, maLinhVuc, maLoai, trang)&#xa;+ capNhatHoSoChoDuyet(maHoSo, duLieuMoi)&#xa;+ xoaHoSoTheoPhanQuyen(maHoSo, loaiXoa)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="220" width="350" height="140" as="geometry" />
+        <mxCell id="c_hoso" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;HoSoKHCNController&#xa;─────────────────────&#xa;+ taoMoiHoSo(duLieuFormDong, fileDinhKem): HoSoKHCN&#xa;+ timKiemVaLocTheoTabs(nhom, maLinhVuc, trangThai, page)&#xa;+ capNhatHoSo(maHoSo, duLieuMoi, fileMoi)&#xa;+ xoaHoSoTheoPhanQuyen(maHoSo, isHardDelete)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
+          <mxGeometry x="40" y="215" width="380" height="145" as="geometry" />
         </mxCell>
 
-        <mxCell id="c_xetduyet" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;QuyTrinhXetDuyetController&#xa;─────────────────────&#xa;+ chuyenTrangThaiHoSo(maHoSo, trangThaiMoi)&#xa;+ ghiNhatKyXetDuyet(maHoSo, maCanBo, yKien)&#xa;+ luuPhanHoiNhanAI(maHoSo, nhanAI, nhanThucTe)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="380" width="350" height="125" as="geometry" />
+        <mxCell id="c_xetduyet" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;QuyTrinhXetDuyetController&#xa;─────────────────────&#xa;+ tuDongChuyenDangXetDuyetBuoc1c(maHoSo, maCanBo)&#xa;+ thamDinhVaChuyenTrangThai(maHoSo, trangThaiMoi, yKien)&#xa;+ xuLyVongLapNopLaiBoSung(maHoSo, duLieuTacGiaSua)&#xa;+ luuPhanHoiNhanAI(maHoSo, nhanAI, nhanThucTe)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_control">
+          <mxGeometry x="40" y="380" width="380" height="140" as="geometry" />
         </mxCell>
 
-        <mxCell id="c_ai_nlp" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;AIPhanLoaiService (NLP Engine)&#xa;─────────────────────&#xa;+ tienXuLyTiengViet(tieuDe, tomTat, tuKhoa, tacGia)&#xa;+ tachTuChuyenDungPyVi(vanBanSach): String&#xa;+ duDoanBaselineTFIDF_SVM(vanBan): Dict&#xa;+ duDoanDeepLearningPhoBERT(vanBan): Dict&#xa;+ danhGiaHieuNang(Precision, Recall, F1Score)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=0;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="525" width="350" height="150" as="geometry" />
+        <mxCell id="c_ai_nlp" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;AIPhanLoaiService (NLP Engine)&#xa;─────────────────────&#xa;+ tienXuLyTiengViet(tieuDe/tenDT, tomTat/mucTieu, tuKhoa)&#xa;+ tachTuChuyenDungPyVi(vanBanSach): String&#xa;+ duDoanBaselineTFIDF_SVM(vanBan): Dict&#xa;+ duDoanDeepLearningPhoBERT(vanBan): Dict&#xa;+ danhGiaHieuNang(Precision, Recall, F1Score)" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=0;fontColor=#000000;" vertex="1" parent="col_control">
+          <mxGeometry x="40" y="540" width="380" height="145" as="geometry" />
         </mxCell>
 
         <mxCell id="c_anomaly" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;PhatHienBatThuongService (NetworkX + IF)&#xa;─────────────────────&#xa;+ dungDoThiQuanHeNetworkX(dsHoSo): Graph&#xa;+ phatHienBatThuongIsolationForest(hoSo): Dict&#xa;+ kiemTraTrungLapVaTapChiUyTin(hoSo): List" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="690" width="350" height="110" as="geometry" />
+          <mxGeometry x="40" y="705" width="380" height="110" as="geometry" />
         </mxCell>
 
-        <mxCell id="c_report" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;DanhMucVaBaoCaoController&#xa;─────────────────────&#xa;+ quanLyDanhMucHeThong(loaiDM, thaoTac)&#xa;+ ketXuatBaoCaoExcelVaPDF(boLoc): FileStream" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
-          <mxGeometry x="45" y="815" width="350" height="75" as="geometry" />
+        <mxCell id="c_report" value="&amp;lt;&amp;lt;control&amp;gt;&amp;gt;&#xa;DanhMucVaBaoCaoController&#xa;─────────────────────&#xa;+ tinhToanThongKeBaiBaoVaDeTai(): Dict&#xa;+ quanLyDanhMucChuanHoa(loaiDM, thaoTac)&#xa;+ ketXuatBaoCaoExcelVaPDF(boLoc): FileStream" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_control">
+          <mxGeometry x="40" y="835" width="380" height="95" as="geometry" />
         </mxCell>
 
         <!-- Column 3: ENTITY CLASSES -->
         <mxCell id="col_entity" value="C. LỚP THỰC THỂ (ENTITY CLASSES)&#xa;Các Đối tượng Dữ liệu Lõi &amp; Lưu trữ CSDL" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
-          <mxGeometry x="1080" y="80" width="420" height="900" as="geometry" />
+          <mxGeometry x="1060" y="80" width="480" height="960" as="geometry" />
         </mxCell>
 
         <mxCell id="e_nguoidung" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;NguoiDung&#xa;─────────────────────&#xa;- maNguoiDung: Integer (PK)&#xa;- hoTen: String&#xa;- email: String (Unique)&#xa;- matKhau: String (Hashed)&#xa;- vaiTro: String (Admin/CanBo/TacGia)&#xa;- donViCongTac: String" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
-          <mxGeometry x="45" y="60" width="330" height="150" as="geometry" />
+          <mxGeometry x="45" y="60" width="390" height="145" as="geometry" />
         </mxCell>
 
-        <mxCell id="e_hoso" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;HoSoKHCN&#xa;─────────────────────&#xa;- maHoSo: String (PK)&#xa;- tieuDe: String&#xa;- tomTat: Text&#xa;- tuKhoa: String&#xa;- thongTinTacGia: String&#xa;- maLinhVuc: Integer (FK)&#xa;- maLoai: Integer (FK)&#xa;- trangThai: String&#xa;- fileDinhKem: String&#xa;- nhanAIDeXuat: Integer&#xa;- doTinCayAI: Float&#xa;- diemBatThuong: Float" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
-          <mxGeometry x="45" y="230" width="330" height="235" as="geometry" />
+        <mxCell id="e_hoso" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;HoSoKHCN (Revision Entity)&#xa;─────────────────────&#xa;- maHoSo: String (PK)&#xa;- tieuDe, tomTat, tuKhoa, thongTinTacGia: String&#xa;- donViChuTri, namCongBo, kyBaoCao&#xa;- doi, tapSo, trangBaiBao, chiMucTapChi (Bài báo)&#xa;- maDeTai, capDeTai, chuNhiem, kinhPhi (Đề tài)&#xa;- sanPhamDuKien, ketQuaNghiemThu (Đề tài)&#xa;- trangThai: (Chờ xét duyệt | Đang xét duyệt |&#xa;             Đã duyệt | Từ chối | Yêu cầu bổ sung)&#xa;- maLinhVucAI (PhoBERT), doTinCayAI&#xa;- diemBatThuong (IF), coCanhBao" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_entity">
+          <mxGeometry x="45" y="225" width="390" height="250" as="geometry" />
         </mxCell>
 
         <mxCell id="e_linhvuc" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;LinhVuc&#xa;─────────────────────&#xa;- maLinhVuc: Integer (PK)&#xa;- maCodeLinhVuc: String&#xa;- tenLinhVuc: String&#xa;- moTa: String&#xa;- trangThaiHoatDong: Boolean" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
-          <mxGeometry x="45" y="485" width="330" height="120" as="geometry" />
+          <mxGeometry x="45" y="495" width="390" height="120" as="geometry" />
         </mxCell>
 
-        <mxCell id="e_loai" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;LoaiCongTrinh&#xa;─────────────────────&#xa;- maLoai: Integer (PK)&#xa;- tenLoaiCongTrinh: String&#xa;- diemQuyDoiChuan: Float&#xa;- trangThaiHoatDong: Boolean" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
-          <mxGeometry x="45" y="625" width="330" height="110" as="geometry" />
+        <mxCell id="e_loai" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;LoaiCongTrinh&#xa;─────────────────────&#xa;- maLoai: Integer (PK)&#xa;- tenLoaiCongTrinh: String&#xa;- nhomCongTrinh: String (Bài báo KH / Đề tài NCKH)&#xa;- trangThaiHoatDong: Boolean" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
+          <mxGeometry x="45" y="635" width="390" height="110" as="geometry" />
         </mxCell>
 
         <mxCell id="e_lichsu" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;LichSuXetDuyet &amp; PhanHoiAI&#xa;─────────────────────&#xa;- maLichSu: Integer (PK)&#xa;- maHoSo: String (FK)&#xa;- maCanBoDuyet: Integer (FK)&#xa;- trangThaiCu / trangThaiMoi: String&#xa;- yKienDanhGia: Text&#xa;- nhanAI / nhanThucTeCanBo: Integer&#xa;- thoiGianThucHien: DateTime" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_entity">
-          <mxGeometry x="45" y="750" width="330" height="135" as="geometry" />
+          <mxGeometry x="45" y="765" width="390" height="165" as="geometry" />
         </mxCell>
 
         <!-- Boundary -> Control Edges -->
