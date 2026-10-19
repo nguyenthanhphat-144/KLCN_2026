@@ -196,7 +196,56 @@ def test_all():
     conn.commit()
     conn.close()
 
+    # 7. Kiểm tra Chức năng 6 (Phát hiện bất thường & Xếp hạng ưu tiên hàng đợi)
+    print("7. Kiểm tra Chức năng 6 (Đồ thị NetworkX, Isolation Forest, Deep Autoencoder & Hàng đợi ưu tiên)...")
+    from ai_engine import ai_engine
+    conn_ai = get_db_connection()
+    graph_res = ai_engine.build_networkx_graph_and_detect_anomalies(conn_ai)
+    assert graph_res["num_nodes"] > 0 and graph_res["num_edges"] > 0, "Lỗi đồ thị NetworkX không có nút/cạnh"
+    print(f"   -> Đồ thị NetworkX: Đã xây dựng {graph_res['num_nodes']} nút, {graph_res['num_edges']} cạnh, {graph_res['anomalies']} bất thường.")
+
+    # Kiểm tra 2 mô hình bất thường (Isolation Forest & Deep Autoencoder)
+    models_comp = ai_engine.get_anomaly_models_comparison()
+    assert len(models_comp) == 2, "Thiếu mô hình so sánh phát hiện bất thường"
+    assert any("Isolation Forest" in m["name"] for m in models_comp), "Thiếu mô hình Isolation Forest"
+    assert any("Autoencoder" in m["name"] for m in models_comp), "Thiếu mô hình Deep Autoencoder"
+    print("   -> 2 Mô hình Bất thường (Isolation Forest & Deep Autoencoder): OK.")
+
+    # Kiểm tra Hàng đợi xét duyệt ưu tiên
+    cur_ai = conn_ai.cursor()
+    pq = ai_engine.get_priority_queue(cur_ai)
+    assert len(pq) > 0, "Hàng đợi ưu tiên trống"
+    assert pq[0]["diemBatThuong"] >= pq[-1]["diemBatThuong"], "Hàng đợi chưa sắp xếp theo Điểm rủi ro cao nhất"
+    print(f"   -> Hàng đợi xét duyệt ưu tiên (Priority Review Queue): OK ({len(pq)} hồ sơ, Hạng #1: {pq[0]['maHoSo']} - Rủi ro: {pq[0]['diemBatThuong']}).")
+
+    # Kiểm tra Giao diện /ai-center hiển thị đầy đủ
+    res_aic = client.get("/ai-center")
+    assert res_aic.status_code == 200
+    html_aic = res_aic.data.decode("utf-8")
+    assert "Nghiệp Vụ Phức Tạp 2: So Sánh 2 Mô Hình Phát Hiện Bất Thường" in html_aic
+    assert "Deep Autoencoder" in html_aic and "Isolation Forest" in html_aic
+    assert "Đồ Thị Tri Thức Quan Hệ" in html_aic
+    assert "Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro" in html_aic
+    print("   -> Giao diện /ai-center tích hợp đầy đủ 6 phân hệ AI: OK.")
+
+    # Kiểm tra chức năng Bỏ qua cảnh báo (False Alarm - Nghiệp vụ 6 Bước 5b)
+    # Gắn cờ thử nghiệm trên 1 hồ sơ rồi giải trừ
+    test_dismiss_code = "HS-2026-0003"
+    res_dismiss = client.post(f"/hoso/{test_dismiss_code}/dismiss-warning", data={
+        "lyDoBoQua": "Kiểm tra thực tế xác nhận báo động giả."
+    }, follow_redirects=True)
+    assert res_dismiss.status_code == 200
+    row_dis = conn_ai.execute("SELECT coCanhBao FROM HoSoKHCN WHERE maHoSo = ?", (test_dismiss_code,)).fetchone()
+    assert row_dis["coCanhBao"] == 0, "Chưa giải trừ cờ coCanhBao"
+    print("   -> Bỏ qua cảnh báo (False Alarm) & Ghi nhật ký: OK.")
+
+    # Khôi phục lại cờ cảnh báo cho hồ sơ HS-2026-0003
+    conn_ai.execute("UPDATE HoSoKHCN SET coCanhBao = 1 WHERE maHoSo = ?", (test_dismiss_code,))
+    conn_ai.commit()
+    conn_ai.close()
+
     print("\n=== TẤT CẢ CÁC BƯỚC KIỂM THỬ ĐÃ THÀNH CÔNG RỰC RỠ 100%! ===")
 
 if __name__ == "__main__":
     test_all()
+

@@ -375,6 +375,7 @@ def hoso_list():
     ma_loai = request.args.get("maLoai", "").strip()
     trang_thai = request.args.get("trangThai", "").strip()
     canh_bao = request.args.get("coCanhBao", "").strip()
+    sap_xep = request.args.get("sapXep", "priority").strip()
     page = max(1, int(request.args.get("page", 1)))
     per_page = 6
 
@@ -418,6 +419,13 @@ def hoso_list():
     page = min(page, total_pages)
     offset = (page - 1) * per_page
 
+    if sap_xep == "fifo":
+        order_sql = "h.ngayNop ASC"
+    elif sap_xep == "newest":
+        order_sql = "h.ngayNop DESC"
+    else:  # priority (mặc định theo Nghiệp vụ 6: Ưu tiên rủi ro cao xử lý trước)
+        order_sql = "h.diemBatThuong DESC, h.coCanhBao DESC, h.ngayNop DESC"
+
     cur.execute(f"""
         SELECT h.*, lv.tenLinhVuc, lv.maCode AS maCodeLV,
                lv_ai.tenLinhVuc AS tenLinhVucAI,
@@ -430,10 +438,35 @@ def hoso_list():
         LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
         LEFT JOIN NguoiDung nd ON h.maNguoiNop = nd.maNguoiDung
         WHERE {where_sql}
-        ORDER BY h.coCanhBao DESC, h.diemBatThuong DESC, h.maHoSo DESC
+        ORDER BY {order_sql}
         LIMIT ? OFFSET ?
     """, params + [per_page, offset])
-    records = [dict(r) for r in cur.fetchall()]
+    raw_records = [dict(r) for r in cur.fetchall()]
+    records = []
+    for r in raw_records:
+        try:
+            raw_cb = json.loads(r.get("chiTietCanhBao") or "{}")
+            if isinstance(raw_cb, dict):
+                r["reasons"] = raw_cb.get("reasons", [])
+                r["if_score"] = raw_cb.get("if_score", 0.0)
+                r["ae_mse"] = raw_cb.get("ae_mse", 0.0)
+                r["ae_score"] = raw_cb.get("ae_score", 0.0)
+            elif isinstance(raw_cb, list):
+                r["reasons"] = raw_cb
+                r["if_score"] = 0.0
+                r["ae_mse"] = 0.0
+                r["ae_score"] = 0.0
+            else:
+                r["reasons"] = []
+                r["if_score"] = 0.0
+                r["ae_mse"] = 0.0
+                r["ae_score"] = 0.0
+        except Exception:
+            r["reasons"] = []
+            r["if_score"] = 0.0
+            r["ae_mse"] = 0.0
+            r["ae_score"] = 0.0
+        records.append(r)
 
     cur.execute("SELECT * FROM LinhVuc WHERE trangThai = 1 ORDER BY maLinhVuc")
     linh_vucs = [dict(r) for r in cur.fetchall()]
@@ -455,6 +488,7 @@ def hoso_list():
             "maLoai": ma_loai,
             "trangThai": trang_thai,
             "coCanhBao": canh_bao,
+            "sapXep": sap_xep,
         },
         pagination={
             "page": page,
@@ -807,9 +841,19 @@ def hoso_detail(ma_ho_so):
 
     hoso = dict(row)
     try:
-        hoso["canhBaoList"] = json.loads(hoso.get("chiTietCanhBao") or "[]")
+        raw_cb = json.loads(hoso.get("chiTietCanhBao") or "{}")
+        if isinstance(raw_cb, dict):
+            hoso["canhBaoList"] = raw_cb.get("reasons", [])
+            hoso["anomalyDetails"] = raw_cb
+        elif isinstance(raw_cb, list):
+            hoso["canhBaoList"] = raw_cb
+            hoso["anomalyDetails"] = {"reasons": raw_cb}
+        else:
+            hoso["canhBaoList"] = []
+            hoso["anomalyDetails"] = {"reasons": []}
     except Exception:
         hoso["canhBaoList"] = []
+        hoso["anomalyDetails"] = {"reasons": []}
 
     # Nghiệp vụ 3 - Bước 1c: Tiếp nhận và Chuyển trạng thái xử lý
     # Khi Cán bộ xét duyệt / Quản trị viên mở hồ sơ ở trạng thái 'Chờ xét duyệt',
@@ -918,6 +962,39 @@ def hoso_review_action(ma_ho_so):
         f"Đã cập nhật trạng thái hồ sơ {ma_ho_so} từ '{trang_thai_cu}' sang '{trang_thai_moi}' và ghi nhận vào LichSuXetDuyet.",
         "success"
     )
+    return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
+
+
+@app.route("/hoso/<ma_ho_so>/dismiss-warning", methods=["POST"])
+@role_required("Admin", "CanBo")
+def hoso_dismiss_warning(ma_ho_so):
+    """
+    Nghiệp vụ 6 - Bước 5b: Bỏ qua cảnh báo bất thường (Xử lý Báo động giả - False Alarm).
+    Cán bộ xét duyệt xác định hồ sơ hợp lệ, giải trừ cờ coCanhBao = 0 và ghi nhận vào Lịch sử xét duyệt.
+    """
+    ly_do = request.form.get("lyDoBoQua", "Cán bộ xét duyệt đã thẩm định hồ sơ thực tế và xác định cảnh báo của AI là báo động giả (False Alarm).").strip()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    hoso = cur.execute("SELECT coCanhBao, diemBatThuong FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0", (ma_ho_so,)).fetchone()
+    if not hoso:
+        conn.close()
+        flash("Hồ sơ không tồn tại.", "danger")
+        return redirect(url_for("hoso_list"))
+
+    cur.execute("""
+        UPDATE HoSoKHCN
+        SET coCanhBao = 0, ngayCapNhat = CURRENT_TIMESTAMP
+        WHERE maHoSo = ?
+    """, (ma_ho_so,))
+
+    cur.execute("""
+        INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
+        VALUES (?, ?, ?, ?, ?)
+    """, (ma_ho_so, session["user_id"], "Cảnh báo bất thường", "Đã giải trừ cảnh báo", f"Bỏ qua cảnh báo AI: {ly_do}"))
+
+    conn.commit()
+    conn.close()
+    flash(f"Đã giải trừ cờ cảnh báo bất thường cho hồ sơ {ma_ho_so}.", "success")
     return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
 
@@ -1252,32 +1329,61 @@ def ai_center():
     """)
     feedbacks = [dict(r) for r in cur.fetchall()]
 
+    # Đảm bảo đồ thị tri thức và mô hình bất thường luôn sẵn sàng
+    if ai_engine.knowledge_graph.number_of_nodes() == 0:
+        ai_engine.build_networkx_graph_and_detect_anomalies(conn)
+
     cur.execute("""
-        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI, tc.tenTapChi
+        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI, tc.tenTapChi, tc.uyTin AS tapChiUyTin,
+               nd.hoTen AS tenNguoiNop
         FROM HoSoKHCN h
         LEFT JOIN LinhVuc lv ON h.maLinhVuc = lv.maLinhVuc
         LEFT JOIN LinhVuc lv_ai ON h.maLinhVucAI = lv_ai.maLinhVuc
         LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
+        LEFT JOIN NguoiDung nd ON h.maNguoiNop = nd.maNguoiDung
         WHERE h.isDeleted = 0 AND h.coCanhBao = 1
-        ORDER BY h.diemBatThuong DESC
+        ORDER BY h.diemBatThuong DESC, h.ngayNop ASC
     """)
     anomalies = []
     for r in cur.fetchall():
         d = dict(r)
         try:
-            d["reasons"] = json.loads(d.get("chiTietCanhBao") or "[]")
+            raw_cb = json.loads(d.get("chiTietCanhBao") or "{}")
+            if isinstance(raw_cb, dict):
+                d["reasons"] = raw_cb.get("reasons", [])
+                d["if_score"] = raw_cb.get("if_score", 0.0)
+                d["ae_mse"] = raw_cb.get("ae_mse", 0.0)
+                d["ae_score"] = raw_cb.get("ae_score", 0.0)
+            elif isinstance(raw_cb, list):
+                d["reasons"] = raw_cb
+                d["if_score"] = 0.0
+                d["ae_mse"] = 0.0
+                d["ae_score"] = 0.0
+            else:
+                d["reasons"] = []
+                d["if_score"] = 0.0
+                d["ae_mse"] = 0.0
+                d["ae_score"] = 0.0
         except Exception:
             d["reasons"] = []
+            d["if_score"] = 0.0
+            d["ae_mse"] = 0.0
+            d["ae_score"] = 0.0
         anomalies.append(d)
 
-    conn.close()
+    # Chức năng 6: Bảng so sánh 2 mô hình bất thường & Hàng đợi xét duyệt ưu tiên
+    anomaly_models = ai_engine.get_anomaly_models_comparison()
+    priority_queue = ai_engine.get_priority_queue(cur, limit=20)
     graph_summary = ai_engine.get_graph_summary()
+    conn.close()
 
     return render_template(
         "ai_center.html",
         metrics=metrics,
         feedbacks=feedbacks,
         anomalies=anomalies,
+        anomaly_models=anomaly_models,
+        priority_queue=priority_queue,
         graph_summary=graph_summary,
         phobert_params=PHOBERT_HYPERPARAMS,
     )
@@ -1291,7 +1397,7 @@ def ai_retrain():
     ai_engine.build_networkx_graph_and_detect_anomalies(conn)
     conn.close()
     flash(
-        "Đã huấn luyện lại (Retrain / Fine-tune) mô hình TF-IDF+SVM, PhoBERT và cập nhật đồ thị NetworkX + Isolation Forest từ kho dữ liệu Feedback Loop!",
+        "Đã huấn luyện lại (Retrain / Fine-tune) mô hình TF-IDF+SVM, PhoBERT và cập nhật đồ thị NetworkX, Isolation Forest & Deep Autoencoder từ kho dữ liệu Feedback Loop!",
         "success"
     )
     return redirect(url_for("ai_center"))

@@ -344,39 +344,75 @@
                 </span>
             </div>
             <div class="card-body small">
-                <div class="row g-2 mb-2">
-                    <div class="col-6">
+                <!-- 4 Chỉ số Đo lường Bất thường Chuyên sâu -->
+                <div class="row g-2 mb-3 text-center">
+                    <div class="col-6 col-sm-3">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Điểm rủi ro bất thường:</span>
-                            <strong class="{% if hoso.coCanhBao == 1 %}text-danger{% else %}text-success{% endif %}">
-                                {{ "%.2f"|format(hoso.diemBatThuong or 0) }} (Ngưỡng &lt; 0.50)
+                            <span class="text-muted d-block" style="font-size: 0.72rem;">Điểm Rủi ro Tổng hợp:</span>
+                            <strong class="{% if (hoso.diemBatThuong or 0) >= 0.50 %}text-danger fs-6{% else %}text-success fs-6{% endif %}">
+                                {{ "%.2f"|format(hoso.diemBatThuong or 0) }}
                             </strong>
+                            <small class="d-block text-secondary" style="font-size: 0.7rem;">Ngưỡng an toàn &lt; 0.50</small>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-6 col-sm-3">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Độ tương đồng nội dung:</span>
-                            <strong class="{% if (hoso.doTuongDongMax or 0) >= 62 %}text-danger{% else %}text-dark{% endif %}">
-                                {{ "%.1f"|format(hoso.doTuongDongMax or 0) }}%
-                                {% if hoso.hoSoTuongDongNhat %}({{ hoso.hoSoTuongDongNhat }}){% endif %}
+                            <span class="text-muted d-block" style="font-size: 0.72rem;">Isolation Forest (IF):</span>
+                            <strong class="text-primary fs-6">
+                                {{ "%.3f"|format(hoso.anomalyDetails.if_score or 0.0) }}
                             </strong>
+                            <small class="d-block text-secondary" style="font-size: 0.7rem;">Độ cô lập iTree</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block" style="font-size: 0.72rem;">Autoencoder (MSE):</span>
+                            <strong class="text-warning fs-6 text-dark">
+                                {{ "%.4f"|format(hoso.anomalyDetails.ae_mse or 0.0) }}
+                            </strong>
+                            <small class="d-block text-secondary" style="font-size: 0.7rem;">Sai số tái tạo</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block" style="font-size: 0.72rem;">Trùng lặp Nội dung:</span>
+                            <strong class="{% if (hoso.doTuongDongMax or 0) >= 62 %}text-danger fs-6{% else %}text-dark fs-6{% endif %}">
+                                {{ "%.1f"|format(hoso.doTuongDongMax or 0) }}%
+                            </strong>
+                            <small class="d-block text-secondary" style="font-size: 0.7rem;">
+                                {% if hoso.hoSoTuongDongNhat %}{{ hoso.hoSoTuongDongNhat }}{% else %}Độc lập{% endif %}
+                            </small>
                         </div>
                     </div>
                 </div>
 
-                {% if hoso.canhBaoList %}
-                <div class="alert alert-danger mb-0 py-2 px-3">
-                    <div class="fw-bold mb-1"><i class="bi bi-Bell-fill me-1"></i>Phát hiện {{ hoso.canhBaoList|length }} dấu hiệu bất thường cần thẩm định kỹ:</div>
-                    <ul class="mb-0 ps-3">
+                {% if hoso.canhBaoList and hoso.coCanhBao == 1 %}
+                <div class="alert alert-danger mb-3 py-2 px-3">
+                    <div class="fw-bold mb-1">
+                        <i class="bi bi-bell-fill me-1"></i>Phát hiện {{ hoso.canhBaoList|length }} dấu hiệu bất thường cần thẩm định kỹ (Nghiệp vụ 6):
+                    </div>
+                    <ul class="mb-2 ps-3">
                         {% for reason in hoso.canhBaoList %}
                         <li class="mb-1">{{ reason | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}</li>
                         {% endfor %}
                     </ul>
+                    {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
+                    <div class="border-top border-danger-subtle pt-2 mt-2 d-flex justify-content-between align-items-center">
+                        <small class="text-muted fst-italic">Nếu đây là báo động giả, cán bộ có thể giải trừ cờ cảnh báo:</small>
+                        <form method="POST" action="{{ url_for('hoso_dismiss_warning', ma_ho_so=hoso.maHoSo) }}" class="d-inline">
+                            <input type="hidden" name="lyDoBoQua" value="Cán bộ xét duyệt đã kiểm tra thực tế và xác nhận đây là báo động giả (False Alarm).">
+                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 fw-semibold"
+                                    onclick="return confirm('Xác nhận bỏ qua cảnh báo của AI cho hồ sơ này?');">
+                                <i class="bi bi-check2-circle me-1"></i>Bỏ qua cảnh báo (Báo động giả)
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
                 {% else %}
                 <div class="alert alert-success mb-0 py-2 px-3">
                     <i class="bi bi-shield-check me-1"></i>
-                    <strong>Hồ sơ an toàn:</strong> Không phát hiện bất thường trên đồ thị liên kết Tác giả - Lĩnh vực, tạp chí thuộc danh mục uy tín và không trùng lặp nội dung.
+                    <strong>Hồ sơ an toàn:</strong> Không phát hiện bất thường trên đồ thị liên kết NetworkX, tạp chí thuộc danh mục uy tín, lĩnh vực chuẩn xác và không trùng lặp nội dung.
                 </div>
                 {% endif %}
             </div>

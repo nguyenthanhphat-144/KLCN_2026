@@ -51,8 +51,8 @@
     <div class="card-body">
         <form method="GET" action="{{ url_for('hoso_list') }}" class="row g-2 align-items-end">
             <input type="hidden" name="nhom" value="{{ filters.nhom or '' }}">
-            <div class="col-md-4">
-                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề / Tóm tắt / Từ khóa / Tác giả / Mã đề tài)</label>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề/Tóm tắt/Tác giả)</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" value="{{ filters.q }}" class="form-control"
@@ -71,17 +71,6 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label small fw-semibold mb-1">Loại công trình</label>
-                <select name="maLoai" class="form-select form-select-sm">
-                    <option value="">-- Tất cả loại CT --</option>
-                    {% for lct in loai_cts %}
-                    <option value="{{ lct.maLoai }}" {% if filters.maLoai == lct.maLoai|string %}selected{% endif %}>
-                        {{ lct.tenLoai }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">Trạng thái duyệt</label>
                 <select name="trangThai" class="form-select form-select-sm">
                     <option value="">-- Tất cả trạng thái --</option>
@@ -90,16 +79,24 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2 d-flex gap-1">
-                <div class="flex-grow-1">
-                    <label class="form-label small fw-semibold mb-1">Cảnh báo AI</label>
-                    <select name="coCanhBao" class="form-select form-select-sm">
-                        <option value="">Tất cả</option>
-                        <option value="1" {% if filters.coCanhBao == '1' %}selected{% endif %}>⚠️ Có cảnh báo</option>
-                        <option value="0" {% if filters.coCanhBao == '0' %}selected{% endif %}>🟢 Bình thường</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">Lọc</button>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Cảnh báo AI</label>
+                <select name="coCanhBao" class="form-select form-select-sm">
+                    <option value="">Tất cả</option>
+                    <option value="1" {% if filters.coCanhBao == '1' %}selected{% endif %}>⚠️ Có cảnh báo</option>
+                    <option value="0" {% if filters.coCanhBao == '0' %}selected{% endif %}>🟢 Bình thường</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">Thứ tự hàng đợi</label>
+                <select name="sapXep" class="form-select form-select-sm fw-semibold">
+                    <option value="priority" {% if filters.sapXep == 'priority' or not filters.sapXep %}selected{% endif %}>🚨 Ưu tiên rủi ro (AI)</option>
+                    <option value="fifo" {% if filters.sapXep == 'fifo' %}selected{% endif %}>⏱ Nộp trước (FIFO)</option>
+                    <option value="newest" {% if filters.sapXep == 'newest' %}selected{% endif %}>📅 Mới nhất trước</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-primary fw-bold w-100">Lọc</button>
                 <a href="{{ url_for('hoso_list') }}" class="btn btn-sm btn-outline-secondary" title="Xóa bộ lọc"><i class="bi bi-arrow-counterclockwise"></i></a>
             </div>
         </form>
@@ -202,9 +199,11 @@
                             <td>
                                 {% if r.coCanhBao == 1 %}
                                 <span class="badge bg-danger mb-1">
-                                    <i class="bi bi-shield-exclamation me-1"></i>Cảnh báo (Rủi ro: {{ "%.2f"|format(r.diemBatThuong) }})
+                                    <i class="bi bi-shield-exclamation me-1"></i>Rủi ro: {{ "%.2f"|format(r.diemBatThuong) }}
                                 </span>
-                                <div class="small text-danger">Cần cán bộ kiểm tra</div>
+                                <div class="small text-danger fw-semibold" style="font-size: 0.72rem;">
+                                    IF: {{ "%.2f"|format(r.if_score or 0) }} | AE: {{ "%.3f"|format(r.ae_mse or 0) }}
+                                </div>
                                 {% else %}
                                 <span class="badge bg-success-subtle text-success border border-success-subtle">
                                     <i class="bi bi-shield-check me-1"></i>An toàn ({{ "%.2f"|format(r.diemBatThuong) }})

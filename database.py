@@ -37,6 +37,13 @@ class SQLServerCursorWrapper:
             translated = re.sub(r"\bLIMIT\s+\d+\s*;?\s*$", "", translated, flags=re.IGNORECASE)
             translated = re.sub(r"^SELECT\s+", f"SELECT TOP {top_n} ", translated, count=1, flags=re.IGNORECASE)
 
+        # Chuyển SELECT ... LIMIT ? ở cuối câu lệnh sang SELECT TOP <val> ...
+        m_limit_param = re.search(r"\bLIMIT\s+\?\s*;?\s*$", translated, flags=re.IGNORECASE)
+        if m_limit_param and "OFFSET" not in translated.upper() and params_list:
+            top_n = params_list.pop()
+            translated = re.sub(r"\bLIMIT\s+\?\s*;?\s*$", "", translated, flags=re.IGNORECASE)
+            translated = re.sub(r"^SELECT\s+", f"SELECT TOP {int(top_n)} ", translated, count=1, flags=re.IGNORECASE)
+
         # Chuyển LIMIT ? OFFSET ? (SQLite) sang OFFSET ? ROWS FETCH NEXT ? ROWS ONLY (SQL Server)
         m_limit_offset = re.search(r"\bLIMIT\s+\?\s+OFFSET\s+\?\s*;?\s*$", translated, flags=re.IGNORECASE)
         if m_limit_offset and len(params_list) >= 2:
