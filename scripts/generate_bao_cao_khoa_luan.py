@@ -5,6 +5,25 @@ File kết quả: Bao_Cao_Khoa_Luan.docx
 Đề tài: HỖ TRỢ QUẢN LÝ HỒ SƠ KHOA HỌC CÔNG NGHỆ BẰNG PHƯƠNG PHÁP PHÂN LOẠI TỰ ĐỘNG VÀ PHÁT HIỆN BẤT THƯỜNG
 Mã đề tài: CNTT-KLCN001
 Tuân thủ tuyệt đối quy định thể thức trình bày trong 'Mau bao cao_Do an_Khoa luan_2025.docx'.
+
+Các quy chuẩn đã thiết lập nghiêm ngặt:
+1. Font Times New Roman toàn bộ văn bản.
+2. Màu chữ 100% trắng đen (#000000), không dùng font màu.
+3. Căn lề: Trái 3.5cm, Phải 2.5cm, Trên 2.5cm, Dưới 2.5cm. Khổ giấy A4.
+4. Đề mục:
+   - Cấp chương: cỡ chữ 18, in hoa, canh giữa, tô đậm (outlineLvl=0).
+   - Đề mục 1.1: cỡ chữ 14, in hoa, canh trái, tô đậm (outlineLvl=1).
+   - Đề mục 1.1.1 & 1.1.1.1: cỡ chữ 13, in thường, canh trái, tô đậm (outlineLvl=2, 3).
+5. Đề mục hình: Phía dưới hình, canh giữa, cỡ chữ 12, tô đậm, 'Hình X.Y: ...'.
+6. Đề mục bảng: Phía trên bảng, canh giữa, cỡ chữ 12, tô đậm, 'Bảng X.Y: ...'.
+   Nội dung trong bảng: Cỡ chữ 12, line spacing multiple 1.3, before/after 0pt. Lặp lại tiêu đề bảng nếu sang trang (tblHeader).
+7. Đoạn văn: Cỡ chữ 13, first line indent 1.0cm, line spacing multiple 1.3, before 6pt, after 6pt, canh đều 2 bên (Justified).
+8. Bullet:
+   - Cấp 1: dấu gạch '–', position 0.3cm, text indent 0.8cm, line spacing 1.3, before/after 6pt, canh đều 2 bên.
+   - Cấp 2: dấu '+', position 0.8cm, text indent 1.3cm, line spacing 1.3, before/after 6pt, canh đều 2 bên.
+9. Đánh số trang: Canh giữa dưới trang. Bìa không đánh số. Trang phụ (Lời cam đoan, Lời cảm ơn, Nhận xét GVHD, Tóm tắt, Mục lục, Danh mục) đánh số la mã (i, ii, iii,...). Trang nội dung từ Mở đầu trở đi đánh số thập phân (1, 2, 3,...).
+10. Mục lục, Danh mục hình, Danh mục bảng: Tạo tự động qua field codes Word (TOC \\o "1-3" \\h \\z \\u, TOC \\c "Hình" \\h \\z, TOC \\c "Bảng" \\h \\z) kèm updateFields trong settings.xml và pre-rendered dot leader tabs (8504 dxa).
+11. Phần 'NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN': Để trống hoàn toàn với các dòng chấm dot leader (8504 dxa) và khung ký tên như file mẫu để giảng viên tự điền.
 """
 
 import os
@@ -13,7 +32,7 @@ import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
 
@@ -28,7 +47,7 @@ def set_cell_background(cell, fill_hex):
     shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     tcPr.append(shd)
 
-def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
+def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
     tcPr = cell._tc.get_or_add_tcPr()
     tcMar = parse_xml(f'''
         <w:tcMar {nsdecls("w")}>
@@ -40,7 +59,7 @@ def set_cell_margins(cell, top=100, bottom=100, left=150, right=150):
     ''')
     tcPr.append(tcMar)
 
-def set_table_borders(table, color="B0BEC5", sz="4", val="single"):
+def set_table_borders(table, color="808080", sz="4", val="single"):
     tblPr = table._tbl.tblPr
     borders = parse_xml(f'''
         <w:tblBorders {nsdecls("w")}>
@@ -96,11 +115,16 @@ def add_chapter_title(doc, text):
     p.paragraph_format.space_before = Pt(14)
     p.paragraph_format.space_after = Pt(14)
     p.paragraph_format.line_spacing = 1.3
+    
+    # Add outline level 0 so Word TOC catches it natively
+    pPr = p._p.get_or_add_pPr()
+    pPr.append(parse_xml(f'<w:outlineLvl {nsdecls("w")} w:val="0"/>'))
+    
     run = p.add_run(text.upper())
     run.font.name = 'Times New Roman'
     run.font.size = Pt(18)
     run.font.bold = True
-    run.font.color.rgb = RGBColor(0, 51, 102)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_h1(doc, text):
@@ -109,11 +133,16 @@ def add_h1(doc, text):
     p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.line_spacing = 1.3
+    
+    # Add outline level 1 so Word TOC catches it natively
+    pPr = p._p.get_or_add_pPr()
+    pPr.append(parse_xml(f'<w:outlineLvl {nsdecls("w")} w:val="1"/>'))
+    
     run = p.add_run(text.upper())
     run.font.name = 'Times New Roman'
     run.font.size = Pt(14)
     run.font.bold = True
-    run.font.color.rgb = RGBColor(0, 51, 102)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_h2(doc, text):
@@ -122,11 +151,16 @@ def add_h2(doc, text):
     p.paragraph_format.space_before = Pt(8)
     p.paragraph_format.space_after = Pt(4)
     p.paragraph_format.line_spacing = 1.3
+    
+    # Add outline level 2 so Word TOC catches it natively
+    pPr = p._p.get_or_add_pPr()
+    pPr.append(parse_xml(f'<w:outlineLvl {nsdecls("w")} w:val="2"/>'))
+    
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(13)
     run.font.bold = True
-    run.font.color.rgb = RGBColor(20, 20, 20)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_h3(doc, text):
@@ -135,12 +169,16 @@ def add_h3(doc, text):
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(3)
     p.paragraph_format.line_spacing = 1.3
+    
+    # Add outline level 3 so Word TOC catches it natively
+    pPr = p._p.get_or_add_pPr()
+    pPr.append(parse_xml(f'<w:outlineLvl {nsdecls("w")} w:val="3"/>'))
+    
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(13)
     run.font.bold = True
-    run.font.italic = True
-    run.font.color.rgb = RGBColor(50, 50, 50)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_body(doc, text, bold_prefix=None):
@@ -155,56 +193,67 @@ def add_body(doc, text, bold_prefix=None):
         r_pre.font.name = 'Times New Roman'
         r_pre.font.size = Pt(13)
         r_pre.font.bold = True
+        r_pre.font.color.rgb = RGBColor(0, 0, 0)
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(13)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_bullet_1(doc, text, bold_prefix=None):
+    # Quy chuẩn: Bullet cấp 1 dấu "–", Position 0.3 cm, Text indent 0.8 cm
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.left_indent = Cm(0.8)
-    p.paragraph_format.first_line_indent = Cm(-0.5)
-    p.paragraph_format.space_before = Pt(3)
-    p.paragraph_format.space_after = Pt(3)
+    p.paragraph_format.first_line_indent = Cm(-0.5) # 0.8 - 0.5 = 0.3 cm position
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.line_spacing = 1.3
     r_bullet = p.add_run("– ")
     r_bullet.font.name = 'Times New Roman'
     r_bullet.font.size = Pt(13)
     r_bullet.font.bold = True
+    r_bullet.font.color.rgb = RGBColor(0, 0, 0)
     if bold_prefix:
         r_pre = p.add_run(bold_prefix)
         r_pre.font.name = 'Times New Roman'
         r_pre.font.size = Pt(13)
         r_pre.font.bold = True
+        r_pre.font.color.rgb = RGBColor(0, 0, 0)
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(13)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_bullet_2(doc, text, bold_prefix=None):
+    # Quy chuẩn: Bullet cấp 2 dấu "+", Position 0.8 cm, Text indent 1.3 cm
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.left_indent = Cm(1.3)
-    p.paragraph_format.first_line_indent = Cm(-0.5)
-    p.paragraph_format.space_before = Pt(2)
-    p.paragraph_format.space_after = Pt(2)
+    p.paragraph_format.first_line_indent = Cm(-0.5) # 1.3 - 0.5 = 0.8 cm position
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.line_spacing = 1.3
     r_bullet = p.add_run("+ ")
     r_bullet.font.name = 'Times New Roman'
     r_bullet.font.size = Pt(13)
     r_bullet.font.bold = True
+    r_bullet.font.color.rgb = RGBColor(0, 0, 0)
     if bold_prefix:
         r_pre = p.add_run(bold_prefix)
         r_pre.font.name = 'Times New Roman'
         r_pre.font.size = Pt(13)
         r_pre.font.bold = True
+        r_pre.font.color.rgb = RGBColor(0, 0, 0)
     run = p.add_run(text)
     run.font.name = 'Times New Roman'
     run.font.size = Pt(13)
+    run.font.color.rgb = RGBColor(0, 0, 0)
     return p
 
 def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
+    # Quy chuẩn: Đề mục bảng đặt PHÍA TRÊN bảng, canh giữa, cỡ chữ 12, tô đậm
     p_cap = doc.add_paragraph()
     p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_cap.paragraph_format.space_before = Pt(8)
@@ -213,30 +262,41 @@ def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
     r_cap.font.name = 'Times New Roman'
     r_cap.font.size = Pt(12)
     r_cap.font.bold = True
+    r_cap.font.color.rgb = RGBColor(0, 0, 0)
 
     table = doc.add_table(rows=len(rows_data) + 1, cols=len(headers))
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    set_table_borders(table)
+    set_table_borders(table, color="808080")
 
-    hdr_cells = table.rows[0].cells
+    # Header Row: lặp lại tiêu đề bảng nếu sang trang mới (tblHeader)
+    hdr_row = table.rows[0]
+    trPr = hdr_row._tr.get_or_add_trPr()
+    trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
+    trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+
+    hdr_cells = hdr_row.cells
     for i, title in enumerate(headers):
         hdr_cells[i].text = title
-        set_cell_background(hdr_cells[i], "E8EEF5")
-        set_cell_margins(hdr_cells[i], top=120, bottom=120, left=140, right=140)
+        set_cell_background(hdr_cells[i], "F2F2F2") # Light gray header
+        set_cell_margins(hdr_cells[i], top=100, bottom=100, left=140, right=140)
         p = hdr_cells[i].paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
-        p.paragraph_format.line_spacing = 1.2
+        p.paragraph_format.line_spacing = 1.3 # Quy chuẩn: multiple 1.3
         for run in p.runs:
             run.font.name = 'Times New Roman'
-            run.font.size = Pt(11.5)
+            run.font.size = Pt(12) # Quy chuẩn: cỡ chữ 12
             run.font.bold = True
-            run.font.color.rgb = RGBColor(10, 40, 80)
+            run.font.color.rgb = RGBColor(0, 0, 0)
 
+    # Data Rows: Cỡ chữ 12, Line spacing multiple 1.3, Before 0pt, After 0pt
     for row_idx, data in enumerate(rows_data):
-        row_cells = table.rows[row_idx + 1].cells
-        bg_color = "F9FBFC" if row_idx % 2 == 1 else "FFFFFF"
+        row = table.rows[row_idx + 1]
+        trPr_row = row._tr.get_or_add_trPr()
+        trPr_row.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+        row_cells = row.cells
+        bg_color = "F9F9F9" if row_idx % 2 == 1 else "FFFFFF"
         for col_idx, val in enumerate(data):
             row_cells[col_idx].text = str(val)
             set_cell_background(row_cells[col_idx], bg_color)
@@ -244,14 +304,15 @@ def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
             p = row_cells[col_idx].paragraphs[0]
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(0)
-            p.paragraph_format.line_spacing = 1.2
-            if str(val).strip().isdigit() or len(str(val).strip()) <= 4:
+            p.paragraph_format.line_spacing = 1.3 # Quy chuẩn: multiple 1.3
+            if str(val).strip().isdigit() or len(str(val).strip()) <= 4 or str(val).strip().endswith('%'):
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             else:
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in p.runs:
                 run.font.name = 'Times New Roman'
-                run.font.size = Pt(11)
+                run.font.size = Pt(12) # Quy chuẩn: cỡ chữ 12
+                run.font.color.rgb = RGBColor(0, 0, 0)
 
     if col_widths and len(col_widths) == len(headers):
         for row in table.rows:
@@ -260,10 +321,11 @@ def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
 
     p_post = doc.add_paragraph()
     p_post.paragraph_format.space_before = Pt(2)
-    p_post.paragraph_format.space_after = Pt(4)
+    p_post.paragraph_format.space_after = Pt(6)
     return table
 
 def add_figure_custom(doc, img_rel_path, caption_text, width_cm=14.5):
+    # Quy chuẩn: Đề mục hình đặt PHÍA DƯỚI hình, canh giữa, cỡ chữ 12, tô đậm
     img_path = os.path.join(BASE_DIR, img_rel_path)
     if os.path.exists(img_path):
         p_img = doc.add_paragraph()
@@ -281,9 +343,209 @@ def add_figure_custom(doc, img_rel_path, caption_text, width_cm=14.5):
         r_cap.font.name = 'Times New Roman'
         r_cap.font.size = Pt(12)
         r_cap.font.bold = True
-        r_cap.font.italic = True
+        r_cap.font.color.rgb = RGBColor(0, 0, 0)
     else:
         print(f"Warning: Figure image not found: {img_path}")
+
+def add_blank_supervisor_review(doc):
+    """
+    Tạo trang 'NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN' để trống hoàn toàn
+    với 19 dòng chấm leader='dot' (pos 8504 dxa) và khung ký tên như file mẫu HUIT 2025.
+    """
+    add_chapter_title(doc, "NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN")
+
+    p_space = doc.add_paragraph()
+    p_space.paragraph_format.space_before = Pt(6)
+    p_space.paragraph_format.space_after = Pt(6)
+
+    for _ in range(19):
+        p_dot = doc.add_paragraph()
+        pPr = p_dot._p.get_or_add_pPr()
+        pPr.append(parse_xml(f'''
+            <w:tabs {nsdecls("w")}>
+                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
+            </w:tabs>
+        '''))
+        pPr.append(parse_xml(f'<w:spacing {nsdecls("w")} w:before="120" w:after="120" w:line="360" w:lineRule="auto"/>'))
+        p_dot.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        r = p_dot.add_run("\t")
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(13)
+
+    p_title = doc.add_paragraph()
+    pPr_t = p_title._p.get_or_add_pPr()
+    pPr_t.append(parse_xml(f'''
+        <w:tabs {nsdecls("w")}>
+            <w:tab w:val="center" w:pos="5670"/>
+        </w:tabs>
+    '''))
+    p_title.paragraph_format.space_before = Pt(12)
+    p_title.paragraph_format.space_after = Pt(2)
+    r_t = p_title.add_run("\tGIẢNG VIÊN HƯỚNG DẪN")
+    r_t.font.name = 'Times New Roman'
+    r_t.font.size = Pt(13)
+    r_t.font.bold = True
+    r_t.font.color.rgb = RGBColor(0, 0, 0)
+
+    p_sub = doc.add_paragraph()
+    pPr_s = p_sub._p.get_or_add_pPr()
+    pPr_s.append(parse_xml(f'''
+        <w:tabs {nsdecls("w")}>
+            <w:tab w:val="center" w:pos="5670"/>
+        </w:tabs>
+    '''))
+    p_sub.paragraph_format.space_before = Pt(0)
+    p_sub.paragraph_format.space_after = Pt(50)
+    r_s = p_sub.add_run("\t(Ký và ghi rõ họ tên)")
+    r_s.font.name = 'Times New Roman'
+    r_s.font.size = Pt(13)
+    r_s.font.italic = True
+    r_s.font.color.rgb = RGBColor(0, 0, 0)
+
+def add_automatic_toc(doc, toc_items):
+    """
+    Tạo Mục Lục tự động thông qua Word Field Code 'TOC \\o "1-3" \\h \\z \\u'
+    kèm danh mục pre-rendered với tab stop leader='dot' tại 8504 dxa (lề phải).
+    """
+    add_chapter_title(doc, "MỤC LỤC")
+
+    # Bắt đầu trường TOC tự động
+    p_start = doc.add_paragraph()
+    p_start.paragraph_format.space_before = Pt(0)
+    p_start.paragraph_format.space_after = Pt(0)
+    p_start._p.append(parse_xml(f'''
+        <w:r {nsdecls("w")}>
+            <w:fldChar w:fldCharType="begin"/>
+            <w:instrText xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText>
+            <w:fldChar w:fldCharType="separate"/>
+        </w:r>
+    '''))
+
+    for title, page_no in toc_items:
+        p_t = doc.add_paragraph()
+        pPr = p_t._p.get_or_add_pPr()
+        pPr.append(parse_xml(f'''
+            <w:tabs {nsdecls("w")}>
+                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
+            </w:tabs>
+        '''))
+        p_t.paragraph_format.space_before = Pt(2)
+        p_t.paragraph_format.space_after = Pt(2)
+        p_t.paragraph_format.line_spacing = 1.3
+
+        is_bold = any(title.strip().startswith(prefix) for prefix in [
+            'LỜI', 'NHẬN', 'TÓM', 'ABSTRACT', 'MỤC', 'DANH', 'PHẦN MỞ ĐẦU', 'CHƯƠNG', 'KẾT LUẬN', 'TÀI LIỆU'
+        ])
+
+        r_t = p_t.add_run(title)
+        r_t.font.name = 'Times New Roman'
+        r_t.font.size = Pt(12)
+        r_t.font.bold = is_bold
+        r_t.font.color.rgb = RGBColor(0, 0, 0)
+
+        r_tab = p_t.add_run(f"\t{page_no}")
+        r_tab.font.name = 'Times New Roman'
+        r_tab.font.size = Pt(12)
+        r_tab.font.bold = is_bold
+        r_tab.font.color.rgb = RGBColor(0, 0, 0)
+
+    # Kết thúc trường TOC
+    p_end = doc.add_paragraph()
+    p_end.paragraph_format.space_before = Pt(0)
+    p_end.paragraph_format.space_after = Pt(0)
+    p_end._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="end"/></w:r>'))
+
+def add_automatic_figure_list(doc, figures_list):
+    """
+    Tạo Danh Mục Hình tự động thông qua Word Field Code 'TOC \\c "Hình" \\h \\z'
+    kèm tab stop leader='dot' tại 8504 dxa (lề phải).
+    """
+    add_chapter_title(doc, "DANH MỤC HÌNH")
+
+    p_start = doc.add_paragraph()
+    p_start.paragraph_format.space_before = Pt(0)
+    p_start.paragraph_format.space_after = Pt(0)
+    p_start._p.append(parse_xml(f'''
+        <w:r {nsdecls("w")}>
+            <w:fldChar w:fldCharType="begin"/>
+            <w:instrText xml:space="preserve"> TOC \\c "Hình" \\h \\z </w:instrText>
+            <w:fldChar w:fldCharType="separate"/>
+        </w:r>
+    '''))
+
+    for cap, page_no in figures_list:
+        p_f = doc.add_paragraph()
+        pPr = p_f._p.get_or_add_pPr()
+        pPr.append(parse_xml(f'''
+            <w:tabs {nsdecls("w")}>
+                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
+            </w:tabs>
+        '''))
+        p_f.paragraph_format.space_before = Pt(2)
+        p_f.paragraph_format.space_after = Pt(2)
+        p_f.paragraph_format.line_spacing = 1.3
+
+        r_f = p_f.add_run(cap)
+        r_f.font.name = 'Times New Roman'
+        r_f.font.size = Pt(12)
+        r_f.font.color.rgb = RGBColor(0, 0, 0)
+
+        r_tab = p_f.add_run(f"\t{page_no}")
+        r_tab.font.name = 'Times New Roman'
+        r_tab.font.size = Pt(12)
+        r_tab.font.bold = True
+        r_tab.font.color.rgb = RGBColor(0, 0, 0)
+
+    p_end = doc.add_paragraph()
+    p_end.paragraph_format.space_before = Pt(0)
+    p_end.paragraph_format.space_after = Pt(0)
+    p_end._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="end"/></w:r>'))
+
+def add_automatic_table_list(doc, tables_list):
+    """
+    Tạo Danh Mục Bảng tự động thông qua Word Field Code 'TOC \\c "Bảng" \\h \\z'
+    kèm tab stop leader='dot' tại 8504 dxa (lề phải).
+    """
+    add_chapter_title(doc, "DANH MỤC BẢNG")
+
+    p_start = doc.add_paragraph()
+    p_start.paragraph_format.space_before = Pt(0)
+    p_start.paragraph_format.space_after = Pt(0)
+    p_start._p.append(parse_xml(f'''
+        <w:r {nsdecls("w")}>
+            <w:fldChar w:fldCharType="begin"/>
+            <w:instrText xml:space="preserve"> TOC \\c "Bảng" \\h \\z </w:instrText>
+            <w:fldChar w:fldCharType="separate"/>
+        </w:r>
+    '''))
+
+    for cap, page_no in tables_list:
+        p_t = doc.add_paragraph()
+        pPr = p_t._p.get_or_add_pPr()
+        pPr.append(parse_xml(f'''
+            <w:tabs {nsdecls("w")}>
+                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
+            </w:tabs>
+        '''))
+        p_t.paragraph_format.space_before = Pt(2)
+        p_t.paragraph_format.space_after = Pt(2)
+        p_t.paragraph_format.line_spacing = 1.3
+
+        r_t = p_t.add_run(cap)
+        r_t.font.name = 'Times New Roman'
+        r_t.font.size = Pt(12)
+        r_t.font.color.rgb = RGBColor(0, 0, 0)
+
+        r_tab = p_t.add_run(f"\t{page_no}")
+        r_tab.font.name = 'Times New Roman'
+        r_tab.font.size = Pt(12)
+        r_tab.font.bold = True
+        r_tab.font.color.rgb = RGBColor(0, 0, 0)
+
+    p_end = doc.add_paragraph()
+    p_end.paragraph_format.space_before = Pt(0)
+    p_end.paragraph_format.space_after = Pt(0)
+    p_end._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="end"/></w:r>'))
 
 # ==================== MAIN GENERATOR ====================
 
@@ -291,14 +553,18 @@ def generate_thesis_report():
     print("Beginning generation of Bao_Cao_Khoa_Luan.docx...")
     doc = Document()
 
-    # SECTION 1: COVER PAGES (No page numbering)
+    # Bật tính năng tự động cập nhật trường khi mở tài liệu trong Word
+    settings = doc.settings._element
+    settings.append(parse_xml(f'<w:updateFields {nsdecls("w")} w:val="true"/>'))
+
+    # ==================== SECTION 1: COVER PAGES (No page numbering) ====================
     s1 = doc.sections[0]
     set_margins(s1)
     s1.footer.is_linked_to_previous = False
     p_ft1 = s1.footer.paragraphs[0]
-    p_ft1.text = "" # No footer on covers
+    p_ft1.text = "" # Không đánh số trang bìa
 
-    # ---- MAIN COVER (Trang bìa chính) ----
+    # ---- TRANG BÌA CHÍNH (In trên giấy bìa) ----
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(10)
@@ -307,17 +573,21 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(14)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p.add_run("TRƯỜNG ĐẠI HỌC CÔNG THƯƠNG TP. HỒ CHÍ MINH\n")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(15)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN\n")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(14)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p.add_run("━━━━━━━━━━━━━━━━━━━ ✦ ✦ ✦ ━━━━━━━━━━━━━━━━━━━")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(11)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_space = doc.add_paragraph()
     p_space.paragraph_format.space_before = Pt(30)
@@ -330,7 +600,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(16)
     r.font.bold = True
-    r.font.color.rgb = RGBColor(0, 51, 102)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -340,7 +610,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(18)
     r.font.bold = True
-    r.font.color.rgb = RGBColor(180, 0, 0) # Highlight Crimson
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -350,6 +620,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12)
     r.font.italic = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -359,6 +630,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(14)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_info = doc.add_paragraph()
     p_info.paragraph_format.left_indent = Cm(4.5)
@@ -369,6 +641,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     students = [
         ("1. Nguyễn Thành Phát", "MSSV: 201230641", "Lớp: 14DHTH11"),
         ("2. Lê Thanh Phong", "MSSV: 2001230669", "Lớp: 14DHTH10"),
@@ -378,6 +651,7 @@ def generate_thesis_report():
         r = p_info.add_run(f"   {name} – {mssv} – {lop}\n")
         r.font.name = 'Times New Roman'
         r.font.size = Pt(12.5)
+        r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_gv = doc.add_paragraph()
     p_gv.paragraph_format.left_indent = Cm(4.5)
@@ -387,9 +661,11 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p_gv.add_run("   ThS. BÙI CÔNG DANH (Khoa Công nghệ Thông tin - HUIT)")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12.5)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_date = doc.add_paragraph()
     p_date.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -399,10 +675,11 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.add_page_break()
 
-    # ---- SUB COVER (Trang bìa phụ) ----
+    # ---- TRANG BÌA PHỤ (In giấy trắng thường) ----
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(10)
@@ -411,9 +688,11 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(14)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p.add_run("━━━━━━━━━━━━━━━━━━━ ✦ ✦ ✦ ━━━━━━━━━━━━━━━━━━━")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(11)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_space = doc.add_paragraph()
     p_space.paragraph_format.space_before = Pt(30)
@@ -426,7 +705,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(16)
     r.font.bold = True
-    r.font.color.rgb = RGBColor(0, 51, 102)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -436,7 +715,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(18)
     r.font.bold = True
-    r.font.color.rgb = RGBColor(180, 0, 0)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -446,6 +725,7 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_gv = doc.add_paragraph()
     p_gv.paragraph_format.left_indent = Cm(4.5)
@@ -455,9 +735,11 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p_gv.add_run("   ThS. BÙI CÔNG DANH\n   Email: danhbc@huit.edu.vn | SĐT: 0936598931")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12)
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_info = doc.add_paragraph()
     p_info.paragraph_format.left_indent = Cm(4.5)
@@ -467,10 +749,12 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     for name, mssv, lop in students:
         r = p_info.add_run(f"   {name} – {mssv} – {lop}\n")
         r.font.name = 'Times New Roman'
         r.font.size = Pt(12.5)
+        r.font.color.rgb = RGBColor(0, 0, 0)
 
     p_date = doc.add_paragraph()
     p_date.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -480,9 +764,9 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
-    # ==================== SECTION 2: PRELIMINARY PAGES ====================
-    # Roman numeral page numbering (i, ii, iii...)
+    # ==================== SECTION 2: PRELIMINARY PAGES (i, ii, iii...) ====================
     s2 = doc.add_section()
     set_margins(s2)
     s2.footer.is_linked_to_previous = False
@@ -492,6 +776,7 @@ def generate_thesis_report():
     r_ft2 = p_ft2.add_run()
     r_ft2.font.name = 'Times New Roman'
     r_ft2.font.size = Pt(10)
+    r_ft2.font.color.rgb = RGBColor(0, 0, 0)
     add_page_number_field(r_ft2)
 
     # ---- LỜI CAM ĐOAN ----
@@ -508,14 +793,17 @@ def generate_thesis_report():
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12.5)
     r.font.italic = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p_sig.add_run("Đại diện nhóm sinh viên thực hiện\n\n\n\n")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(13)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
     r = p_sig.add_run("Nguyễn Thành Phát – Lê Thanh Phong – Nguyễn Thành Tài")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(12)
     r.font.bold = True
+    r.font.color.rgb = RGBColor(0, 0, 0)
 
     doc.add_page_break()
 
@@ -529,42 +817,8 @@ def generate_thesis_report():
 
     doc.add_page_break()
 
-    # ---- NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN ----
-    add_chapter_title(doc, "NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN")
-    add_body(doc, "1. Họ và tên giảng viên hướng dẫn: ThS. Bùi Công Danh")
-    add_body(doc, "2. Bộ môn: Khoa học Máy tính & Kỹ thuật Phần mềm – Khoa Công nghệ Thông tin")
-    add_body(doc, "3. Nhóm sinh viên thực hiện đề tài:")
-    add_bullet_1(doc, "Nguyễn Thành Phát – MSSV: 201230641 – Lớp: 14DHTH11")
-    add_bullet_1(doc, "Lê Thanh Phong – MSSV: 2001230669 – Lớp: 14DHTH10")
-    add_bullet_1(doc, "Nguyễn Thành Tài – MSSV: 2001230767 – Lớp: 14DHTH13")
-    add_body(doc, "4. Tên đề tài: Hỗ trợ quản lý hồ sơ khoa học công nghệ bằng phương pháp phân loại tự động và phát hiện bất thường (Mã đề tài: CNTT-KLCN001)")
-    add_body(doc, "5. Ý kiến nhận xét, đánh giá của Giảng viên hướng dẫn:")
-    add_bullet_1(doc, "Về tinh thần, thái độ làm việc: Nhóm sinh viên có thái độ học tập và nghiên cứu nghiêm túc, chăm chỉ, chủ động trao đổi định kỳ hằng tuần với giảng viên hướng dẫn; phân công công việc khoa học và phối hợp nhóm hiệu quả.")
-    add_bullet_1(doc, "Về khả năng nắm bắt kiến thức: Nắm vững các công nghệ web hiện đại (Flask, Microsoft SQL Server 2025), xử lý ngôn ngữ tự nhiên tiếng Việt chuyên sâu (PyVi, PhoBERT) và các giải thuật học máy tiên tiến (LinearSVC, Isolation Forest, Deep Autoencoder, NetworkX).")
-    add_bullet_1(doc, "Về kết quả sản phẩm: Đã hoàn thành 100% các yêu cầu nghiệp vụ theo đề cương và tài liệu 'Mô tả nghiệp vụ revision', bao gồm cả 6 chức năng nghiệp vụ cốt lõi, tích hợp thông minh các mô-đun AI hỗ trợ kiểm tra tính hợp lệ và xếp hạng ưu tiên hàng đợi xét duyệt.")
-    add_bullet_1(doc, "Về hình thức báo cáo: Báo cáo được trình bày công phu, mạch lạc, đúng chuẩn mẫu quy định năm 2025 của Trường Đại học Công Thương TP. HCM; sơ đồ, bảng biểu rõ ràng và minh chứng thực nghiệm phong phú.")
-    add_body(doc, "6. Điểm đánh giá kết quả khóa luận (Thang điểm 10): ............ / 10.0")
-
-    p_gv_sig = doc.add_paragraph()
-    p_gv_sig.paragraph_format.left_indent = Cm(8.5)
-    p_gv_sig.paragraph_format.space_before = Pt(25)
-    p_gv_sig.paragraph_format.space_after = Pt(4)
-    r = p_gv_sig.add_run("TP. Hồ Chí Minh, ngày ..... tháng ..... năm 2026\n")
-    r.font.name = 'Times New Roman'
-    r.font.size = Pt(12)
-    r.font.italic = True
-    r = p_gv_sig.add_run("GIẢNG VIÊN HƯỚNG DẪN\n")
-    r.font.name = 'Times New Roman'
-    r.font.size = Pt(13)
-    r.font.bold = True
-    r = p_gv_sig.add_run("(Ký và ghi rõ họ tên)\n\n\n\n")
-    r.font.name = 'Times New Roman'
-    r.font.size = Pt(12)
-    r.font.italic = True
-    r = p_gv_sig.add_run("ThS. Bùi Công Danh")
-    r.font.name = 'Times New Roman'
-    r.font.size = Pt(13)
-    r.font.bold = True
+    # ---- NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN (ĐỂ TRỐNG NHƯ MẪU HUIT 2025) ----
+    add_blank_supervisor_review(doc)
 
     doc.add_page_break()
 
@@ -582,7 +836,7 @@ def generate_thesis_report():
     r_abs.font.name = 'Times New Roman'
     r_abs.font.size = Pt(16)
     r_abs.font.bold = True
-    r_abs.font.color.rgb = RGBColor(0, 51, 102)
+    r_abs.font.color.rgb = RGBColor(0, 0, 0)
 
     add_body(doc, "In the era of comprehensive digital transformation in higher education, managing scientific and technological (S&T) scientific records plays a pivotal role in evaluating faculty research performance, calculating academic workloads, and university rankings. However, existing manual appraisal processes at universities present severe bottlenecks: appraisal duration spans 15–20 days per record, officers face overwhelming workloads, and the risks of undetected erroneous domain claims, predatory/discontinued journals, or duplicated academic content are substantial.")
     add_body(doc, "This graduation thesis focuses on researching, designing, and thoroughly developing an 'S&T Scientific Record Management Support System Integrated with Automated Text Classification and Anomaly Detection' adhering to the latest university business revision guidelines. The system implements 6 comprehensive functional modules: (1) Dynamic record submission for scientific articles and research projects with real-time Live AI Preview; (2) Standardized catalog management covering 7 MOST research domains, Scopus/WoS indexed journals, and State Council for Professorship catalogs; (3) A standardized 5-step validity review workflow featuring 'Revision Requested' status and an automated author resubmission loop; (4) Multi-criteria search, filtering, and statistical reporting with Excel/PDF export; (5) Integration of deep learning VinAI PhoBERT for automated domain classification achieving 94.2% accuracy with a continuous feedback retraining loop; (6) Multi-layered anomaly detection combining NetworkX Knowledge Graph, Isolation Forest, and Deep Autoencoder, coupled with a dynamic Priority Review Queue ordering records by composite risk score rather than FIFO.")
@@ -590,8 +844,7 @@ def generate_thesis_report():
 
     doc.add_page_break()
 
-    # ---- MỤC LỤC ----
-    add_chapter_title(doc, "MỤC LỤC")
+    # ---- MỤC LỤC TỰ ĐỘNG ----
     toc_items = [
         ("LỜI CAM ĐOAN", "i"),
         ("LỜI CẢM ƠN", "ii"),
@@ -604,7 +857,7 @@ def generate_thesis_report():
         ("DANH MỤC BẢNG", "viii"),
         ("PHẦN MỞ ĐẦU", "1"),
         ("   1. Tính cấp thiết và lý do chọn đề tài", "1"),
-        ("   2. Mục tiêu nghiên cứu", "2"),
+        ("   2. Mục tiêu nghiên cứu của đề tài", "2"),
         ("   3. Đối tượng và phạm vi nghiên cứu", "2"),
         ("   4. Phương pháp nghiên cứu", "3"),
         ("   5. Ý nghĩa khoa học và giá trị thực tiễn", "3"),
@@ -627,9 +880,9 @@ def generate_thesis_report():
         ("      2.3.5. Điểm Rủi ro Tổng hợp và Hàng đợi thẩm định ưu tiên", "30"),
         ("CHƯƠNG 3: PHÂN TÍCH VÀ THIẾT KẾ HỆ THỐNG", "32"),
         ("   3.1. Thiết kế Kiến trúc hệ thống tổng thể 3 tầng", "32"),
-        ("   3.2. Thiết kế Ca sử dụng (Use Case) chi tiết", "34"),
+        ("   3.2. Thiết kế Ca sử dụng (Use Case) chi tiết & Ma trận RBAC", "34"),
         ("   3.3. Thiết kế Cơ sở dữ liệu quan hệ SQL Server 2025", "37"),
-        ("   3.4. Thiết kế Sơ đồ lớp phân tích (Boundary - Control - Entity)", "41"),
+        ("   3.4. Thiết kế Sơ đồ lớp phân tích (Boundary – Control – Entity)", "41"),
         ("   3.5. Thiết kế Luồng tương tác quy trình 5 bước kiểm tra tính hợp lệ", "43"),
         ("CHƯƠNG 4: CÀI ĐẶT CHI TIẾT CÁC CHỨC NĂNG HỆ THỐNG", "45"),
         ("   4.1. Chức năng 1 – Biểu mẫu Kê khai và Nộp hồ sơ động", "45"),
@@ -647,27 +900,7 @@ def generate_thesis_report():
         ("KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN", "76"),
         ("TÀI LIỆU THAM KHẢO", "78"),
     ]
-
-    for title, page_no in toc_items:
-        p_t = doc.add_paragraph()
-        p_t.paragraph_format.space_before = Pt(1)
-        p_t.paragraph_format.space_after = Pt(1)
-        p_t.paragraph_format.line_spacing = 1.2
-        r_t = p_t.add_run(title)
-        r_t.font.name = 'Times New Roman'
-        r_t.font.size = Pt(12)
-        if any(h in title for h in ['CHƯƠNG', 'PHẦN MỞ ĐẦU', 'KẾT LUẬN', 'TÀI LIỆU', 'LỜI', 'NHẬN', 'TÓM', 'ABSTRACT', 'MỤC', 'DANH']):
-            r_t.font.bold = True
-        # Dot leader tab
-        dots_count = max(2, int((15.0 - len(title)*0.22) * 5))
-        r_dots = p_t.add_run(" " + "." * dots_count + " ")
-        r_dots.font.name = 'Times New Roman'
-        r_dots.font.size = Pt(11)
-        r_dots.font.color.rgb = RGBColor(150, 150, 150)
-        r_p = p_t.add_run(page_no)
-        r_p.font.name = 'Times New Roman'
-        r_p.font.size = Pt(12)
-        r_p.font.bold = True
+    add_automatic_toc(doc, toc_items)
 
     doc.add_page_break()
 
@@ -702,8 +935,7 @@ def generate_thesis_report():
 
     doc.add_page_break()
 
-    # ---- DANH MỤC HÌNH ----
-    add_chapter_title(doc, "DANH MỤC HÌNH")
+    # ---- DANH MỤC HÌNH TỰ ĐỘNG ----
     figures_list = [
         ("Hình 1.1: Sơ đồ quy trình 5 bước kiểm tra tính hợp lệ & thẩm định hồ sơ KH&CN", "11"),
         ("Hình 2.1: Kiến trúc pipeline tiền xử lý và phân loại văn bản tự động (PhoBERT & LinearSVC)", "19"),
@@ -715,28 +947,11 @@ def generate_thesis_report():
         ("Hình 4.4: Giao diện Dashboard điều hành tổng quan với 7 thẻ KPI và biểu đồ phân loại", "64"),
         ("Hình 5.1: Đồ thị đánh giá so sánh hiệu năng phân loại (PhoBERT vs LinearSVC) và phát hiện bất thường", "69"),
     ]
-    for cap, page in figures_list:
-        p_f = doc.add_paragraph()
-        p_f.paragraph_format.space_before = Pt(2)
-        p_f.paragraph_format.space_after = Pt(2)
-        p_f.paragraph_format.line_spacing = 1.2
-        r_f = p_f.add_run(cap)
-        r_f.font.name = 'Times New Roman'
-        r_f.font.size = Pt(12)
-        dots_count = max(2, int((15.0 - len(cap)*0.18) * 5))
-        r_d = p_f.add_run(" " + "." * dots_count + " ")
-        r_d.font.name = 'Times New Roman'
-        r_d.font.size = Pt(11)
-        r_d.font.color.rgb = RGBColor(150, 150, 150)
-        r_p = p_f.add_run(page)
-        r_p.font.name = 'Times New Roman'
-        r_p.font.size = Pt(12)
-        r_p.font.bold = True
+    add_automatic_figure_list(doc, figures_list)
 
     doc.add_page_break()
 
-    # ---- DANH MỤC BẢNG ----
-    add_chapter_title(doc, "DANH MỤC BẢNG")
+    # ---- DANH MỤC BẢNG TỰ ĐỘNG ----
     tables_list = [
         ("Bảng 1.1: Thống kê định lượng thời gian hao phí và tỷ lệ sai sót trong quy trình thủ công", "8"),
         ("Bảng 1.2: Đối chiếu chi tiết yêu cầu hệ thống giữa bản thiết kế ban đầu và bản Revision", "10"),
@@ -749,26 +964,9 @@ def generate_thesis_report():
         ("Bảng 5.1: Kết quả thực nghiệm so sánh độ chính xác giữa PhoBERT và Baseline LinearSVC", "70"),
         ("Bảng 5.2: Kết quả thực nghiệm phân hệ phát hiện bất thường và hiệu quả rút ngắn thời gian", "73"),
     ]
-    for cap, page in tables_list:
-        p_tb = doc.add_paragraph()
-        p_tb.paragraph_format.space_before = Pt(2)
-        p_tb.paragraph_format.space_after = Pt(2)
-        p_tb.paragraph_format.line_spacing = 1.2
-        r_tb = p_tb.add_run(cap)
-        r_tb.font.name = 'Times New Roman'
-        r_tb.font.size = Pt(12)
-        dots_count = max(2, int((15.0 - len(cap)*0.18) * 5))
-        r_d = p_tb.add_run(" " + "." * dots_count + " ")
-        r_d.font.name = 'Times New Roman'
-        r_d.font.size = Pt(11)
-        r_d.font.color.rgb = RGBColor(150, 150, 150)
-        r_p = p_tb.add_run(page)
-        r_p.font.name = 'Times New Roman'
-        r_p.font.size = Pt(12)
-        r_p.font.bold = True
+    add_automatic_table_list(doc, tables_list)
 
-    # ==================== SECTION 3: MAIN BODY ====================
-    # Decimal numeral page numbering (1, 2, 3...)
+    # ==================== SECTION 3: MAIN BODY (1, 2, 3...) ====================
     s3 = doc.add_section()
     set_margins(s3)
     s3.footer.is_linked_to_previous = False
@@ -778,6 +976,7 @@ def generate_thesis_report():
     r_ft3 = p_ft3.add_run()
     r_ft3.font.name = 'Times New Roman'
     r_ft3.font.size = Pt(10)
+    r_ft3.font.color.rgb = RGBColor(0, 0, 0)
     add_page_number_field(r_ft3)
 
     # ==================== PHẦN MỞ ĐẦU ====================
@@ -918,7 +1117,7 @@ def generate_thesis_report():
 
     add_h1(doc, "2.1. Quy trình Tiền xử lý văn bản tiếng Việt học thuật")
     add_body(doc, "Văn bản khoa học tiếng Việt có đặc thù ngữ nghĩa phức tạp: từ ghép chiếm tỷ trọng lớn (từ 2 đến 3 tiếng ghép lại), xuất hiện nhiều thuật ngữ chuyên môn mượn tiếng nước ngoài, và độ dài giữa các trường thông tin không đồng đều. Để làm sạch dữ liệu đầu vào cho các mô hình học máy và học sâu, hệ thống xây dựng pipeline tiền xử lý qua 04 công đoạn tuần tự:")
-    
+
     add_h2(doc, "2.1.1. Cơ chế hợp nhất 4 trường dữ liệu đặc thù")
     add_body(doc, "Thay vì chỉ dựa vào tiêu đề hoặc tóm tắt riêng lẻ, hệ thống áp dụng cơ chế hợp nhất thông tin từ 04 trường dữ liệu phản ánh toàn diện bản chất của công trình:")
     add_bullet_1(doc, "Tiêu đề công trình (Title): Chứa đựng các từ khóa trọng tâm và bài toán nghiên cứu chính.")
@@ -1062,7 +1261,7 @@ def generate_thesis_report():
     add_figure_custom(doc, "images/hinh3_kientruc_he_thong.png",
                       "Hình 3.1: Sơ đồ kiến trúc tổng thể hệ thống 3 tầng (3-Tier MVC Architecture)", width_cm=14.5)
 
-    add_h1(doc, "3.2. Thiết kế Ca sử dụng (Use Case) chi tiết")
+    add_h1(doc, "3.2. Thiết kế Ca sử dụng (Use Case) chi tiết & Ma trận RBAC")
     add_body(doc, "Hệ thống thiết lập ma trận phân quyền người dùng dựa trên vai trò (Role-Based Access Control - RBAC) phân định ranh giới chức năng rõ ràng giữa 03 nhóm tác nhân (Actors):")
     add_bullet_1(doc, "Tác nhân 1 – Quản trị viên hệ thống (Admin): Tài khoản mẫu 'Nguyễn Thành Phát' (nguyenthanhphat@huit.edu.vn). Có toàn quyền quản trị cấu hình hệ thống, quản lý tài khoản người dùng, chuẩn hóa danh mục tạp chí và lĩnh vực, tái huấn luyện mô hình AI, và sao lưu phục hồi dữ liệu.")
     add_bullet_1(doc, "Tác nhân 2 – Cán bộ thẩm định / Thư ký khoa học (Reviewer): Tài khoản mẫu 'TS. Lê Thanh Phong' (lethanhphong@huit.edu.vn). Có quyền truy cập Hàng đợi thẩm định ưu tiên, xem chi tiết minh chứng hồ sơ, đối chiếu khuyến nghị AI, ra quyết định xét duyệt 3 nhánh (Đã duyệt / Từ chối / Yêu cầu bổ sung), nhập ý kiến thẩm định và hủy cảnh báo sai sau khi xác minh.")
@@ -1208,7 +1407,7 @@ def generate_thesis_report():
     add_h1(doc, "4.6. Chức năng 6 – Phát hiện Bất thường & Xếp hạng Ưu tiên Hàng đợi")
     add_body(doc, "Chức năng phát hiện bất thường tại Trung tâm Quản trị AI (ai_center.html) cung cấp cái nhìn toàn cảnh về các rủi ro học thuật trong toàn trường:")
     add_bullet_1(doc, "Quét tự động 04 nhóm rủi ro vi phạm: (1) Khai sai lĩnh vực chuyên ngành (so lệch giữa tác giả khai và PhoBERT nhận diện); (2) Tạp chí không hợp lệ hoặc nằm trong danh mục săn mồi / ngừng chỉ mục; (3) Trùng lặp nội dung nghiên cứu (Cosine Similarity ≥ 62.0%); (4) Dị biệt cấu trúc đồ thị tri thức NetworkX (tác giả chuyển ngành đột ngột không có đồng tác giả).")
-    add_bullet_1(doc, "Hàng đợi Thẩm định Ưu tiên (Priority Review Queue): Toàn bộ hồ sơ đang chờ xét duyệt được tự động tính toán Điểm rủi ro tổng hợp (Composite Risk Score) và sắp xếp giảm dần. Cán bộ thẩm định mở hàng đợi sẽ thấy ngay các hồ sơ rủi ro cao ở vị trí đầu tiên kèm lý do cảnh báo chi tiết, đảo bảo các hồ sơ có vấn đề được ngăn chặn xử lý ngay lập tức.")
+    add_bullet_1(doc, "Hàng đợi Thẩm định Ưu tiên (Priority Review Queue): Toàn bộ hồ sơ đang chờ xét duyệt được tự động tính toán Điểm rủi ro tổng hợp (Composite Risk Score) và sắp xếp giảm dần. Cán bộ thẩm định mở hàng đợi sẽ thấy ngay các hồ sơ rủi ro cao ở vị trí đầu tiên kèm lý do cảnh báo chi tiết, đảm bảo các hồ sơ có vấn đề được ngăn chặn xử lý ngay lập tức.")
     add_bullet_1(doc, "Tính năng Hủy cảnh báo (Dismiss Warning): Trong thực tế, có những công trình liên ngành thực sự mà tác giả mở rộng hợp pháp. Khi cán bộ thẩm định đã kiểm tra kỹ hồ sơ gốc và xác nhận hợp lệ, cán bộ có thể bấm nút 'Hủy cảnh báo'. Hệ thống sẽ yêu cầu nhập lý do xác nhận và cập nhật cờ cảnh báo về 0 kèm ghi vết vào lịch sử kiểm toán.")
 
     add_figure_custom(doc, "images/hinh4_ai_center.jpg",
@@ -1342,6 +1541,7 @@ def generate_thesis_report():
         r_ref = p_ref.add_run(ref)
         r_ref.font.name = 'Times New Roman'
         r_ref.font.size = Pt(12)
+        r_ref.font.color.rgb = RGBColor(0, 0, 0)
 
     # Save document
     print(f"Saving report to: {OUTPUT_FILE}...")
