@@ -136,18 +136,38 @@ def login():
             flash("Email không tồn tại trong hệ thống.", "danger")
         elif user["trangThai"] == 0:
             flash("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Quản trị viên.", "danger")
-        elif not check_password_hash(user["matKhau"], mat_khau):
-            flash("Mật khẩu không chính xác. Vui lòng kiểm tra lại.", "danger")
         else:
-            session.clear()
-            session["user_id"] = user["maNguoiDung"]
-            session["ho_ten"] = user["hoTen"]
-            session["email"] = user["email"]
-            session["vai_tro"] = user["vaiTro"]
-            session["don_vi"] = user["donViCongTac"]
-            session["hoc_vi"] = user["hocHamHocVi"]
-            flash(f"Chào mừng {user['hoTen']} ({user['vaiTro']}) đã đăng nhập thành công!", "success")
-            return redirect(url_for("dashboard"))
+            is_valid_pw = False
+            try:
+                if check_password_hash(user["matKhau"], mat_khau):
+                    is_valid_pw = True
+            except Exception:
+                pass
+
+            # Fallback nếu mật khẩu trong CSDL ở dạng plain-text -> tự động nâng cấp mã hóa
+            if not is_valid_pw and user["matKhau"] == mat_khau:
+                is_valid_pw = True
+                try:
+                    hashed_pw = generate_password_hash(mat_khau)
+                    up_conn = get_db_connection()
+                    up_conn.execute("UPDATE NguoiDung SET matKhau = ? WHERE maNguoiDung = ?", (hashed_pw, user["maNguoiDung"]))
+                    up_conn.commit()
+                    up_conn.close()
+                except Exception as ex:
+                    print(f"[Auth Auto-Upgrade Notice] {ex}")
+
+            if not is_valid_pw:
+                flash("Mật khẩu không chính xác. Vui lòng kiểm tra lại.", "danger")
+            else:
+                session.clear()
+                session["user_id"] = user["maNguoiDung"]
+                session["ho_ten"] = user["hoTen"]
+                session["email"] = user["email"]
+                session["vai_tro"] = user["vaiTro"]
+                session["don_vi"] = user["donViCongTac"]
+                session["hoc_vi"] = user["hocHamHocVi"]
+                flash(f"Chào mừng {user['hoTen']} ({user['vaiTro']}) đã đăng nhập thành công!", "success")
+                return redirect(url_for("dashboard"))
 
     return render_template("login.html")
 
@@ -173,7 +193,16 @@ def change_password():
             "SELECT * FROM NguoiDung WHERE maNguoiDung = ?", (session["user_id"],)
         ).fetchone()
 
-        if not check_password_hash(user["matKhau"], mk_hien_tai):
+        is_current_valid = False
+        try:
+            if check_password_hash(user["matKhau"], mk_hien_tai):
+                is_current_valid = True
+        except Exception:
+            pass
+        if not is_current_valid and user["matKhau"] == mk_hien_tai:
+            is_current_valid = True
+
+        if not is_current_valid:
             conn.close()
             flash("Mật khẩu hiện tại không chính xác!", "danger")
             return redirect(url_for("change_password"))
