@@ -27,19 +27,19 @@
 <!-- Nhóm công trình Tabs (Revision 2026) -->
 <ul class="nav nav-pills mb-3">
     <li class="nav-item">
-        <a class="nav-link {% if not filters.nhom %}active fw-bold{% else %}bg-light text-dark border me-2{% endif %}"
+        <a class="nav-link {% if not filters.nhom %}active{% endif %}"
            href="{{ url_for('hoso_list', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
             <i class="bi bi-collection-fill me-1"></i>Tất cả Hồ sơ KH&CN
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if filters.nhom == 'baibao' %}active fw-bold{% else %}bg-light text-dark border me-2{% endif %}"
+        <a class="nav-link {% if filters.nhom == 'baibao' %}active{% endif %}"
            href="{{ url_for('hoso_list', nhom='baibao', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
             <i class="bi bi-journal-text me-1"></i>Bài Báo Khoa Học
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if filters.nhom == 'detai' %}active fw-bold{% else %}bg-light text-dark border{% endif %}"
+        <a class="nav-link {% if filters.nhom == 'detai' %}active{% endif %}"
            href="{{ url_for('hoso_list', nhom='detai', q=filters.q, maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}">
             <i class="bi bi-kanban-fill me-1"></i>Đề Tài NCKH
         </a>
