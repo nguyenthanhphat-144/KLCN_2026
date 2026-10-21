@@ -59,15 +59,12 @@
                 <div class="row g-3 mb-3 small">
                     <div class="col-md-6">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Nhóm Tác giả:</span>
-                            {% set vn_tacgia = (hoso.thongTinTacGia or '')
-                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
-                            <strong class="text-dark"><i class="bi bi-people-fill text-primary me-1"></i>{{ vn_tacgia }}</strong>
+                            <span class="text-muted d-block">Loại hình:</span>
+                            {% if 'Đề tài' in (hoso.nhomCongTrinh or hoso.tenLoai or '') %}
+                            <strong class="text-success"><i class="bi bi-kanban-fill me-1"></i>Đề tài NCKH</strong>
+                            {% else %}
+                            <strong class="text-primary"><i class="bi bi-journal-bookmark-fill me-1"></i>Bài báo khoa học</strong>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -78,7 +75,19 @@
                     </div>
                     <div class="col-md-6">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Lĩnh vực đăng ký ban đầu:</span>
+                            <span class="text-muted d-block">Năm công bố:</span>
+                            <strong class="text-dark"><i class="bi bi-calendar-event text-primary me-1"></i>{{ hoso.namCongBo }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Kỳ báo cáo:</span>
+                            <strong class="text-dark"><i class="bi bi-clock-history text-primary me-1"></i>{{ hoso.kyBaoCao }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Lĩnh vực đăng ký:</span>
                             <strong class="text-primary">[{{ hoso.maCodeLV }}] {{ hoso.tenLinhVuc }}</strong>
                         </div>
                     </div>
@@ -88,9 +97,10 @@
                             <strong>{{ (hoso.tenLoai or '') | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}</strong>
                         </div>
                     </div>
-                    <div class="col-md-8">
+                    {% if hoso.tenTapChi or not ('Đề tài' in (hoso.nhomCongTrinh or hoso.tenLoai or '')) %}
+                    <div class="col-md-7">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Tạp chí công bố / Hội đồng nghiệm thu:</span>
+                            <span class="text-muted d-block">Tên tạp chí / Hội thảo:</span>
                             {% set vn_tc = (hoso.tenTapChi or 'Chưa chỉ định')
                                 | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
                                 | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
@@ -113,52 +123,31 @@
                             {% endif %}
                             {% if hoso.tapChiUyTin == 0 %}
                             <span class="badge bg-danger ms-1">🚨 Cảnh báo Không uy tín / Ngoài DM</span>
-                            {% else %}
+                            {% elif hoso.tenTapChi %}
                             <span class="badge bg-success ms-1">✔ Hợp lệ ({{ vn_xh }})</span>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <div class="p-2 rounded bg-light border">
-                            <span class="text-muted d-block">Kỳ báo cáo & Năm:</span>
-                            <strong>{{ hoso.kyBaoCao }} ({{ hoso.namCongBo }})</strong>
+                            <span class="text-muted d-block">Chỉ mục tạp chí:</span>
+                            {% if hoso.chiMucTapChi %}
+                            <span class="badge bg-primary text-white">{{ hoso.chiMucTapChi }}</span>
+                            {% else %}
+                            <span class="text-muted">Chưa chỉ định</span>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
-
-                <!-- BỔ SUNG TRƯỜNG NGHIỆP VỤ BÀI BÁO (Revision) -->
-                {% if hoso.doi or hoso.tapSo or hoso.trangBaiBao or hoso.chiMucTapChi %}
-                <div class="p-3 mb-3 rounded border border-primary-subtle bg-light small">
-                    <h6 class="fw-bold text-primary mb-2">
-                        <i class="bi bi-journal-check me-1"></i>Thông Tin Công Bố Bài Báo Khoa Học (Mô tả nghiệp vụ Revision)
-                    </h6>
-                    <div class="row g-2">
-                        {% if hoso.doi %}<div class="col-md-6"><span class="text-muted">Mã định danh DOI:</span> <code class="text-dark">{{ hoso.doi }}</code></div>{% endif %}
-                        {% if hoso.tapSo %}<div class="col-md-6"><span class="text-muted">Tập / Số:</span> <strong>{{ hoso.tapSo }}</strong></div>{% endif %}
-                        {% if hoso.trangBaiBao %}<div class="col-md-6"><span class="text-muted">Trang bài báo:</span> <strong>{{ hoso.trangBaiBao }}</strong></div>{% endif %}
-                        {% if hoso.chiMucTapChi %}<div class="col-md-6"><span class="text-muted">Cơ sở dữ liệu chỉ mục:</span> <span class="badge bg-primary text-white">{{ hoso.chiMucTapChi }}</span></div>{% endif %}
+                    {% endif %}
+                    {% if hoso.sanPhamDuKien or ('Đề tài' in (hoso.nhomCongTrinh or hoso.tenLoai or '')) %}
+                    <div class="col-12">
+                        <div class="p-2 rounded bg-light border">
+                            <span class="text-muted d-block">Sản phẩm dự kiến:</span>
+                            <strong class="text-success"><i class="bi bi-box-seam me-1"></i>{{ hoso.sanPhamDuKien or 'Chưa chỉ định' }}</strong>
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
-
-                <!-- BỔ SUNG TRƯỜNG NGHIỆP VỤ ĐỀ TÀI NCKH (Revision) -->
-                {% if hoso.maDeTai or hoso.capDeTai or hoso.chuNhiemDeTai or hoso.kinhPhi %}
-                <div class="p-3 mb-3 rounded border border-success-subtle bg-light small">
-                    <h6 class="fw-bold text-success mb-2">
-                        <i class="bi bi-kanban me-1"></i>Thông Tin Đề Tài Nghiên Cứu Khoa Học (Mô tả nghiệp vụ Revision)
-                    </h6>
-                    <div class="row g-2">
-                        {% if hoso.maDeTai %}<div class="col-md-4"><span class="text-muted">Mã số đề tài:</span> <code>{{ hoso.maDeTai }}</code></div>{% endif %}
-                        {% if hoso.capDeTai %}<div class="col-md-4"><span class="text-muted">Cấp quản lý:</span> <span class="badge bg-success text-white">{{ hoso.capDeTai }}</span></div>{% endif %}
-                        {% if hoso.ketQuaNghiemThu %}<div class="col-md-4"><span class="text-muted">Đánh giá nghiệm thu:</span> <span class="badge bg-info text-dark">{{ hoso.ketQuaNghiemThu }}</span></div>{% endif %}
-                        {% if hoso.chuNhiemDeTai %}<div class="col-md-6"><span class="text-muted">Chủ nhiệm đề tài:</span> <strong>{{ hoso.chuNhiemDeTai }}</strong></div>{% endif %}
-                        {% if hoso.thanhVienThamGia %}<div class="col-md-6"><span class="text-muted">Thành viên tham gia:</span> <span>{{ hoso.thanhVienThamGia }}</span></div>{% endif %}
-                        {% if hoso.thoiGianThucHien %}<div class="col-md-6"><span class="text-muted">Thời gian thực hiện:</span> <span>{{ hoso.thoiGianThucHien }}</span></div>{% endif %}
-                        {% if hoso.kinhPhi %}<div class="col-md-6"><span class="text-muted">Kinh phí nghiên cứu:</span> <strong class="text-success">{{ "{:,.0f}".format(hoso.kinhPhi) }} VNĐ</strong></div>{% endif %}
-                        {% if hoso.sanPhamDuKien %}<div class="col-12"><span class="text-muted">Sản phẩm nghiên cứu:</span> <em>{{ hoso.sanPhamDuKien }}</em></div>{% endif %}
-                    </div>
-                </div>
-                {% endif %}
 
                 <div class="mb-3">
                     <label class="fw-bold small text-uppercase text-secondary mb-1">Tóm tắt nội dung:</label>

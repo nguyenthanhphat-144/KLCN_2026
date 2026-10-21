@@ -305,27 +305,26 @@ def dashboard():
     """)
     stats_baibao_chimuc = [dict(r) for r in cur.fetchall()]
 
-    # Thống kê chuyên sâu nhóm ĐỀ TÀI NCKH (Revision)
+    # Thống kê chuyên sâu nhóm ĐỀ TÀI NCKH (Chuẩn hóa theo 12 trường dữ liệu đầu vào)
     cur.execute("""
-        SELECT COALESCE(capDeTai, N'Cấp Cơ sở') AS capDeTai, COUNT(*) AS soLuong,
-               SUM(COALESCE(kinhPhi, 0)) AS tongKinhPhi
+        SELECT lct.tenLoai, COUNT(*) AS soLuong
         FROM HoSoKHCN h
         JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
         WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')
-        GROUP BY COALESCE(capDeTai, N'Cấp Cơ sở')
+        GROUP BY lct.maLoai, lct.tenLoai
         ORDER BY soLuong DESC
     """)
-    stats_detai_cap = [dict(r) for r in cur.fetchall()]
+    stats_detai_loai = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT COALESCE(ketQuaNghiemThu, N'Đang thực hiện') AS ketQua, COUNT(*) AS soLuong
+        SELECT h.donViChuTri, MAX(h.sanPhamDuKien) AS sanPhamDuKien, COUNT(*) AS soLuong
         FROM HoSoKHCN h
         JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
         WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')
-        GROUP BY COALESCE(ketQuaNghiemThu, N'Đang thực hiện')
+        GROUP BY h.donViChuTri
         ORDER BY soLuong DESC
     """)
-    stats_detai_nghiemthu = [dict(r) for r in cur.fetchall()]
+    stats_detai_donvi = [dict(r) for r in cur.fetchall()]
 
     # Thống kê theo Đơn vị công tác / chủ trì
     cur.execute("""
@@ -382,8 +381,8 @@ def dashboard():
         stats_loai=stats_loai,
         stats_baibao_nam=stats_baibao_nam,
         stats_baibao_chimuc=stats_baibao_chimuc,
-        stats_detai_cap=stats_detai_cap,
-        stats_detai_nghiemthu=stats_detai_nghiemthu,
+        stats_detai_loai=stats_detai_loai,
+        stats_detai_donvi=stats_detai_donvi,
         stats_donvi=stats_donvi,
         stats_ky=stats_ky,
         recent_hoso=recent_hoso,
@@ -415,7 +414,7 @@ def hoso_list():
     params = []
 
     if q:
-        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.maHoSo LIKE ? OR h.thongTinTacGia LIKE ? OR h.maDeTai LIKE ?)")
+        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.maHoSo LIKE ? OR h.donViChuTri LIKE ? OR h.sanPhamDuKien LIKE ?)")
         like_q = f"%{q}%"
         params.extend([like_q, like_q, like_q, like_q, like_q, like_q])
 
@@ -543,14 +542,16 @@ def hoso_create():
         tieu_de = request.form.get("tieuDe", "").strip()
         tom_tat = request.form.get("tomTat", "").strip()
         tu_khoa = request.form.get("tuKhoa", "").strip()
-        thong_tin_tac_gia = request.form.get("thongTinTacGia", "").strip() or session.get("ho_ten")
-        don_vi_chu_tri = request.form.get("donViChuTri", "").strip() or session.get("don_vi")
+        don_vi_chu_tri = request.form.get("donViChuTri", "").strip() or session.get("don_vi") or "Khoa Công nghệ Thông tin"
+        thong_tin_tac_gia = request.form.get("thongTinTacGia", "").strip() or session.get("ho_ten") or don_vi_chu_tri
         nam_cong_bo = int(request.form.get("namCongBo", 2026))
         ky_bao_cao = request.form.get("kyBaoCao", "Đợt 1 - Năm học 2025-2026").strip()
         ma_linh_vuc = int(request.form.get("maLinhVuc", 1))
         ma_loai = int(request.form.get("maLoai", 1))
         ma_tap_chi = request.form.get("maTapChi")
         ma_tap_chi = int(ma_tap_chi) if ma_tap_chi else None
+        chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
+        san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
 
         if not tieu_de or not tom_tat or not tu_khoa:
             conn.close()
@@ -574,30 +575,8 @@ def hoso_create():
                 file_name_saved = f"{ma_ho_so}_{safe_name}"
                 uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], file_name_saved))
 
-        # Các trường đặc thù của Bài báo khoa học (Revision)
-        doi = request.form.get("doi", "").strip() or None
-        tap_so = request.form.get("tapSo", "").strip() or None
-        trang_bai_bao = request.form.get("trangBaiBao", "").strip() or None
-        chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
-
-        # Các trường đặc thù của Đề tài NCKH (Revision)
-        ma_de_tai = request.form.get("maDeTai", "").strip() or None
-        cap_de_tai = request.form.get("capDeTai", "").strip() or None
-        chu_nhiem_de_tai = request.form.get("chuNhiemDeTai", "").strip() or None
-        thanh_vien_tham_gia = request.form.get("thanhVienThamGia", "").strip() or None
-        thoi_gian_thuc_hien = request.form.get("thoiGianThucHien", "").strip() or None
-        try:
-            kinh_phi = float(request.form.get("kinhPhi", 0) or 0)
-        except ValueError:
-            kinh_phi = 0.0
-        san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
-        ket_qua_nghiem_thu = request.form.get("ketQuaNghiemThu", "Đang thực hiện").strip() or "Đang thực hiện"
-
-        if chu_nhiem_de_tai and not thong_tin_tac_gia:
-            thong_tin_tac_gia = chu_nhiem_de_tai
-
         # Chạy mô-đun AI Tiền xử lý tiếng Việt + Phân loại tự động (Chức năng 5)
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia)
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi_chu_tri)
 
         # Trạng thái ban đầu mặc định là 'Chờ xét duyệt' (Tuần 4 - Mục 2a)
         trang_thai_ban_dau = "Chờ xét duyệt"
@@ -608,19 +587,15 @@ def hoso_create():
                 namCongBo, kyBaoCao, maNguoiNop, maLinhVuc, maLoai, maTapChi,
                 trangThai, fileDinhKem, vanBanDaTachTu, maLinhVucAI, doTinCayAI,
                 maLinhVucSVM, doTinCaySVM,
-                doi, tapSo, trangBaiBao, chiMucTapChi,
-                maDeTai, capDeTai, chuNhiemDeTai, thanhVienThamGia, thoiGianThucHien,
-                kinhPhi, sanPhamDuKien, ketQuaNghiemThu
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                chiMucTapChi, sanPhamDuKien
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             ma_ho_so, tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri,
             nam_cong_bo, ky_bao_cao, session["user_id"], ma_linh_vuc, ma_loai, ma_tap_chi,
             trang_thai_ban_dau, file_name_saved, pred["segmented_text"],
             pred["phobert_label_id"], pred["phobert_confidence"],
             pred["svm_label_id"], pred["svm_confidence"],
-            doi, tap_so, trang_bai_bao, chi_muc_tap_chi,
-            ma_de_tai, cap_de_tai, chu_nhiem_de_tai, thanh_vien_tham_gia, thoi_gian_thuc_hien,
-            kinh_phi, san_pham_du_kien, ket_qua_nghiem_thu
+            chi_muc_tap_chi, san_pham_du_kien
         ))
 
         # Ghi nhật ký khởi tạo vào bảng LichSuXetDuyet
@@ -695,36 +670,16 @@ def hoso_edit(ma_ho_so):
         tieu_de = request.form.get("tieuDe", "").strip()
         tom_tat = request.form.get("tomTat", "").strip()
         tu_khoa = request.form.get("tuKhoa", "").strip()
-        thong_tin_tac_gia = request.form.get("thongTinTacGia", "").strip()
-        don_vi_chu_tri = request.form.get("donViChuTri", "").strip()
+        don_vi_chu_tri = request.form.get("donViChuTri", "").strip() or hoso["donViChuTri"]
+        thong_tin_tac_gia = request.form.get("thongTinTacGia", "").strip() or hoso["thongTinTacGia"] or session.get("ho_ten") or don_vi_chu_tri
         nam_cong_bo = int(request.form.get("namCongBo", hoso["namCongBo"]))
         ky_bao_cao = request.form.get("kyBaoCao", hoso["kyBaoCao"]).strip()
         ma_linh_vuc = int(request.form.get("maLinhVuc", hoso["maLinhVuc"]))
         ma_loai = int(request.form.get("maLoai", hoso["maLoai"]))
         ma_tap_chi = request.form.get("maTapChi")
         ma_tap_chi = int(ma_tap_chi) if ma_tap_chi else None
-
-        # Các trường đặc thù của Bài báo khoa học (Revision)
-        doi = request.form.get("doi", "").strip() or None
-        tap_so = request.form.get("tapSo", "").strip() or None
-        trang_bai_bao = request.form.get("trangBaiBao", "").strip() or None
         chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
-
-        # Các trường đặc thù của Đề tài NCKH (Revision)
-        ma_de_tai = request.form.get("maDeTai", "").strip() or None
-        cap_de_tai = request.form.get("capDeTai", "").strip() or None
-        chu_nhiem_de_tai = request.form.get("chuNhiemDeTai", "").strip() or None
-        thanh_vien_tham_gia = request.form.get("thanhVienThamGia", "").strip() or None
-        thoi_gian_thuc_hien = request.form.get("thoiGianThucHien", "").strip() or None
-        try:
-            kinh_phi = float(request.form.get("kinhPhi", hoso["kinhPhi"] or 0) or 0)
-        except (ValueError, TypeError):
-            kinh_phi = 0.0
         san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
-        ket_qua_nghiem_thu = request.form.get("ketQuaNghiemThu", hoso["ketQuaNghiemThu"] or "Đang thực hiện").strip() or "Đang thực hiện"
-
-        if chu_nhiem_de_tai and not thong_tin_tac_gia:
-            thong_tin_tac_gia = chu_nhiem_de_tai
 
         file_name_saved = hoso["fileDinhKem"]
         uploaded_file = request.files.get("fileDinhKem")
@@ -734,7 +689,7 @@ def hoso_edit(ma_ho_so):
             uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], file_name_saved))
 
         # Chạy lại AI phân loại & phát hiện bất thường sau khi cập nhật nội dung
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia)
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi_chu_tri)
 
         # Nghiệp vụ 3 - Bước 5 & Nghiệp vụ 1: Vòng lặp phản hồi và chỉnh sửa (Resubmission loop)
         # Khi tác giả chỉnh sửa hồ sơ đang ở trạng thái 'Yêu cầu bổ sung', tự động chuyển lại 'Chờ xét duyệt'
@@ -753,9 +708,7 @@ def hoso_edit(ma_ho_so):
                 trangThai = ?,
                 fileDinhKem = ?, vanBanDaTachTu = ?, maLinhVucAI = ?, doTinCayAI = ?,
                 maLinhVucSVM = ?, doTinCaySVM = ?,
-                doi = ?, tapSo = ?, trangBaiBao = ?, chiMucTapChi = ?,
-                maDeTai = ?, capDeTai = ?, chuNhiemDeTai = ?, thanhVienThamGia = ?,
-                thoiGianThucHien = ?, kinhPhi = ?, sanPhamDuKien = ?, ketQuaNghiemThu = ?,
+                chiMucTapChi = ?, sanPhamDuKien = ?,
                 ngayCapNhat = CURRENT_TIMESTAMP
             WHERE maHoSo = ?
         """, (
@@ -764,9 +717,7 @@ def hoso_edit(ma_ho_so):
             trang_thai_moi,
             file_name_saved, pred["segmented_text"], pred["phobert_label_id"],
             pred["phobert_confidence"], pred["svm_label_id"], pred["svm_confidence"],
-            doi, tap_so, trang_bai_bao, chi_muc_tap_chi,
-            ma_de_tai, cap_de_tai, chu_nhiem_de_tai, thanh_vien_tham_gia,
-            thoi_gian_thuc_hien, kinh_phi, san_pham_du_kien, ket_qua_nghiem_thu,
+            chi_muc_tap_chi, san_pham_du_kien,
             ma_ho_so
         ))
 
@@ -1106,9 +1057,9 @@ def api_ai_preview():
     tieu_de = data.get("tieuDe", "")
     tom_tat = data.get("tomTat", "")
     tu_khoa = data.get("tuKhoa", "")
-    tac_gia = data.get("thongTinTacGia", "")
+    don_vi = data.get("donViChuTri", "") or data.get("thongTinTacGia", "")
 
-    pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, tac_gia)
+    pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi)
 
     conn = get_db_connection()
     lv_pho = conn.execute("SELECT tenLinhVuc FROM LinhVuc WHERE maLinhVuc = ?", (pred["phobert_label_id"],)).fetchone()
@@ -1294,11 +1245,14 @@ def _fetch_filtered_records_for_export():
     where_sql = " AND ".join(where_clauses)
     conn = get_db_connection()
     rows = conn.execute(f"""
-        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI, lct.tenLoai
+        SELECT h.*, lv.tenLinhVuc, lv_ai.tenLinhVuc AS tenLinhVucAI,
+               lct.tenLoai, lct.nhomCongTrinh,
+               tc.tenTapChi, tc.chiSoISSN, tc.xepHang
         FROM HoSoKHCN h
         LEFT JOIN LinhVuc lv ON h.maLinhVuc = lv.maLinhVuc
         LEFT JOIN LinhVuc lv_ai ON h.maLinhVucAI = lv_ai.maLinhVuc
         LEFT JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
+        LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
         WHERE {where_sql}
         ORDER BY h.maHoSo ASC
     """, params).fetchall()

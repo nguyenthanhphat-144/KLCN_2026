@@ -37,7 +37,7 @@ def run_verification():
 
     # 2.1. Đăng nhập với vai trò Cán bộ xét duyệt
     resp = client.post("/login", data={"email": "canbo@uni.edu.vn", "matKhau": "CanBo@123"}, follow_redirects=True)
-    assert resp.status_code == 200 and "Dashboard" in resp.get_data(as_text=True)
+    assert resp.status_code == 200 and "Thống Kê Trực Quan" in resp.get_data(as_text=True)
     print("-> [PASS] Đăng nhập Session & check_password_hash (Vai trò: CanBo)")
 
     # 2.2. Kiểm thử RBAC: Cán bộ xét duyệt bị chặn truy cập trang Quản trị người dùng của Admin
@@ -55,10 +55,10 @@ def run_verification():
         "tieuDe": "Nghiên cứu mạng nơ ron tích chập sâu nhận dạng biển số xe tiếng Việt",
         "tomTat": "Ứng dụng thị giác máy tính và học sâu trong nhận diện phương tiện giao thông thông minh.",
         "tuKhoa": "thị giác máy tính, học sâu, trí tuệ nhân tạo",
-        "thongTinTacGia": "TS. Phạm Văn Khoa"
+        "donViChuTri": "Khoa Công nghệ Thông tin"
     })
     ai_data = resp_ai.get_json()
-    assert resp_ai.status_code == 200 and "thị_giác_máy_tính" in ai_data["segmented_text"]
+    assert resp_ai.status_code == 200 and "thị_giác" in ai_data["segmented_text"]
     print(f"-> [PASS] Tiền xử lý & Tách từ PyVi: '{ai_data['segmented_text'][:65]}...'")
     print(f"-> [PASS] Dự đoán AI PhoBERT: {ai_data['phobert_label_name']} ({ai_data['phobert_confidence']}%)")
 

@@ -95,7 +95,7 @@ def import_dataset(file_path: str):
         if m:
             max_idx = max(max_idx, int(m.group(1)))
 
-    # 3. Chuẩn hóa tên cột (hỗ trợ cả tiếng Việt có dấu, không dấu hoặc chuẩn hóa cột)
+    # 3. Chuẩn hóa tên 12 cột đầu vào chuẩn (hỗ trợ cả tiếng Việt có dấu và không dấu)
     col_mapping = {}
     for col in df.columns:
         c_norm = unicodedata.normalize("NFC", str(col)).lower()
@@ -107,10 +107,6 @@ def import_dataset(file_path: str):
             col_mapping["tom_tat"] = col
         elif "từ khóa" in c_norm or "tu_khoa" in c_norm or "keyword" in c_norm:
             col_mapping["tu_khoa"] = col
-        elif "tác giả" in c_norm or "tac_gia" in c_norm:
-            col_mapping["tac_gia"] = col
-        elif "email" in c_norm:
-            col_mapping["email"] = col
         elif "đơn vị" in c_norm or "don_vi" in c_norm:
             col_mapping["don_vi"] = col
         elif "năm" in c_norm or "nam" in c_norm:
@@ -121,74 +117,35 @@ def import_dataset(file_path: str):
             col_mapping["linh_vuc"] = col
         elif "loại công trình" in c_norm or "loai_ct" in c_norm:
             col_mapping["loai_ct"] = col
-        elif "tạp chí" in c_norm or "tap_chi" in c_norm:
+        elif "tên tạp chí" in c_norm or "hội thảo" in c_norm or ("tạp chí" in c_norm and "chỉ mục" not in c_norm) or "tap_chi" in c_norm:
             col_mapping["tap_chi"] = col
-        elif "doi" in c_norm:
-            col_mapping["doi"] = col
-        elif "tập" in c_norm or "tap_so" in c_norm:
-            col_mapping["tap_so"] = col
-        elif "trang" in c_norm or "trang_bai_bao" in c_norm:
-            col_mapping["trang"] = col
         elif "chỉ mục" in c_norm or "chi_muc" in c_norm:
             col_mapping["chi_muc"] = col
-        elif "mã số đề tài" in c_norm or "ma_de_tai" in c_norm:
-            col_mapping["ma_de_tai"] = col
-        elif "cấp đề tài" in c_norm or "cap_de_tai" in c_norm:
-            col_mapping["cap_de_tai"] = col
-        elif "chủ nhiệm" in c_norm or "chu_nhiem" in c_norm:
-            col_mapping["chu_nhiem"] = col
-        elif "thành viên" in c_norm or "thanh_vien" in c_norm:
-            col_mapping["thanh_vien"] = col
-        elif "thời gian" in c_norm or "thoi_gian" in c_norm:
-            col_mapping["thoi_gian"] = col
-        elif "kinh phí" in c_norm or "kinh_phi" in c_norm:
-            col_mapping["kinh_phi"] = col
         elif "sản phẩm" in c_norm or "san_pham" in c_norm:
             col_mapping["san_pham"] = col
-        elif "nghiệm thu" in c_norm or "nghiem_thu" in c_norm:
-            col_mapping["nghiem_thu"] = col
 
-    # 4. Lặp qua từng dòng dữ liệu và xử lý nạp
+    # 4. Lặp qua từng dòng dữ liệu và xử lý nạp theo đúng 12 trường chuẩn
     success_count = 0
     error_count = 0
 
     for idx_row, row in df.iterrows():
+        loai_hinh = clean_str(row.get(col_mapping.get("loai_hinh", ""), "Bài báo khoa học"))
         tieu_de = clean_str(row.get(col_mapping.get("tieu_de", ""), ""))
         tom_tat = clean_str(row.get(col_mapping.get("tom_tat", ""), ""))
         tu_khoa = clean_str(row.get(col_mapping.get("tu_khoa", ""), ""))
-        tac_gia = clean_str(row.get(col_mapping.get("tac_gia", ""), ""))
-        email_tg = clean_str(row.get(col_mapping.get("email", ""), "")).lower()
-        don_vi = clean_str(row.get(col_mapping.get("don_vi", ""), "Khoa Chuyên ngành"))
+        don_vi = clean_str(row.get(col_mapping.get("don_vi", ""), "Khoa Công nghệ Thông tin")) or "Khoa Công nghệ Thông tin"
         nam_cong_bo = parse_int(row.get(col_mapping.get("nam", ""), 2026), 2026)
-        ky_bao_cao = clean_str(row.get(col_mapping.get("ky", ""), "Học kỳ 1 - 2026")) or "Học kỳ 1 - 2026"
+        ky_bao_cao = clean_str(row.get(col_mapping.get("ky", ""), "Đợt 1 - Năm học 2025-2026")) or "Đợt 1 - Năm học 2025-2026"
 
         if not tieu_de or not tom_tat:
             print(f"[Bỏ qua Dòng {idx_row + 2}] Thiếu Tiêu đề hoặc Tóm tắt bắt buộc.")
             error_count += 1
             continue
 
-        # a) Ánh xạ tác giả -> maNguoiNop (Tự động tạo User nếu chưa có trong DB)
-        if email_tg and email_tg in users_cache:
-            ma_nguoi_nop = users_cache[email_tg]
-        elif email_tg:
-            # Tạo tài khoản mới cho tác giả này
-            ho_ten_new = tac_gia.split(",")[0].strip() or "Giảng viên NCKH"
-            cur.execute("""
-                INSERT INTO NguoiDung (hoTen, email, matKhau, vaiTro, donViCongTac, hocHamHocVi)
-                VALUES (?, ?, ?, 'TacGia', ?, 'ThS.')
-            """, (ho_ten_new, email_tg, generate_password_hash("TacGia@123"), don_vi))
-            conn.commit()
-            cur.execute("SELECT @@IDENTITY")
-            new_id = cur.fetchone()[0]
-            if not new_id:
-                cur.execute("SELECT maNguoiDung FROM NguoiDung WHERE email = ?", (email_tg,))
-                new_id = cur.fetchone()[0]
-            ma_nguoi_nop = int(new_id)
-            users_cache[email_tg] = ma_nguoi_nop
-        else:
-            ma_nguoi_nop = 4  # Gán mặc định cho Giảng viên Nguyễn Thành Tài nếu file không có email
+        ma_nguoi_nop = 4  # Gán người nộp mặc định
+        tac_gia_auto = don_vi  # Gán tự động để đảm bảo ràng buộc NOT NULL trong CSDL
 
-        # b) Ánh xạ thông minh Lĩnh vực (LinhVuc)
+        # a) Ánh xạ thông minh Lĩnh vực đăng ký (LinhVuc)
         raw_lv = clean_str(row.get(col_mapping.get("linh_vuc", ""), "")).lower()
         ma_linh_vuc = 1
         for lv in linh_vuc_list:
@@ -196,16 +153,16 @@ def import_dataset(file_path: str):
                 ma_linh_vuc = lv["maLinhVuc"]
                 break
 
-        # c) Ánh xạ thông minh Loại công trình (LoaiCongTrinh)
+        # b) Ánh xạ thông minh Loại công trình (LoaiCongTrinh)
         raw_lct = clean_str(row.get(col_mapping.get("loai_ct", ""), "")).lower()
-        raw_nhom = clean_str(row.get(col_mapping.get("loai_hinh", ""), "")).lower()
+        raw_nhom = loai_hinh.lower()
         ma_loai = 1 if "đề tài" not in raw_nhom and "đề tài" not in raw_lct else 4
         for lct in loai_ct_list:
             if lct["maCodeLoai"].lower() in raw_lct or lct["tenLoai"].lower() in raw_lct:
                 ma_loai = lct["maLoai"]
                 break
 
-        # d) Ánh xạ Tạp chí (TapChiHopLe)
+        # c) Ánh xạ Tên tạp chí / Hội thảo (TapChiHopLe)
         raw_tc = clean_str(row.get(col_mapping.get("tap_chi", ""), "")).lower()
         ma_tap_chi = None
         if raw_tc:
@@ -214,53 +171,36 @@ def import_dataset(file_path: str):
                     ma_tap_chi = tc["maTapChi"]
                     break
 
-        # e) Các trường đặc thù
-        doi = clean_str(row.get(col_mapping.get("doi", ""), "")) or None
-        tap_so = clean_str(row.get(col_mapping.get("tap_so", ""), "")) or None
-        trang_bai_bao = clean_str(row.get(col_mapping.get("trang", ""), "")) or None
+        # d) Chỉ mục tạp chí & Sản phẩm dự kiến
         chi_muc = clean_str(row.get(col_mapping.get("chi_muc", ""), "")) or None
-
-        ma_de_tai = clean_str(row.get(col_mapping.get("ma_de_tai", ""), "")) or None
-        cap_de_tai = clean_str(row.get(col_mapping.get("cap_de_tai", ""), "")) or None
-        chu_nhiem = clean_str(row.get(col_mapping.get("chu_nhiem", ""), "")) or None
-        thanh_vien = clean_str(row.get(col_mapping.get("thanh_vien", ""), "")) or None
-        thoi_gian = clean_str(row.get(col_mapping.get("thoi_gian", ""), "")) or None
-        kinh_phi = parse_float(row.get(col_mapping.get("kinh_phi", ""), 0.0))
         san_pham = clean_str(row.get(col_mapping.get("san_pham", ""), "")) or None
-        nghiem_thu = clean_str(row.get(col_mapping.get("nghiem_thu", ""), "Đang thực hiện")) or "Đang thực hiện"
 
-        # f) Sinh mã hồ sơ chuẩn tuần tự
+        # e) Sinh mã hồ sơ chuẩn tuần tự
         max_idx += 1
         ma_ho_so = f"HS-2026-{max_idx:04d}"
 
-        # g) Chạy AI PhoBERT & SVM dự đoán nhãn lĩnh vực
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, tac_gia)
+        # f) Chạy AI PhoBERT & SVM dự đoán nhãn lĩnh vực
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi)
 
-        # h) Lưu vào CSDL
+        # g) Lưu vào CSDL
         cur.execute("""
             INSERT INTO HoSoKHCN (
                 maHoSo, tieuDe, tomTat, tuKhoa, thongTinTacGia, donViChuTri,
                 namCongBo, kyBaoCao, maNguoiNop, maLinhVuc, maLoai, maTapChi,
-                doi, tapSo, trangBaiBao, chiMucTapChi,
-                maDeTai, capDeTai, chuNhiemDeTai, thanhVienThamGia, thoiGianThucHien,
-                kinhPhi, sanPhamDuKien, ketQuaNghiemThu,
+                chiMucTapChi, sanPhamDuKien,
                 trangThai, fileDinhKem, vanBanDaTachTu,
                 maLinhVucAI, doTinCayAI, maLinhVucSVM, doTinCaySVM
             ) VALUES (
                 ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?,
-                ?, ?, ?, ?, ?,
-                ?, ?, ?,
+                ?, ?,
                 ?, ?, ?,
                 ?, ?, ?, ?
             )
         """, (
-            ma_ho_so, tieu_de, tom_tat, tu_khoa, tac_gia, don_vi,
+            ma_ho_so, tieu_de, tom_tat, tu_khoa, tac_gia_auto, don_vi,
             nam_cong_bo, ky_bao_cao, ma_nguoi_nop, ma_linh_vuc, ma_loai, ma_tap_chi,
-            doi, tap_so, trang_bai_bao, chi_muc,
-            ma_de_tai, cap_de_tai, chu_nhiem, thanh_vien, thoi_gian,
-            kinh_phi, san_pham, nghiem_thu,
+            chi_muc, san_pham,
             "Chờ xét duyệt", f"MinhChung_{ma_ho_so}.pdf", pred["segmented_text"],
             pred["phobert_label_id"], pred["phobert_confidence"],
             pred["svm_label_id"], pred["svm_confidence"]
@@ -294,5 +234,5 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         target_file = sys.argv[1]
     else:
-        target_file = os.path.join(os.path.dirname(__file__), "..", "docs", "Mau_Nhap_Lieu_HoSo_KHCN_Chuan.xlsx")
+        target_file = os.path.join(os.path.dirname(__file__), "..", "docs", "Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
     import_dataset(target_file)

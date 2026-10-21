@@ -46,38 +46,39 @@ def test_all():
     assert res_dt.status_code == 200
     print("   -> Tab Đề tài: OK.")
 
-    # 3. Test Chi tiết hồ sơ có metadata bài báo & đề tài
-    print("3. Kiểm tra Chi tiết hồ sơ & Metadata chuyên sâu...")
+    # 3. Test Chi tiết hồ sơ có metadata bài báo & đề tài (theo 12 trường chuẩn)
+    print("3. Kiểm tra Chi tiết hồ sơ & Metadata 12 trường chuẩn...")
     res = client.get("/hoso/HS-2026-0001")
     assert res.status_code == 200
     html = res.data.decode("utf-8")
-    assert "Mã định danh DOI" in html or "Tập / Số" in html, "Thiếu thông tin bài báo HS-0001"
+    assert "Tên tạp chí / Hội thảo" in html and "Chỉ mục tạp chí" in html, "Thiếu thông tin bài báo HS-0001"
     assert "Kiểm Tra Tính Hợp Lệ & Thẩm Định Hồ Sơ" in html, "Thiếu form kiểm tra tính hợp lệ"
     print("   -> Chi tiết Bài báo (HS-0001): OK.")
 
     res = client.get("/hoso/HS-2026-0007")
     assert res.status_code == 200
     html = res.data.decode("utf-8")
-    assert "Mã số đề tài" in html or "Cấp quản lý" in html, "Thiếu thông tin đề tài HS-0007"
+    assert "Sản phẩm dự kiến" in html and "Đề tài NCKH" in html, "Thiếu thông tin đề tài HS-0007"
     print("   -> Chi tiết Đề tài (HS-0007): OK.")
 
     # 4. Test Biểu mẫu nộp hồ sơ (hoso_form)
-    print("4. Kiểm tra Biểu mẫu khai báo động (Bài báo vs Đề tài)...")
+    print("4. Kiểm tra Biểu mẫu khai báo động 12 trường (Bài báo vs Đề tài)...")
     res = client.get("/hoso/new")
     assert res.status_code == 200
     html = res.data.decode("utf-8")
     assert "radioBaiBao" in html and "radioDeTai" in html
     assert "sectionBaiBao" in html and "sectionDeTai" in html
-    print("   -> Biểu mẫu nộp mới động: OK.")
+    assert "1. Loại hình (*)" in html and "12. Sản phẩm dự kiến" in html
+    print("   -> Biểu mẫu nộp mới động 12 trường: OK.")
 
     # 5. Test Danh mục hệ thống
-    print("5. Kiểm tra Danh mục chuẩn hóa & Quy chuẩn bổ sung...")
+    print("5. Kiểm tra Danh mục chuẩn hóa & Quy chuẩn 12 trường...")
     res = client.get("/danh-muc")
     assert res.status_code == 200
     html = res.data.decode("utf-8")
-    assert "Danh Mục Cấp Quản Lý Đề Tài" in html
-    assert "Cơ Sở Dữ Liệu Chỉ Mục Học Thuật" in html
-    assert "Đánh Giá & Nghiệm Thu Đề Tài" in html
+    assert "Danh Mục Chỉ Mục Tạp Chí" in html
+    assert "Danh Mục Sản Phẩm Dự Kiến" in html
+    assert "Danh Mục Kỳ Báo Cáo & Đơn Vị Chủ Trì" in html
     print("   -> Danh mục mở rộng: OK.")
 
     # 6. Test Toàn bộ Quy trình 5 bước Nghiệp vụ kiểm tra tính hợp lệ (Revision)
@@ -166,18 +167,18 @@ def test_all():
     assert "Yêu cầu bổ sung" in html_tg and "Phản hồi thẩm định hồ sơ" in html_tg
     print("   -> Bước 5a: Banner thông báo nổi bật cho Tác giả: OK.")
 
-    # Tác giả cập nhật và lưu hồ sơ
+    # Tác giả cập nhật và lưu hồ sơ (theo đúng 12 trường chuẩn)
     res_update = tacgia_client.post(f"/hoso/{test_code}/edit", data={
         "tieuDe": "Nghiên cứu ứng dụng Blockchain trong xác thực văn bằng đại học (Đã bổ sung)",
         "tomTat": "Tóm tắt đã được bổ sung đầy đủ thông tin trang bìa và chỉ số.",
         "tuKhoa": "blockchain, verified degrees",
-        "thongTinTacGia": "Nguyễn Thành Tài",
-        "donViChuTri": "Khoa CNTT",
+        "donViChuTri": "Khoa Công nghệ Thông tin",
         "namCongBo": 2026,
-        "kyBaoCao": "Học kỳ 1 - 2026",
+        "kyBaoCao": "Đợt 1 - Năm học 2025-2026",
         "maLinhVuc": 1,
         "maLoai": 1,
-        "doi": "10.1016/j.bc.2026.10099"
+        "maTapChi": 1,
+        "chiMucTapChi": "Scopus Q1 / Web of Science (SCIE)"
     }, follow_redirects=True)
     assert res_update.status_code == 200
 

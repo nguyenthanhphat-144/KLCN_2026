@@ -220,7 +220,7 @@
                     <tr>
                         <th style="width: 8%;">Thứ hạng</th>
                         <th class="text-start" style="width: 12%;">Mã HS</th>
-                        <th class="text-start" style="width: 32%;">Tên Công Trình & Tác Giả</th>
+                        <th class="text-start" style="width: 32%;">Tiêu Đề Công Trình & Đơn Vị Chủ Trì</th>
                         <th style="width: 14%;">Điểm Rủi Ro Tổng Hợp</th>
                         <th style="width: 10%;">Đo Lường IF</th>
                         <th style="width: 10%;">Đo Lường AE (MSE)</th>
@@ -230,13 +230,6 @@
                 </thead>
                 <tbody>
                     {% for pq in priority_queue %}
-                    {% set vn_tg = (pq.thongTinTacGia or '')
-                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                     <tr>
                         <td class="text-center">
                             {% if pq.priority_rank == 1 %}
@@ -257,7 +250,7 @@
                         </td>
                         <td>
                             <div class="fw-bold text-dark">{{ pq.tieuDe }}</div>
-                            <div class="text-muted"><i class="bi bi-person me-1"></i>{{ vn_tg }}</div>
+                            <div class="text-muted"><i class="bi bi-building me-1"></i>{{ pq.donViChuTri }}</div>
                             {% if pq.reasons %}
                             <div class="mt-1">
                                 {% for r in pq.reasons %}
@@ -322,7 +315,7 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3">Mã HS</th>
-                        <th>Tiêu đề & Tác giả</th>
+                        <th>Tiêu đề & Đơn vị chủ trì</th>
                         <th class="text-center">Điểm rủi ro ($R_i$)</th>
                         <th class="text-center">Điểm IF / AE (MSE)</th>
                         <th>Chi tiết 3 nhóm vi phạm phát hiện</th>
@@ -332,13 +325,6 @@
                 </thead>
                 <tbody>
                     {% for a in anomalies %}
-                    {% set vn_tg = (a.thongTinTacGia or '')
-                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                     <tr>
                         <td class="ps-3 fw-bold text-danger text-nowrap">
                             <a href="{{ url_for('hoso_detail', ma_ho_so=a.maHoSo) }}" class="text-danger text-decoration-none">
@@ -347,7 +333,7 @@
                         </td>
                         <td style="max-width: 340px;">
                             <div class="fw-bold text-dark">{{ a.tieuDe }}</div>
-                            <div class="text-muted"><i class="bi bi-person me-1"></i>{{ vn_tg }}</div>
+                            <div class="text-muted"><i class="bi bi-building me-1"></i>{{ a.donViChuTri }}</div>
                         </td>
                         <td class="text-center">
                             <span class="badge bg-danger fs-6 px-2 py-1">{{ "%.2f"|format(a.diemBatThuong) }}</span>

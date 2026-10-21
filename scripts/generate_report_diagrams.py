@@ -54,8 +54,8 @@ def create_diagram_pipeline():
     ax.axis('off')
 
     boxes = [
-        (0.02, 0.35, 0.16, 0.35, 'Hồ Sơ KH&CN\n(Tiêu đề, Tóm tắt,\nTừ khóa, Tác giả)', '#f9f9f9', '#000000'),
-        (0.22, 0.35, 0.16, 0.35, 'Tiền Xử Lý\n(PyVi Tách từ,\nLọc Stopwords,\n4 trường ghép nối)', '#f0f0f0', '#000000'),
+        (0.02, 0.35, 0.16, 0.35, 'Hồ Sơ KH&CN\n(Tiêu đề, Tóm tắt,\nTừ khóa, Đơn vị)', '#f9f9f9', '#000000'),
+        (0.22, 0.35, 0.16, 0.35, 'Tiền Xử Lý\n(PyVi Tách từ,\nLọc Stopwords,\nHợp nhất văn bản)', '#f0f0f0', '#000000'),
         (0.42, 0.55, 0.22, 0.35, 'PhoBERT Deep Learning\n(vinai/phobert-base,\nClassification Head)', '#e0e0e0', '#000000'),
         (0.42, 0.12, 0.22, 0.35, 'Baseline LinearSVC\n(TF-IDF N-gram,\nPlatt Scaling Calibrated)', '#e0e0e0', '#000000'),
         (0.68, 0.35, 0.14, 0.35, 'Ensemble / Best\nConfidence Score\n(Softmax Prob %)', '#d0d0d0', '#000000'),
@@ -190,9 +190,9 @@ def create_diagram_system_architecture():
     ax.add_patch(rect3)
     ax.text(0.06, 0.25, 'TẦNG LƯU TRỮ DỮ LIỆU (DATA PERSISTENCE & INTEGRATION LAYER)', fontsize=9, weight='bold', color='#000000')
     db_boxes = [
-        (0.06, 0.08, 0.27, 0.14, 'SQL Server 2025 / SQLite\n- HoSoKHCN (12 cột mở rộng)\n- LichSuXetDuyet (Lưu vết)\n- LinhVuc & TapChiHopLe', '#d0d0d0'),
+        (0.06, 0.08, 0.27, 0.14, 'SQL Server 2025 / SQLite\n- HoSoKHCN (12 trường chuẩn)\n- LichSuXetDuyet (Lưu vết)\n- LinhVuc & TapChiHopLe', '#d0d0d0'),
         (0.36, 0.08, 0.28, 0.14, 'File Storage & Minh Chứng\n- Minh chứng PDF, DOCX\n- Checksum & Timestamp\n- Thư mục uploads/ an toàn', '#d0d0d0'),
-        (0.67, 0.08, 0.27, 0.14, 'Import / Export Engine\n- Bulk Ingestion Excel\n- Xuất báo cáo PDF / Excel\n- Seed Data Demo', '#d0d0d0'),
+        (0.67, 0.08, 0.27, 0.14, 'Import / Export Engine\n- Bulk Ingestion Excel (12 cột)\n- Xuất báo cáo PDF / Excel\n- Seed Data Demo', '#d0d0d0'),
     ]
     for x, y, w, h, t, c in db_boxes:
         r = patches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.01', facecolor=c, edgecolor='#333333', linewidth=1)

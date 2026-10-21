@@ -19,7 +19,7 @@
           <mxGeometry x="35" y="60" width="370" height="145" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_hoso" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;HoSoKHCNBoundaryUI&#xa;(hoso_list.html / hoso_form.html)&#xa;─────────────────────&#xa;+ radioNhomCongTrinh (BaiBao / DeTai)&#xa;+ formBaiBao (doi, tapSo, chiMucTapChi)&#xa;+ formDeTai (maDeTai, capDeTai, kinhPhi, spDuKien)&#xa;+ filterTabs (tatCa, baiBao, deTai)&#xa;+ fileUploadMinhChung: File&#xa;─────────────────────&#xa;+ chuyenDoiFormDongTheoNhom()&#xa;+ kichHoatLiveAIPreview()&#xa;+ hienThiDanhSachLocTheoTabs()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_boundary">
+        <mxCell id="b_hoso" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;HoSoKHCNBoundaryUI&#xa;(hoso_list.html / hoso_form.html)&#xa;─────────────────────&#xa;+ radioLoaiHinh (BaiBao / DeTai)&#xa;+ formChung (tieuDe, tomTat, tuKhoa, donViChuTri,&#xa;             namCongBo, kyBaoCao, maLinhVuc, maLoai)&#xa;+ formBaiBao (maTapChi, chiMucTapChi)&#xa;+ formDeTai (sanPhamDuKien)&#xa;+ filterTabs (tatCa, baiBao, deTai)&#xa;─────────────────────&#xa;+ chuyenDoiFormDongTheoNhom()&#xa;+ kichHoatLiveAIPreview()&#xa;+ hienThiDanhSachLocTheoTabs()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_boundary">
           <mxGeometry x="35" y="225" width="370" height="195" as="geometry" />
         </mxCell>
 
@@ -27,7 +27,7 @@
           <mxGeometry x="35" y="440" width="370" height="210" as="geometry" />
         </mxCell>
 
-        <mxCell id="b_danhmuc" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DanhMucQuanTriUI&#xa;(catalogs.html)&#xa;─────────────────────&#xa;+ bangCapDeTai, bangChiMucHocThuat&#xa;+ bangNghiemThu, bangTapChiHopLe&#xa;─────────────────────&#xa;+ hienThiQuyChuanDanhMucMoi()&#xa;+ capNhatVoHieuHoaDanhMuc()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
+        <mxCell id="b_danhmuc" value="&amp;lt;&amp;lt;boundary&amp;gt;&amp;gt;&#xa;DanhMucQuanTriUI&#xa;(catalogs.html)&#xa;─────────────────────&#xa;+ bangLinhVuc, bangLoaiCongTrinh&#xa;+ bangTapChiHopLe, bangChiMucTapChi&#xa;─────────────────────&#xa;+ hienThiQuyChuanDanhMucMoi()&#xa;+ capNhatVoHieuHoaDanhMuc()" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontColor=#000000;" vertex="1" parent="col_boundary">
           <mxGeometry x="35" y="670" width="370" height="120" as="geometry" />
         </mxCell>
 
@@ -73,7 +73,7 @@
           <mxGeometry x="45" y="60" width="390" height="145" as="geometry" />
         </mxCell>
 
-        <mxCell id="e_hoso" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;HoSoKHCN (Revision Entity)&#xa;─────────────────────&#xa;- maHoSo: String (PK)&#xa;- tieuDe, tomTat, tuKhoa, thongTinTacGia: String&#xa;- donViChuTri, namCongBo, kyBaoCao&#xa;- doi, tapSo, trangBaiBao, chiMucTapChi (Bài báo)&#xa;- maDeTai, capDeTai, chuNhiem, kinhPhi (Đề tài)&#xa;- sanPhamDuKien, ketQuaNghiemThu (Đề tài)&#xa;- trangThai: (Chờ xét duyệt | Đang xét duyệt |&#xa;             Đã duyệt | Từ chối | Yêu cầu bổ sung)&#xa;- maLinhVucAI (PhoBERT), doTinCayAI&#xa;- diemBatThuong (IF), coCanhBao" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_entity">
+        <mxCell id="e_hoso" value="&amp;lt;&amp;lt;entity&amp;gt;&amp;gt;&#xa;HoSoKHCN (Chuẩn hóa 12 Trường Đầu vào)&#xa;─────────────────────&#xa;- maHoSo: String (PK)&#xa;- tieuDe, tomTat, tuKhoa: String&#xa;- donViChuTri, namCongBo, kyBaoCao&#xa;- maLinhVuc (FK), maLoai (FK)&#xa;- maTapChi (FK), chiMucTapChi (Bài báo)&#xa;- sanPhamDuKien (Đề tài NCKH)&#xa;- trangThai: (Chờ xét duyệt | Đang xét duyệt |&#xa;             Đã duyệt | Từ chối | Yêu cầu bổ sung)&#xa;- maLinhVucAI (PhoBERT), doTinCayAI&#xa;- diemBatThuong (IF + AE), coCanhBao" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" vertex="1" parent="col_entity">
           <mxGeometry x="45" y="225" width="390" height="250" as="geometry" />
         </mxCell>
 

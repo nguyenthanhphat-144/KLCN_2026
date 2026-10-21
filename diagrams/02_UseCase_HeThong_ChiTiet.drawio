@@ -40,7 +40,7 @@
         <mxCell id="pkg_hoso" value="2. Phân hệ Quản lý Hồ sơ KH&amp;CN (Bài báo KH &amp; Đề tài NCKH)" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="250" y="390" width="530" height="310" as="geometry" />
         </mxCell>
-        <mxCell id="uc_2_1" value="UC2.1: Khai báo hồ sơ động&#xa;(Bài báo: DOI/Tập/Số vs Đề tài: Mã/Kinh phí)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontStyle=1;fontColor=#000000;" vertex="1" parent="pkg_hoso">
+        <mxCell id="uc_2_1" value="UC2.1: Khai báo 12 trường chuẩn hóa&#xa;(Bài báo: Tạp chí/Chỉ mục vs Đề tài: SP dự kiến)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontStyle=1;fontColor=#000000;" vertex="1" parent="pkg_hoso">
           <mxGeometry x="20" y="45" width="230" height="60" as="geometry" />
         </mxCell>
         <mxCell id="uc_2_2" value="UC2.2: Đính kèm tệp minh chứng&#xa;(PDF/DOCX - Quyết định, Bìa bài báo)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="pkg_hoso">
@@ -63,7 +63,7 @@
         <mxCell id="pkg_cat" value="3. Phân hệ Quản lý Danh mục &amp; Báo cáo Thống kê Chuyên Sâu" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="250" y="730" width="530" height="260" as="geometry" />
         </mxCell>
-        <mxCell id="uc_3_1" value="UC3.1: Quản lý danh mục chuẩn hóa&#xa;(Cấp ĐT, Chỉ mục, Nghiệm thu, Lĩnh vực)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="pkg_cat">
+        <mxCell id="uc_3_1" value="UC3.1: Quản lý danh mục chuẩn hóa&#xa;(Lĩnh vực đăng ký, Loại công trình, Kỳ BC)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="pkg_cat">
           <mxGeometry x="25" y="45" width="225" height="65" as="geometry" />
         </mxCell>
         <mxCell id="uc_3_2" value="UC3.2: Quản lý danh mục Tạp chí&#xa;&amp; Chỉ mục uy tín (Scopus/WoS)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" vertex="1" parent="pkg_cat">

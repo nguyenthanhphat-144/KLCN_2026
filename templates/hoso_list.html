@@ -52,7 +52,7 @@
         <form method="GET" action="{{ url_for('hoso_list') }}" class="row g-2 align-items-end">
             <input type="hidden" name="nhom" value="{{ filters.nhom or '' }}">
             <div class="col-md-3">
-                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề/Tóm tắt/Tác giả)</label>
+                <label class="form-label small fw-semibold mb-1">Từ khóa (Tiêu đề/Tóm tắt/Từ khóa/Đơn vị)</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" value="{{ filters.q }}" class="form-control"
@@ -145,15 +145,8 @@
                             </td>
                             <td style="max-width: 360px;">
                                 <div class="fw-bold text-dark mb-1">{{ r.tieuDe }}</div>
-                                {% set vn_tg = (r.thongTinTacGia or '')
-                                    | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                                    | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                                    | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                                    | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                                    | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                                    | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                                 <div class="small text-muted mb-1">
-                                    <i class="bi bi-people-fill me-1"></i>{{ vn_tg }} | <span class="text-secondary">{{ r.donViChuTri }}</span>
+                                    <i class="bi bi-building me-1 text-primary"></i><span class="fw-semibold text-secondary">{{ r.donViChuTri }}</span> | <span>{{ r.kyBaoCao }}</span>
                                 </div>
                                 <div class="small">
                                     <span class="badge bg-secondary-subtle text-secondary border">

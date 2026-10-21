@@ -82,6 +82,9 @@ class SQLServerCursorWrapper:
         cols = [col[0] for col in self._cur.description]
         return [SQLServerRow(zip(cols, r)) for r in rows]
 
+    def __iter__(self):
+        return iter(self.fetchall())
+
 
 class SQLServerConnectionWrapper:
     """Lớp bọc kết nối pyodbc cho Microsoft SQL Server (SSMS)."""

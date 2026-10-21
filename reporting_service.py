@@ -61,10 +61,8 @@ FILTER_KEYS = [
     "maLoai",
     "trangThai",
     "kyBaoCao",
-    "tacGia",
     "chiMuc",
-    "capDeTai",
-    "ketQuaNghiemThu",
+    "sanPhamDuKien",
 ]
 
 
@@ -181,24 +179,24 @@ def report_statistics(records):
             distribution(articles, "tenLoai"),
         ),
         (
-            "Bài báo theo chỉ mục",
+            "Bài báo theo chỉ mục tạp chí",
             distribution(articles, "chiMucTapChi"),
         ),
         (
-            "Bài báo theo trường tác giả",
-            distribution(articles, "thongTinTacGia"),
+            "Bài báo theo đơn vị chủ trì",
+            distribution(articles, "donViChuTri"),
         ),
         (
-            "Đề tài theo cấp",
-            distribution(projects, "capDeTai"),
+            "Đề tài theo loại công trình",
+            distribution(projects, "tenLoai"),
         ),
         (
-            "Đề tài theo chủ nhiệm",
-            distribution(projects, "chuNhiemDeTai"),
+            "Đề tài theo đơn vị chủ trì",
+            distribution(projects, "donViChuTri"),
         ),
         (
-            "Đề tài theo thực hiện/nghiệm thu",
-            distribution(projects, "ketQuaNghiemThu"),
+            "Đề tài theo sản phẩm dự kiến",
+            distribution(projects, "sanPhamDuKien"),
         ),
     ]
 
@@ -386,31 +384,26 @@ def detail_columns(group):
     if group == "Bài báo":
         return [
             ("maHoSo", "Mã hồ sơ"),
-            ("tieuDe", "Tên bài báo"),
-            ("thongTinTacGia", "Tác giả"),
-            ("donViChuTri", "Đơn vị"),
+            ("tieuDe", "Tiêu đề công trình"),
+            ("donViChuTri", "Đơn vị chủ trì"),
             ("namCongBo", "Năm công bố"),
-            ("tenTapChi", "Tạp chí"),
-            ("chiSoISSN", "ISSN"),
-            ("doi", "DOI"),
-            ("tapSo", "Tập/Số"),
-            ("trangBaiBao", "Trang"),
-            ("chiMucTapChi", "Chỉ mục"),
+            ("kyBaoCao", "Kỳ báo cáo"),
+            ("tenLinhVuc", "Lĩnh vực đăng ký"),
+            ("tenLoai", "Loại công trình"),
+            ("tenTapChi", "Tên tạp chí / Hội thảo"),
+            ("chiMucTapChi", "Chỉ mục tạp chí"),
             ("trangThai", "Trạng thái hợp lệ"),
         ]
 
     return [
         ("maHoSo", "Mã hồ sơ"),
-        ("maDeTai", "Mã đề tài"),
         ("tieuDe", "Tên đề tài"),
-        ("capDeTai", "Cấp đề tài"),
-        ("chuNhiemDeTai", "Chủ nhiệm"),
-        ("thanhVienThamGia", "Thành viên"),
         ("donViChuTri", "Đơn vị chủ trì"),
-        ("thoiGianThucHien", "Thời gian"),
-        ("kinhPhi", "Kinh phí (đồng)"),
+        ("namCongBo", "Năm công bố"),
+        ("kyBaoCao", "Kỳ báo cáo"),
+        ("tenLinhVuc", "Lĩnh vực đăng ký"),
+        ("tenLoai", "Loại công trình"),
         ("sanPhamDuKien", "Sản phẩm dự kiến"),
-        ("ketQuaNghiemThu", "Thực hiện/nghiệm thu"),
         ("trangThai", "Trạng thái hợp lệ"),
     ]
 
@@ -549,10 +542,13 @@ def generate_excel_report(
         list_rows.append([
             index,
             record.get("maHoSo", ""),
-            record.get("tieuDe", ""),
-            record.get("thongTinTacGia", ""),
-            record.get("donViChuTri", ""),
             group_name(record),
+            record.get("tieuDe", ""),
+            record.get("donViChuTri", ""),
+            record.get("namCongBo", ""),
+            record.get("kyBaoCao", ""),
+            record.get("tenLinhVuc", ""),
+            record.get("tenLoai", ""),
             record.get("trangThai", ""),
         ])
 
@@ -564,14 +560,17 @@ def generate_excel_report(
         [
             "STT",
             "Mã hồ sơ",
-            "Tên công trình",
-            "Tác giả",
-            "Đơn vị",
-            "Nhóm",
+            "Loại hình",
+            "Tiêu đề công trình / Tên đề tài",
+            "Đơn vị chủ trì",
+            "Năm công bố",
+            "Kỳ báo cáo",
+            "Lĩnh vực đăng ký",
+            "Loại công trình",
             "Trạng thái hợp lệ",
         ],
         list_rows,
-        [6, 20, 62, 34, 38, 16, 26],
+        [6, 18, 16, 56, 32, 16, 26, 30, 32, 22],
     )
 
     listing.freeze_panes = "C6"
@@ -1001,9 +1000,9 @@ def generate_pdf_report(
             rows.append([
                 record.get("maHoSo", ""),
                 description,
-                text(record.get("thongTinTacGia"))
+                text(record.get("donViChuTri"))
                 + "\n"
-                + text(record.get("donViChuTri")),
+                + text(record.get("kyBaoCao")),
                 record.get("trangThai", ""),
             ])
 
@@ -1012,7 +1011,7 @@ def generate_pdf_report(
                 [
                     "Mã hồ sơ",
                     "Công trình và thông tin chi tiết",
-                    "Tác giả / Đơn vị",
+                    "Đơn vị chủ trì / Kỳ báo cáo",
                     "Trạng thái",
                 ],
                 rows,
@@ -1126,15 +1125,9 @@ def filtered_records():
             descriptions.append(f"{label}: {number}")
 
     for key, column, label in [
-        ["donVi", "h.donViChuTri", "Đơn vị"],
+        ["donVi", "h.donViChuTri", "Đơn vị chủ trì"],
         ["trangThai", "h.trangThai", "Trạng thái"],
         ["kyBaoCao", "h.kyBaoCao", "Kỳ báo cáo"],
-        ["capDeTai", "h.capDeTai", "Cấp đề tài"],
-        [
-            "ketQuaNghiemThu",
-            "h.ketQuaNghiemThu",
-            "Thực hiện/nghiệm thu",
-        ],
     ]:
         if filters[key]:
             conditions.append(column + " = ?")
@@ -1143,19 +1136,13 @@ def filtered_records():
                 label + ": " + filters[key]
             )
 
-    if filters["tacGia"]:
-        conditions.append(
-            "(h.thongTinTacGia LIKE ? "
-            "OR h.chuNhiemDeTai LIKE ?)"
+    if filters["sanPhamDuKien"]:
+        conditions.append("h.sanPhamDuKien LIKE ?")
+        parameters.append(
+            "%" + filters["sanPhamDuKien"] + "%"
         )
-
-        parameters.extend([
-            "%" + filters["tacGia"] + "%",
-            "%" + filters["tacGia"] + "%",
-        ])
-
         descriptions.append(
-            "Tác giả/chủ nhiệm: " + filters["tacGia"]
+            "Sản phẩm dự kiến: " + filters["sanPhamDuKien"]
         )
 
     if filters["chiMuc"]:
@@ -1166,7 +1153,7 @@ def filtered_records():
         )
 
         descriptions.append(
-            "Chỉ mục: " + filters["chiMuc"]
+            "Chỉ mục tạp chí: " + filters["chiMuc"]
         )
 
     parsed_dates = {}
@@ -1387,10 +1374,8 @@ name="nam" value="{{ filters.nam }}">
 
 {% for key,label in [
 ('kyBaoCao','Kỳ báo cáo'),
-('tacGia','Tác giả/chủ nhiệm'),
-('chiMuc','Chỉ mục bài báo'),
-('capDeTai','Cấp đề tài'),
-('ketQuaNghiemThu','Thực hiện/nghiệm thu đề tài')
+('chiMuc','Chỉ mục tạp chí'),
+('sanPhamDuKien','Sản phẩm dự kiến')
 ] %}
 <div>
 <label>{{ label }}</label>

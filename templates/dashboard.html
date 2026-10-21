@@ -271,44 +271,42 @@
     <div class="col-lg-6">
         <div class="card card-academic h-100 border-start border-4 border-success">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-kanban-fill me-2 text-success"></i>Thống Kê Đề Tài Nghiên Cứu Khoa Học (Nghiệp vụ Revision)</span>
-                <span class="badge bg-success">Đề tài & Dự án</span>
+                <span><i class="bi bi-kanban-fill me-2 text-success"></i>Thống Kê Đề Tài Nghiên Cứu Khoa Học</span>
+                <span class="badge bg-success">Đề tài NCKH</span>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-md-7">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-layers me-1"></i>Theo Cấp quản lý & Kinh phí:</div>
+                    <div class="col-md-6">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-layers me-1"></i>Theo Loại công trình Đề tài:</div>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Cấp đề tài</th><th class="text-center">Số ĐT</th><th class="text-end">Kinh phí (VNĐ)</th></tr></thead>
+                                <thead class="table-light"><tr><th>Loại đề tài</th><th class="text-center">Số ĐT</th></tr></thead>
                                 <tbody>
-                                    {% for dt in stats_detai_cap %}
+                                    {% for dt in stats_detai_loai %}
                                     <tr>
-                                        <td class="fw-semibold small">{{ dt.capDeTai }}</td>
+                                        <td class="fw-semibold small">{{ dt.tenLoai }}</td>
                                         <td class="text-center"><span class="badge bg-success">{{ dt.soLuong }}</span></td>
-                                        <td class="text-end small fw-semibold text-success">{{ "{:,.0f}".format(dt.tongKinhPhi) }}</td>
                                     </tr>
                                     {% else %}
-                                    <tr><td colspan="3" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="col-md-5">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-clipboard2-check me-1"></i>Kết quả nghiệm thu:</div>
+                    <div class="col-md-6">
+                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-box-seam me-1"></i>Theo Đơn vị & Sản phẩm dự kiến:</div>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Nghiệm thu</th><th class="text-center">Số ĐT</th></tr></thead>
+                                <thead class="table-light"><tr><th>Đơn vị chủ trì</th><th class="text-center">Số ĐT</th></tr></thead>
                                 <tbody>
-                                    {% for nt in stats_detai_nghiemthu %}
+                                    {% for dv in stats_detai_donvi %}
                                     <tr>
-                                        <td>
-                                            <span class="badge {% if nt.ketQua == 'Xuất sắc' %}bg-success{% elif nt.ketQua == 'Tốt' %}bg-primary{% elif nt.ketQua == 'Đạt' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
-                                                {{ nt.ketQua }}
-                                            </span>
+                                        <td class="small">
+                                            <div class="fw-semibold">{{ dv.donViChuTri }}</div>
+                                            {% if dv.sanPhamDuKien %}<small class="text-muted">{{ dv.sanPhamDuKien }}</small>{% endif %}
                                         </td>
-                                        <td class="text-center fw-bold">{{ nt.soLuong }}</td>
+                                        <td class="text-center fw-bold"><span class="badge bg-info text-dark">{{ dv.soLuong }}</span></td>
                                     </tr>
                                     {% else %}
                                     <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
@@ -335,8 +333,8 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3">Mã HS</th>
-                        <th>Tiêu đề công trình & Tác giả</th>
-                        <th>Lĩnh vực khai báo</th>
+                        <th>Tiêu đề công trình & Đơn vị chủ trì</th>
+                        <th>Lĩnh vực đăng ký</th>
                         <th>Gợi ý phân loại từ AI (PhoBERT)</th>
                         <th>Cảnh báo AI</th>
                         <th>Trạng thái</th>
@@ -346,18 +344,11 @@
                 <tbody>
                     {% for r in recent_hoso %}
                     {% set badge = get_confidence_badge(r.doTinCayAI or 0) %}
-                    {% set vn_tg = (r.thongTinTacGia or '')
-                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                     <tr>
                         <td class="ps-3 fw-bold text-primary">{{ r.maHoSo }}</td>
                         <td style="max-width: 340px;">
                             <div class="fw-semibold text-truncate" title="{{ r.tieuDe }}">{{ r.tieuDe }}</div>
-                            <small class="text-muted"><i class="bi bi-person me-1"></i>{{ vn_tg }}</small>
+                            <small class="text-muted"><i class="bi bi-building me-1"></i>{{ r.donViChuTri }} ({{ r.namCongBo }})</small>
                         </td>
                         <td><span class="badge bg-light text-dark border">{{ r.tenLinhVuc }}</span></td>
                         <td>

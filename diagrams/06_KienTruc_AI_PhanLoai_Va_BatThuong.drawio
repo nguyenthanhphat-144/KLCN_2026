@@ -15,7 +15,7 @@
           <mxGeometry x="40" y="80" width="320" height="780" as="geometry" />
         </mxCell>
 
-        <mxCell id="s1_b1" value="1a. Trích xuất văn bản theo 2 nhóm&#xa;───────────────────────&#xa;• Bài báo: [Tiêu đề] + [Tóm tắt]&#xa;  + [Từ khóa] + [Nhóm tác giả]&#xa;• Đề tài: [Tên đề tài] + [Mục tiêu&#xa;  &amp; Nội dung] + [Từ khóa] + [Chủ nhiệm]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
+        <mxCell id="s1_b1" value="1a. Trích xuất văn bản chuẩn hóa&#xa;───────────────────────&#xa;• Bài báo: [Tiêu đề] + [Tóm tắt]&#xa;  + [Từ khóa] + [Đơn vị chủ trì]&#xa;• Đề tài: [Tên đề tài] + [Tóm tắt]&#xa;  + [Từ khóa] + [Sản phẩm dự kiến]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="stg1">
           <mxGeometry x="25" y="60" width="270" height="105" as="geometry" />
         </mxCell>
 
