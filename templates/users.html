@@ -1,51 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Quản trị Tài khoản & Phân quyền - Quản lý KH&CN AI{% endblock %}
+{% block title %}Quản lý Người dùng - Hệ thống Quản lý KH&CN{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h4 class="fw-bold text-primary mb-1">
-        <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Quản Trị Tài Khoản & Phân Quyền Người Dùng
-    </h4>
+<div class="mb-3">
+    <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
+        Quản Lý Tài Khoản & Phân Quyền
+    </h5>
     <p class="text-muted small mb-0">
-        Quản lý danh sách tài khoản cán bộ, giảng viên và thiết lập quyền truy cập hệ thống.
+        Danh sách tài khoản giảng viên, cán bộ thẩm định và quản trị viên
     </p>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <div class="col-lg-4">
         <div class="card card-academic">
             <div class="card-header card-header-academic">
-                <i class="bi bi-person-plus-fill me-2"></i>Tạo Tài Khoản Người Dùng Mới
+                Thêm tài khoản mới
             </div>
-            <div class="card-body">
+            <div class="card-body small">
                 <form method="POST" action="{{ url_for('user_management') }}">
                     <input type="hidden" name="action" value="create">
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Họ và tên (*)</label>
-                        <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="TS. Nguyễn Văn X" required>
+                        <label class="form-label fw-semibold mb-1">Họ và tên (*)</label>
+                        <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Nguyễn Văn A" required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Email đăng nhập (*)</label>
+                        <label class="form-label fw-semibold mb-1">Email đăng nhập (*)</label>
                         <input type="email" name="email" class="form-control form-control-sm" placeholder="user@uni.edu.vn" required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Mật khẩu khởi tạo (*)</label>
+                        <label class="form-label fw-semibold mb-1">Mật khẩu khởi tạo (*)</label>
                         <input type="password" name="matKhau" class="form-control form-control-sm" value="Uni@2026" required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Vai trò hệ thống (*)</label>
+                        <label class="form-label fw-semibold mb-1">Vai trò (*)</label>
                         <select name="vaiTro" class="form-select form-select-sm">
                             <option value="TacGia">Tác giả / Giảng viên</option>
                             <option value="CanBo">Cán bộ xét duyệt</option>
-                            <option value="Admin">Quản trị viên hệ thống</option>
+                            <option value="Admin">Quản trị viên</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Đơn vị công tác (*)</label>
+                        <label class="form-label fw-semibold mb-1">Đơn vị công tác (*)</label>
                         <input type="text" name="donViCongTac" class="form-control form-control-sm" placeholder="Khoa Công nghệ Thông tin" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
-                        <i class="bi bi-plus-circle me-1"></i>Tạo tài khoản
+                    <button type="submit" class="btn btn-primary btn-sm w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+                        Tạo tài khoản
                     </button>
                 </form>
             </div>
@@ -55,20 +55,20 @@
     <div class="col-lg-8">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-people-fill me-2"></i>Danh Sách Người Dùng Hệ Thống</span>
-                <span class="badge bg-primary">{{ users|length }} tài khoản</span>
+                <span>Danh sách người dùng</span>
+                <span class="text-muted small fw-normal">{{ users|length }} tài khoản</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 small">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th class="ps-3">Mã ND</th>
-                                <th>Họ tên & Học vị</th>
+                                <th class="ps-3">ID</th>
+                                <th>Họ và tên</th>
                                 <th>Email</th>
                                 <th>Đơn vị công tác</th>
-                                <th>Vai trò hiện tại</th>
-                                <th class="pe-3 text-end">Cập nhật phân quyền</th>
+                                <th>Vai trò</th>
+                                <th class="pe-3 text-end">Phân quyền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -81,12 +81,12 @@
                                 | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
                                 | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                             <tr>
-                                <td class="ps-3 fw-bold">{{ u.maNguoiDung }}</td>
-                                <td class="fw-bold">{{ vn_hoten }}</td>
+                                <td class="ps-3">{{ u.maNguoiDung }}</td>
+                                <td class="fw-semibold">{{ vn_hoten }}</td>
                                 <td><code>{{ u.email }}</code></td>
                                 <td>{{ u.donViCongTac }}</td>
                                 <td>
-                                    <span class="badge {% if u.vaiTro == 'Admin' %}bg-danger{% elif u.vaiTro == 'CanBo' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    <span class="badge bg-light text-dark border fw-normal">
                                         {% if u.vaiTro == 'Admin' %}Quản trị viên{% elif u.vaiTro == 'CanBo' %}Cán bộ duyệt{% else %}Tác giả{% endif %}
                                     </span>
                                 </td>
@@ -94,12 +94,12 @@
                                     <form method="POST" action="{{ url_for('user_management') }}" class="d-inline-flex gap-1">
                                         <input type="hidden" name="action" value="update_role">
                                         <input type="hidden" name="maNguoiDung" value="{{ u.maNguoiDung }}">
-                                        <select name="vaiTroMoi" class="form-select form-select-sm" style="width: 140px;">
+                                        <select name="vaiTroMoi" class="form-select form-select-sm" style="width: 135px;">
                                             <option value="TacGia" {% if u.vaiTro == 'TacGia' %}selected{% endif %}>Tác giả</option>
                                             <option value="CanBo" {% if u.vaiTro == 'CanBo' %}selected{% endif %}>Cán bộ duyệt</option>
                                             <option value="Admin" {% if u.vaiTro == 'Admin' %}selected{% endif %}>Quản trị viên</option>
                                         </select>
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Lưu</button>
                                     </form>
                                 </td>
                             </tr>

@@ -1,169 +1,234 @@
 {% extends "base.html" %}
-{% block title %}Trang chủ Thống kê & Quản trị KH&CN{% endblock %}
+{% block title %}Tổng quan & Thống kê Hồ sơ KH&CN{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
-        <h4 class="fw-bold text-primary mb-1">
-            <i class="bi bi-speedometer2 me-2"></i>Thống Kê Trực Quan & Tổng Hợp Hồ Sơ Khoa Học Công Nghệ
-        </h4>
+        <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
+            Tổng Quan & Thống Kê Trực Quan Hồ Sơ KH&CN
+        </h5>
         <p class="text-muted small mb-0">
-            Tổng hợp số liệu theo kỳ báo cáo, lĩnh vực, loại công trình, đơn vị công tác & giám sát phân loại tự động
+            Số liệu tổng hợp theo kỳ báo cáo, lĩnh vực, đơn vị chủ trì và trạng thái thẩm định
         </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url_for('hoso_create') }}" class="btn btn-primary btn-sm fw-bold shadow-sm">
-            <i class="bi bi-plus-circle me-1"></i>Khai báo Hồ sơ mới
+        <a href="{{ url_for('hoso_create') }}" class="btn btn-primary btn-sm" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+            <i class="bi bi-plus-lg me-1"></i>Khai báo mới
         </a>
-        <a href="{{ url_for('export_excel') }}" class="btn btn-success btn-sm fw-bold shadow-sm">
-            <i class="bi bi-file-earmark-excel-fill me-1"></i>Xuất Báo cáo Excel (.xlsx)
+        <a href="{{ url_for('export_excel') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
         </a>
-        <a href="{{ url_for('export_pdf') }}" class="btn btn-danger btn-sm fw-bold shadow-sm">
-            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Xuất Báo cáo PDF (.pdf)
+        <a href="{{ url_for('export_pdf') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Xuất PDF
         </a>
     </div>
 </div>
 
-<!-- KPI Cards (Revision: Bổ sung Yêu cầu bổ sung) -->
-<div class="row g-3 mb-4">
+<!-- Chỉ số tổng hợp -->
+<div class="row g-2 mb-3">
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-primary">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Tổng hồ sơ KH&CN</div>
-                <div class="fs-3 fw-bold text-primary">{{ kpi.total }}</div>
-                <small class="text-secondary">Toàn trường</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Tổng hồ sơ</div>
+                <div class="fs-4 fw-bold text-dark">{{ kpi.total }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-secondary">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Chờ xét duyệt</div>
-                <div class="fs-3 fw-bold text-secondary">{{ kpi.cho_duyet }}</div>
-                <small class="text-secondary">Mới tiếp nhận</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Chờ xét duyệt</div>
+                <div class="fs-4 fw-bold text-secondary">{{ kpi.cho_duyet }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-info">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Đang xét duyệt</div>
-                <div class="fs-3 fw-bold text-info">{{ kpi.dang_duyet }}</div>
-                <small class="text-secondary">Đơn vị QL thẩm định</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Đang xét duyệt</div>
+                <div class="fs-4 fw-bold text-primary">{{ kpi.dang_duyet }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-warning">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Yêu cầu bổ sung</div>
-                <div class="fs-3 fw-bold text-warning">{{ kpi.bo_sung }}</div>
-                <small class="text-secondary">Cần sửa/bổ sung</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Yêu cầu bổ sung</div>
+                <div class="fs-4 fw-bold text-warning">{{ kpi.bo_sung }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-success">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Đã phê duyệt</div>
-                <div class="fs-3 fw-bold text-success">{{ kpi.da_duyet }}</div>
-                <small class="text-secondary">Hợp lệ & Công nhận</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Đã phê duyệt</div>
+                <div class="fs-4 fw-bold text-success">{{ kpi.da_duyet }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-danger">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Từ chối duyệt</div>
-                <div class="fs-3 fw-bold text-danger">{{ kpi.tu_choi }}</div>
-                <small class="text-secondary">Không đạt chuẩn</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Từ chối</div>
+                <div class="fs-4 fw-bold text-danger">{{ kpi.tu_choi }}</div>
             </div>
         </div>
     </div>
     <div class="col-6 col-md-3 col-xl">
-        <div class="card card-academic h-100 border-start border-4 border-danger">
-            <div class="card-body py-3">
-                <div class="text-muted small fw-semibold">Cảnh báo Bất thường</div>
-                <div class="fs-3 fw-bold text-danger">{{ kpi.canh_bao }}</div>
-                <small class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle-fill"></i> Cần kiểm tra</small>
+        <div class="card card-academic h-100">
+            <div class="card-body py-2 px-3">
+                <div class="text-muted small">Cần kiểm tra kỹ</div>
+                <div class="fs-4 fw-bold text-danger">{{ kpi.canh_bao }}</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Row -->
-<div class="row g-4 mb-4">
+<!-- Biểu đồ -->
+<div class="row g-3 mb-3">
     <div class="col-lg-7">
         <div class="card card-academic h-100">
-            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-bar-chart-fill me-2"></i>Phân bố Hồ sơ KH&CN theo Lĩnh vực Chuyên ngành</span>
-                <span class="badge bg-primary">6 Lĩnh vực chuẩn</span>
+            <div class="card-header card-header-academic">
+                Phân bố hồ sơ theo lĩnh vực chuyên ngành
             </div>
             <div class="card-body">
-                <canvas id="fieldChart" height="135"></canvas>
+                <canvas id="fieldChart" height="125"></canvas>
             </div>
         </div>
     </div>
     <div class="col-lg-5">
         <div class="card card-academic h-100">
-            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-pie-chart-fill me-2"></i>Tỷ lệ Vòng đời Trạng thái Xét duyệt</span>
+            <div class="card-header card-header-academic">
+                Tỷ lệ theo trạng thái xét duyệt
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="statusChart" style="max-height: 250px;"></canvas>
+                <canvas id="statusChart" style="max-height: 225px;"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Second Row: Đơn vị công tác, Loại công trình & So sánh Mô hình AI -->
-<div class="row g-4 mb-4">
+<!-- Thống kê Bài báo & Đề tài NCKH -->
+<div class="row g-3 mb-3">
     <div class="col-lg-6">
         <div class="card card-academic h-100">
             <div class="card-header card-header-academic">
-                <i class="bi bi-building me-2"></i>Thống kê theo Đơn vị Chủ trì & Loại Công trình
+                Thống Kê Công Bố Bài Báo Khoa Học
             </div>
             <div class="card-body">
-                <h6 class="fw-bold text-secondary small text-uppercase mb-2">1. Theo Đơn vị công tác / Khoa - Viện</h6>
-                <div class="table-responsive mb-3">
-                    <table class="table table-sm table-bordered align-middle mb-0">
-                        <thead class="table-light">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="small fw-semibold text-secondary mb-2">Theo năm công bố</div>
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead><tr><th>Năm</th><th class="text-end">Số bài</th></tr></thead>
+                            <tbody>
+                                {% for bb in stats_baibao_nam %}
+                                <tr>
+                                    <td>{{ bb.namCongBo }}</td>
+                                    <td class="text-end fw-semibold">{{ bb.soLuong }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="small fw-semibold text-secondary mb-2">Theo chỉ mục tạp chí</div>
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead><tr><th>Chỉ mục</th><th class="text-end">Số bài</th></tr></thead>
+                            <tbody>
+                                {% for cm in stats_baibao_chimuc %}
+                                <tr>
+                                    <td>{{ cm.chiMuc }}</td>
+                                    <td class="text-end fw-semibold">{{ cm.soLuong }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                Thống Kê Đề Tài Nghiên Cứu Khoa Học
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="small fw-semibold text-secondary mb-2">Theo loại đề tài</div>
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead><tr><th>Loại đề tài</th><th class="text-end">Số lượng</th></tr></thead>
+                            <tbody>
+                                {% for dt in stats_detai_loai %}
+                                <tr>
+                                    <td>{{ dt.tenLoai }}</td>
+                                    <td class="text-end fw-semibold">{{ dt.soLuong }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small fw-semibold text-secondary mb-2">Theo đơn vị chủ trì</div>
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead><tr><th>Đơn vị</th><th class="text-end">Số lượng</th></tr></thead>
+                            <tbody>
+                                {% for dv in stats_detai_donvi %}
+                                <tr>
+                                    <td>
+                                        <div>{{ dv.donViChuTri }}</div>
+                                        {% if dv.sanPhamDuKien %}<small class="text-muted">{{ dv.sanPhamDuKien }}</small>{% endif %}
+                                    </td>
+                                    <td class="text-end fw-semibold">{{ dv.soLuong }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thống kê theo Đơn vị chủ trì & Hiệu năng phân loại -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                Tổng hợp theo Đơn vị chủ trì
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle small mb-0">
+                        <thead>
                             <tr>
-                                <th>Đơn vị chủ trì</th>
-                                <th class="text-center">Tổng số HS</th>
-                                <th class="text-center">Đã duyệt</th>
+                                <th class="ps-3">Đơn vị chủ trì</th>
+                                <th class="text-end">Tổng số hồ sơ</th>
+                                <th class="text-end pe-3">Đã duyệt</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for dv in stats_donvi %}
                             <tr>
-                                <td class="fw-semibold">{{ dv.donViChuTri }}</td>
-                                <td class="text-center"><span class="badge bg-primary">{{ dv.soLuong }}</span></td>
-                                <td class="text-center"><span class="badge bg-success">{{ dv.soDaDuyet }}</span></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <h6 class="fw-bold text-secondary small text-uppercase mb-2">2. Theo Loại hình Công trình KH&CN</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Loại công trình KH&CN</th>
-                                <th class="text-center">Số hồ sơ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for lct in stats_loai %}
-                            <tr>
-                                <td>{{ (lct.tenLoai or '') | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)') | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}</td>
-                                <td class="text-center fw-bold"><span class="badge bg-success">{{ lct.soLuong }}</span></td>
+                                <td class="ps-3">{{ dv.donViChuTri }}</td>
+                                <td class="text-end fw-semibold">{{ dv.soLuong }}</td>
+                                <td class="text-end pe-3 text-success fw-semibold">{{ dv.soDaDuyet }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -176,35 +241,31 @@
     <div class="col-lg-6">
         <div class="card card-academic h-100">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-cpu-fill me-2 text-primary"></i>Hiệu năng Mô hình AI Phân loại Tự động</span>
-                <a href="{{ url_for('ai_center') }}" class="btn btn-sm btn-outline-primary">Xem Trung tâm AI &raquo;</a>
+                <span>Chỉ số đánh giá mô hình phân loại văn bản</span>
+                <a href="{{ url_for('ai_center') }}" class="small text-decoration-none">Chi tiết &raquo;</a>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle small mb-0">
-                        <thead class="table-primary text-center">
+                    <table class="table table-sm align-middle small mb-0">
+                        <thead>
                             <tr>
-                                <th>Mô hình Học máy / Học sâu</th>
-                                <th>Độ chính xác</th>
-                                <th>Độ nhạy</th>
-                                <th>Điểm F1</th>
-                                <th>Phản hồi TB</th>
+                                <th class="ps-3">Mô hình</th>
+                                <th class="text-end">Precision</th>
+                                <th class="text-end">Recall</th>
+                                <th class="text-end">F1-Score</th>
+                                <th class="text-end pe-3">Thời gian</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for m in ai_metrics %}
                             <tr>
-                                <td class="fw-bold">
-                                    {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'Mô hình Cơ sở: TF-IDF + Học máy SVM') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt') }}
+                                <td class="ps-3 fw-semibold">
+                                    {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'TF-IDF + LinearSVC') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'PhoBERT Tiếng Việt') }}
                                 </td>
-                                <td class="text-center fw-semibold">{{ "%.2f"|format(m.precisionScore) }}%</td>
-                                <td class="text-center fw-semibold">{{ "%.2f"|format(m.recallScore) }}%</td>
-                                <td class="text-center">
-                                    <span class="badge {% if 'PhoBERT' in m.tenMoHinh %}bg-success{% else %}bg-primary{% endif %} fs-6">
-                                        {{ "%.2f"|format(m.f1Score) }}%
-                                    </span>
-                                </td>
-                                <td class="text-center text-muted">{{ "%.1f"|format(m.thoiGianPhanHoiMs) }} ms</td>
+                                <td class="text-end">{{ "%.2f"|format(m.precisionScore) }}%</td>
+                                <td class="text-end">{{ "%.2f"|format(m.recallScore) }}%</td>
+                                <td class="text-end fw-bold text-primary">{{ "%.2f"|format(m.f1Score) }}%</td>
+                                <td class="text-end pe-3 text-muted">{{ "%.1f"|format(m.thoiGianPhanHoiMs) }} ms</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -215,162 +276,60 @@
     </div>
 </div>
 
-<!-- THỐNG KÊ CHUYÊN SÂU TÁCH BIỆT: BÀI BÁO vs ĐỀ TÀI NCKH (Revision 2026) -->
-<div class="row g-4 mb-4">
-    <!-- Nhóm 1: Thống kê Bài báo Khoa học -->
-    <div class="col-lg-6">
-        <div class="card card-academic h-100 border-start border-4 border-primary">
-            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-journal-text me-2 text-primary"></i>Thống Kê Công Bố Bài Báo Khoa Học (Nghiệp vụ Revision)</span>
-                <span class="badge bg-primary">Bài báo học thuật</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-calendar-event me-1"></i>Số lượng theo Năm công bố:</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Năm</th><th class="text-center">Số bài</th></tr></thead>
-                                <tbody>
-                                    {% for bb in stats_baibao_nam %}
-                                    <tr>
-                                        <td class="fw-bold">{{ bb.namCongBo }}</td>
-                                        <td class="text-center"><span class="badge bg-primary">{{ bb.soLuong }}</span></td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-award me-1"></i>Phân bổ theo Chỉ mục tạp chí:</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Chỉ mục</th><th class="text-center">Số bài</th></tr></thead>
-                                <tbody>
-                                    {% for cm in stats_baibao_chimuc %}
-                                    <tr>
-                                        <td class="small">{{ cm.chiMuc }}</td>
-                                        <td class="text-center"><span class="badge bg-success">{{ cm.soLuong }}</span></td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Nhóm 2: Thống kê Đề tài NCKH -->
-    <div class="col-lg-6">
-        <div class="card card-academic h-100 border-start border-4 border-success">
-            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-kanban-fill me-2 text-success"></i>Thống Kê Đề Tài Nghiên Cứu Khoa Học</span>
-                <span class="badge bg-success">Đề tài NCKH</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-layers me-1"></i>Theo Loại công trình Đề tài:</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Loại đề tài</th><th class="text-center">Số ĐT</th></tr></thead>
-                                <tbody>
-                                    {% for dt in stats_detai_loai %}
-                                    <tr>
-                                        <td class="fw-semibold small">{{ dt.tenLoai }}</td>
-                                        <td class="text-center"><span class="badge bg-success">{{ dt.soLuong }}</span></td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="small fw-bold text-secondary mb-2"><i class="bi bi-box-seam me-1"></i>Theo Đơn vị & Sản phẩm dự kiến:</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle small mb-0">
-                                <thead class="table-light"><tr><th>Đơn vị chủ trì</th><th class="text-center">Số ĐT</th></tr></thead>
-                                <tbody>
-                                    {% for dv in stats_detai_donvi %}
-                                    <tr>
-                                        <td class="small">
-                                            <div class="fw-semibold">{{ dv.donViChuTri }}</div>
-                                            {% if dv.sanPhamDuKien %}<small class="text-muted">{{ dv.sanPhamDuKien }}</small>{% endif %}
-                                        </td>
-                                        <td class="text-center fw-bold"><span class="badge bg-info text-dark">{{ dv.soLuong }}</span></td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="2" class="text-center text-muted">Chưa có dữ liệu</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Priority Review Table -->
+<!-- Danh sách hồ sơ gần đây -->
 <div class="card card-academic">
     <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-list-Check me-2"></i>Danh sách Hồ sơ Ưu tiên Rà soát & Thẩm định Gần đây</span>
-        <a href="{{ url_for('hoso_list') }}" class="btn btn-sm btn-primary">Xem toàn bộ danh sách &raquo;</a>
+        <span>Danh sách hồ sơ ưu tiên rà soát gần đây</span>
+        <a href="{{ url_for('hoso_list') }}" class="small text-decoration-none">Xem tất cả &raquo;</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover align-middle small mb-0">
+                <thead>
                     <tr>
-                        <th class="ps-3">Mã HS</th>
-                        <th>Tiêu đề công trình & Đơn vị chủ trì</th>
+                        <th class="ps-3">Mã hồ sơ</th>
+                        <th>Tiêu đề công trình / Tên đề tài</th>
+                        <th>Đơn vị chủ trì</th>
                         <th>Lĩnh vực đăng ký</th>
-                        <th>Gợi ý phân loại từ AI (PhoBERT)</th>
-                        <th>Cảnh báo AI</th>
+                        <th>Gợi ý phân loại</th>
+                        <th>Kiểm tra chéo</th>
                         <th>Trạng thái</th>
-                        <th class="text-end pe-3">Thao tác</th>
+                        <th class="text-end pe-3"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for r in recent_hoso %}
                     {% set badge = get_confidence_badge(r.doTinCayAI or 0) %}
                     <tr>
-                        <td class="ps-3 fw-bold text-primary">{{ r.maHoSo }}</td>
-                        <td style="max-width: 340px;">
-                            <div class="fw-semibold text-truncate" title="{{ r.tieuDe }}">{{ r.tieuDe }}</div>
-                            <small class="text-muted"><i class="bi bi-building me-1"></i>{{ r.donViChuTri }} ({{ r.namCongBo }})</small>
+                        <td class="ps-3 fw-semibold">
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="text-decoration-none">{{ r.maHoSo }}</a>
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ r.tenLinhVuc }}</span></td>
+                        <td style="max-width: 320px;">
+                            <div class="fw-semibold text-truncate" title="{{ r.tieuDe }}">{{ r.tieuDe }}</div>
+                            <span class="text-muted">{{ r.namCongBo }} · {{ r.kyBaoCao }}</span>
+                        </td>
+                        <td>{{ r.donViChuTri }}</td>
+                        <td>{{ r.tenLinhVuc }}</td>
                         <td>
-                            <span class="badge {% if badge.color_class == 'success' %}badge-ai-green{% elif badge.color_class == 'warning' %}badge-ai-yellow{% else %}badge-ai-red{% endif %} px-2 py-1">
-                                {{ badge.icon }} {{ r.tenLinhVucAI }} ({{ "%.1f"|format(r.doTinCayAI or 0) }}%)
+                            <span class="badge {% if badge.color_class == 'success' %}badge-ai-green{% elif badge.color_class == 'warning' %}badge-ai-yellow{% else %}badge-ai-red{% endif %}">
+                                {{ r.tenLinhVucAI }} ({{ "%.0f"|format(r.doTinCayAI or 0) }}%)
                             </span>
                         </td>
                         <td>
                             {% if r.coCanhBao == 1 %}
-                            <span class="badge bg-danger"><i class="bi bi-exclamation-octagon-fill me-1"></i>Rủi ro ({{ "%.2f"|format(r.diemBatThuong) }})</span>
+                            <span class="text-danger fw-semibold">Cần rà soát ({{ "%.2f"|format(r.diemBatThuong) }})</span>
                             {% else %}
-                            <span class="badge bg-success-subtle text-success border border-success-subtle">Bình thường</span>
+                            <span class="text-muted">Bình thường</span>
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success{% elif r.trangThai == 'Từ chối' %}bg-danger{% elif r.trangThai == 'Yêu cầu bổ sung' %}bg-warning text-dark{% elif r.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-secondary text-white{% endif %}">
+                            <span class="badge {% if r.trangThai == 'Đã duyệt' %}bg-success-subtle text-success border border-success-subtle{% elif r.trangThai == 'Từ chối' %}bg-danger-subtle text-danger border border-danger-subtle{% elif r.trangThai == 'Yêu cầu bổ sung' %}bg-warning-subtle text-dark border border-warning-subtle{% elif r.trangThai == 'Đang xét duyệt' %}bg-info-subtle text-dark border border-info-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
                                 {{ r.trangThai }}
                             </span>
                         </td>
                         <td class="text-end pe-3">
-                            <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="btn btn-sm btn-outline-primary fw-semibold">
-                                <i class="bi bi-eye me-1"></i>Thẩm định
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=r.maHoSo) }}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                Chi tiết
                             </a>
                         </td>
                     </tr>
@@ -392,10 +351,11 @@ new Chart(document.getElementById('fieldChart'), {
     data: {
         labels: fieldLabels,
         datasets: [{
-            label: 'Số lượng hồ sơ KH&CN',
+            label: 'Số hồ sơ',
             data: fieldCounts,
-            backgroundColor: ['#1e3a8a', '#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626'],
-            borderRadius: 6
+            backgroundColor: '#1e3a5f',
+            borderRadius: 4,
+            maxBarThickness: 42
         }]
     },
     options: {
@@ -411,7 +371,7 @@ new Chart(document.getElementById('statusChart'), {
         labels: ['Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Từ chối'],
         datasets: [{
             data: [{{ kpi.cho_duyet }}, {{ kpi.dang_duyet }}, {{ kpi.da_duyet }}, {{ kpi.tu_choi }}],
-            backgroundColor: ['#f59e0b', '#06b6d4', '#16a34a', '#ef4444']
+            backgroundColor: ['#94a3b8', '#3b82f6', '#16a34a', '#dc2626']
         }]
     },
     options: {

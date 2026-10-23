@@ -1,298 +1,84 @@
 {% extends "base.html" %}
-{% block title %}Trung tâm Phân tích AI - Phân loại Tự động & Phát hiện Bất thường{% endblock %}
+{% block title %}Phân tích & Kiểm định Hồ sơ KH&CN{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
-        <h4 class="fw-bold text-primary mb-1">
-            <i class="bi bi-cpu-fill me-2"></i>Trung Tâm Phân Tích AI: Phân Loại Tự Động & Phát Hiện Bất Thường
-        </h4>
+        <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
+            Phân Tích Phân Loại & Kiểm Định Hồ Sơ KH&CN
+        </h5>
         <p class="text-muted small mb-0">
-            Nghiệp vụ phức tạp: Đồ thị quan hệ NetworkX, Huấn luyện song song Isolation Forest & Deep Autoencoder, Hàng đợi xét duyệt ưu tiên
+            Hàng đợi ưu tiên thẩm định, phát hiện bất thường và thống kê hiệu năng mô hình
         </p>
     </div>
     {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
     <form method="POST" action="{{ url_for('ai_retrain') }}">
-        <button type="submit" class="btn btn-primary fw-bold shadow-sm">
-            <i class="bi bi-arrow-repeat me-1"></i>Huấn luyện lại Toàn bộ Mô hình AI
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-repeat me-1"></i>Cập nhật lại mô hình
         </button>
     </form>
     {% endif %}
 </div>
 
-<!-- 1. BẢNG SO SÁNH HIỆU NĂNG MÔ HÌNH PHÂN LOẠI VĂN BẢN (NLP) -->
-<div class="card card-academic mb-4">
+<!-- 1. Hàng đợi xét duyệt ưu tiên rủi ro -->
+<div class="card card-academic mb-3">
     <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-bar-chart-steps me-2"></i>1. Đánh Giá & So Sánh Hiệu Năng Mô Hình Phân Loại Tự Động (NLP)</span>
-        <span class="badge bg-success">Thực nghiệm phân loại</span>
+        <span>Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro</span>
+        <span class="text-muted small fw-normal">Sắp xếp theo điểm rủi ro giảm dần</span>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0">
-                <thead class="table-primary text-center">
-                    <tr>
-                        <th>Tên Mô hình Phân loại Hồ sơ KH&CN</th>
-                        <th>Độ chính xác</th>
-                        <th>Độ nhạy</th>
-                        <th>Điểm F1 (Tổng hợp)</th>
-                        <th>Độ chuẩn xác</th>
-                        <th>Thời gian phản hồi TB</th>
-                        <th>Đặc tả Kiến trúc & Ưu thế</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for m in metrics %}
-                    <tr>
-                        <td class="fw-bold text-primary">
-                            {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'Mô hình Cơ sở: TF-IDF + Học máy SVM') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt') }}
-                        </td>
-                        <td class="text-center fw-bold">{{ "%.2f"|format(m.precisionScore) }}%</td>
-                        <td class="text-center fw-bold">{{ "%.2f"|format(m.recallScore) }}%</td>
-                        <td class="text-center">
-                            <span class="badge {% if 'PhoBERT' in m.tenMoHinh %}bg-success{% else %}bg-primary{% endif %} fs-6 px-3 py-2">
-                                {{ "%.2f"|format(m.f1Score) }}%
-                            </span>
-                        </td>
-                        <td class="text-center fw-semibold">{{ "%.2f"|format(m.accuracyScore) }}%</td>
-                        <td class="text-center text-nowrap fw-semibold text-secondary">{{ "%.2f"|format(m.thoiGianPhanHoiMs) }} ms</td>
-                        <td class="small">
-                            {{ m.moTaChiTiet
-                               | replace('TfidfVectorizer(ngram_range=(1,2)) + LinearSVC; tốc độ huấn luyện và phản hồi cực nhanh, tốn ít tài nguyên phần cứng.', 'Biểu diễn trọng số từ vựng TF-IDF kết hợp bộ phân lớp tuyến tính SVM; tốc độ huấn luyện và phản hồi rất nhanh, tiết kiệm tài nguyên phần cứng.')
-                               | replace('Pre-trained vinai/phobert-base, đóng băng tầng ẩn dưới + Classification Head (LR=2e-5, Batch=16, AdamW); hiểu sâu ngữ cảnh khoa học phức tạp.', 'Mô hình ngôn ngữ tiền huấn luyện PhoBERT tiếng Việt kết hợp tầng phân loại chuyên sâu; nắm bắt chính xác ngữ cảnh học thuật phức tạp.') }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- 2. BẢNG SO SÁNH 2 MÔ HÌNH PHÁT HIỆN BẤT THƯỜNG (CHỨC NĂNG 6 - NGHIỆP VỤ PHỨC TẠP 2) -->
-<div class="card card-academic mb-4">
-    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-shield-shaded me-2 text-warning"></i>2. Nghiệp Vụ Phức Tạp 2: So Sánh 2 Mô Hình Phát Hiện Bất Thường (Isolation Forest vs Deep Autoencoder)</span>
-        <span class="badge bg-warning text-dark">Học máy & Học sâu song song</span>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0">
-                <thead class="table-warning text-center">
-                    <tr>
-                        <th style="width: 22%;">Tên Mô hình & Loại thuật toán</th>
-                        <th style="width: 20%;">Cơ chế Nhận diện Bất thường</th>
-                        <th>Hàm Tiêu chuẩn (Criterion / Loss)</th>
-                        <th>Cấu hình Siêu tham số & Chiều nén</th>
-                        <th>Tỷ lệ Ngoại lai</th>
-                        <th>Thời gian xử lý</th>
-                        <th>Điểm mạnh & Năng lực phát hiện</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for am in anomaly_models %}
-                    <tr>
-                        <td>
-                            <div class="fw-bold text-dark">{{ am.name }}</div>
-                            <small class="badge bg-secondary-subtle text-secondary border mt-1">{{ am.type }}</small>
-                            <div><span class="badge bg-success-subtle text-success border mt-1">✔ {{ am.status }}</span></div>
-                        </td>
-                        <td class="small">{{ am.mechanism }}</td>
-                        <td>
-                            <code class="text-primary fw-semibold">{{ am.criterion }}</code>
-                        </td>
-                        <td class="small">
-                            <code>{{ am.hyperparams }}</code>
-                        </td>
-                        <td class="text-center fw-bold text-danger">{{ am.outlier_rate }}</td>
-                        <td class="text-center text-nowrap fw-semibold text-secondary">{{ "%.2f"|format(am.time_ms) }} ms</td>
-                        <td class="small text-muted">{{ am.advantage }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- 3. PHÂN TÍCH ĐỒ THỊ TRI THỨC MẠNG LƯỚI (NETWORKX KNOWLEDGE GRAPH) -->
-<div class="card card-academic mb-4">
-    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-diagram-3-fill me-2 text-info"></i>3. Đồ Thị Tri Thức Quan Hệ (NetworkX Knowledge Graph Analytics)</span>
-        <span class="badge bg-info text-dark">{{ graph_summary.nodes }} thực thể / {{ graph_summary.edges }} liên kết</span>
-    </div>
-    <div class="card-body">
-        <!-- 4 Thẻ KPI Đồ thị -->
-        <div class="row g-3 mb-3">
-            <div class="col-md-3">
-                <div class="p-3 rounded bg-light border text-center">
-                    <div class="text-muted small fw-semibold">TỔNG SỐ NÚT (NODES)</div>
-                    <div class="fs-4 fw-bold text-primary">{{ graph_summary.nodes }}</div>
-                    <small class="text-secondary">Tác giả, Hồ sơ, Tạp chí, Lĩnh vực</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 rounded bg-light border text-center">
-                    <div class="text-muted small fw-semibold">TỔNG SỐ CẠNH (EDGES)</div>
-                    <div class="fs-4 fw-bold text-success">{{ graph_summary.edges }}</div>
-                    <small class="text-secondary">Đồng tác giả, Công bố, Phân loại</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 rounded bg-light border text-center">
-                    <div class="text-muted small fw-semibold">THÀNH PHẦN LIÊN THÔNG</div>
-                    <div class="fs-4 fw-bold text-warning">{{ graph_summary.components }}</div>
-                    <small class="text-secondary">Cụm nhóm nghiên cứu độc lập</small>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-3 rounded bg-light border text-center">
-                    <div class="text-muted small fw-semibold">MẠNG LƯỚI PHÂN TÍCH</div>
-                    <div class="fs-4 fw-bold text-danger">Đa thực thể</div>
-                    <small class="text-secondary">Tác giả ↔ Công trình ↔ Tạp chí</small>
-                </div>
-            </div>
-        </div>
-
-        <h6 class="fw-bold text-primary mb-2 small text-uppercase">
-            <i class="bi bi-star-fill text-warning me-1"></i>Top Thực Thể Trung Tâm Mạng Lưới (Highest Degree Centrality):
-        </h6>
-        <div class="table-responsive">
-            <table class="table table-sm table-striped align-middle mb-0 small">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã Nút Đồ thị</th>
-                        <th>Loại Thực thể</th>
-                        <th>Tên / Nhãn Đại diện</th>
-                        <th class="text-center">Số bậc liên kết (Degree)</th>
-                        <th class="text-center">Hệ số trung tâm (Centrality)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for n in graph_summary.top_nodes %}
-                    {% set vn_lbl = n.label
-                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
-                    <tr>
-                        <td><code>{{ n.node_id }}</code></td>
-                        <td>
-                            {% if n.type == 'TacGia' %}
-                            <span class="badge bg-primary-subtle text-primary border">Tác giả</span>
-                            {% elif n.type == 'LinhVuc' %}
-                            <span class="badge bg-success-subtle text-success border">Lĩnh vực</span>
-                            {% elif n.type == 'TapChi' %}
-                            <span class="badge bg-warning-subtle text-warning border text-dark">Tạp chí</span>
-                            {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary border">Công trình</span>
-                            {% endif %}
-                        </td>
-                        <td class="fw-semibold">{{ vn_lbl }}</td>
-                        <td class="text-center fw-bold">{{ n.degree }}</td>
-                        <td class="text-center">
-                            <span class="badge bg-info-subtle text-info border text-dark">{{ "%.3f"|format(n.centrality) }}</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- 4. HÀNG ĐỢI XÉT DUYỆT ƯU TIÊN RỦI RO (PRIORITY REVIEW QUEUE - THAY THẾ FIFO) -->
-<div class="card card-academic mb-4 border-top border-4 border-danger">
-    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-sort-down-alt me-2 text-danger"></i>4. Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro (Priority Review Queue - Nghiệp Vụ 6)</span>
-        <span class="badge bg-danger">Thay thế quy trình FIFO (Ai nộp trước - Duyệt trước)</span>
-    </div>
-    <div class="card-body">
-        <div class="alert alert-info py-2 px-3 small mb-3">
-            <i class="bi bi-info-circle-fill me-1"></i>
-            <strong>Quy tắc Nghiệp vụ 6:</strong> Thay vì xử lý theo thứ tự nộp bài (FIFO), hệ thống AI tự động xếp hạng ưu tiên toàn bộ hồ sơ đang <em>Chờ xét duyệt</em> hoặc <em>Yêu cầu bổ sung</em> theo <strong>Điểm rủi ro tổng hợp (Composite Risk Score)</strong> từ cao xuống thấp. Hồ sơ có nguy cơ vi phạm (Tạp chí không hợp lệ, Khai sai lĩnh vực, Trùng lặp nội dung) được đẩy lên đầu hàng đợi để Cán bộ thẩm định ngay.
-        </div>
-
+    <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 small">
-                <thead class="table-danger text-center">
+                <thead>
                     <tr>
-                        <th style="width: 8%;">Thứ hạng</th>
-                        <th class="text-start" style="width: 12%;">Mã HS</th>
-                        <th class="text-start" style="width: 32%;">Tiêu Đề Công Trình & Đơn Vị Chủ Trì</th>
-                        <th style="width: 14%;">Điểm Rủi Ro Tổng Hợp</th>
-                        <th style="width: 10%;">Đo Lường IF</th>
-                        <th style="width: 10%;">Đo Lường AE (MSE)</th>
-                        <th style="width: 14%;">Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th class="ps-3" style="width: 7%;">Hạng</th>
+                        <th style="width: 12%;">Mã hồ sơ</th>
+                        <th style="width: 34%;">Tiêu đề công trình & Đơn vị chủ trì</th>
+                        <th class="text-end" style="width: 11%;">Điểm rủi ro</th>
+                        <th class="text-end" style="width: 10%;">IF Score</th>
+                        <th class="text-end" style="width: 10%;">AE (MSE)</th>
+                        <th class="text-center" style="width: 10%;">Trạng thái</th>
+                        <th class="text-end pe-3"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pq in priority_queue %}
                     <tr>
-                        <td class="text-center">
-                            {% if pq.priority_rank == 1 %}
-                            <span class="badge bg-danger fs-6 px-2 py-1">#1 Khẩn cấp</span>
-                            {% elif pq.priority_rank == 2 %}
-                            <span class="badge bg-warning text-dark fs-6 px-2 py-1">#2 Cao</span>
-                            {% elif pq.priority_rank == 3 %}
-                            <span class="badge bg-info text-dark fs-6 px-2 py-1">#3 Trung bình</span>
-                            {% else %}
-                            <span class="badge bg-light text-dark border">#{{ pq.priority_rank }}</span>
-                            {% endif %}
-                        </td>
+                        <td class="ps-3 fw-semibold text-secondary">#{{ pq.priority_rank }}</td>
                         <td>
-                            <a href="{{ url_for('hoso_detail', ma_ho_so=pq.maHoSo) }}" class="fw-bold text-decoration-none text-primary">
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=pq.maHoSo) }}" class="fw-semibold text-decoration-none">
                                 {{ pq.maHoSo }}
                             </a>
-                            <div class="text-muted" style="font-size: 0.75rem;">{{ pq.namCongBo }} ({{ pq.kyBaoCao }})</div>
+                            <div class="text-muted" style="font-size: 0.76rem;">{{ pq.namCongBo }}</div>
                         </td>
                         <td>
-                            <div class="fw-bold text-dark">{{ pq.tieuDe }}</div>
-                            <div class="text-muted"><i class="bi bi-building me-1"></i>{{ pq.donViChuTri }}</div>
+                            <div class="fw-semibold text-dark">{{ pq.tieuDe }}</div>
+                            <div class="text-muted">{{ pq.donViChuTri }} · {{ pq.kyBaoCao }}</div>
                             {% if pq.reasons %}
                             <div class="mt-1">
                                 {% for r in pq.reasons %}
-                                <div class="text-danger fw-semibold" style="font-size: 0.78rem;">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ r | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}
+                                <div class="text-danger" style="font-size: 0.78rem;">
+                                    • {{ r | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}
                                 </div>
                                 {% endfor %}
                             </div>
                             {% endif %}
                         </td>
-                        <td class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-                                <span class="badge {% if pq.diemBatThuong >= 0.70 %}bg-danger{% elif pq.diemBatThuong >= 0.50 %}bg-warning text-dark{% else %}bg-success{% endif %} fs-6 px-2 py-1">
-                                    {{ "%.2f"|format(pq.diemBatThuong) }}
-                                </span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar {% if pq.diemBatThuong >= 0.70 %}bg-danger{% elif pq.diemBatThuong >= 0.50 %}bg-warning{% else %}bg-success{% endif %}"
-                                     style="width: {{ (pq.diemBatThuong * 100)|int }}%;"></div>
-                            </div>
-                            <small class="text-muted" style="font-size: 0.72rem;">
-                                {% if pq.diemBatThuong >= 0.70 %}Cực kỳ khẩn cấp{% elif pq.diemBatThuong >= 0.50 %}Cần rà soát kỹ{% else %}Hồ sơ an toàn{% endif %}
-                            </small>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-secondary-subtle text-dark border">
-                                IF: {{ "%.3f"|format(pq.if_score or 0.0) }}
+                        <td class="text-end">
+                            <span class="fw-bold {% if pq.diemBatThuong >= 0.50 %}text-danger{% else %}text-success{% endif %}">
+                                {{ "%.2f"|format(pq.diemBatThuong) }}
                             </span>
                         </td>
+                        <td class="text-end text-muted">{{ "%.3f"|format(pq.if_score or 0.0) }}</td>
+                        <td class="text-end text-muted">{{ "%.4f"|format(pq.ae_mse or 0.0) }}</td>
                         <td class="text-center">
-                            <span class="badge bg-secondary-subtle text-dark border">
-                                MSE: {{ "%.4f"|format(pq.ae_mse or 0.0) }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge {% if pq.trangThai == 'Chờ xét duyệt' %}bg-secondary text-white{% elif pq.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-warning text-dark{% endif %}">
+                            <span class="badge {% if pq.trangThai == 'Chờ xét duyệt' %}bg-secondary-subtle text-secondary border{% elif pq.trangThai == 'Đang xét duyệt' %}bg-info-subtle text-dark border{% else %}bg-warning-subtle text-dark border{% endif %}">
                                 {{ pq.trangThai }}
                             </span>
                         </td>
-                        <td class="text-center">
-                            <a href="{{ url_for('hoso_detail', ma_ho_so=pq.maHoSo) }}" class="btn btn-sm btn-outline-danger fw-bold text-nowrap">
-                                <i class="bi bi-clipboard-check me-1"></i>Thẩm định ngay
+                        <td class="text-end pe-3 text-nowrap">
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=pq.maHoSo) }}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                Thẩm định
                             </a>
                         </td>
                     </tr>
@@ -303,45 +89,38 @@
     </div>
 </div>
 
-<!-- 5. DANH SÁCH TOÀN BỘ HỒ SƠ CẢNH BÁO BẤT THƯỜNG TRONG HỆ THỐNG -->
-<div class="card card-academic mb-4">
+<!-- 2. Danh sách hồ sơ có cảnh báo bất thường -->
+<div class="card card-academic mb-3">
     <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-exclamation-octagon-fill me-2 text-danger"></i>5. Danh Sách Hồ Sơ Cảnh Báo Bất Thường Toàn Hệ Thống</span>
-        <span class="badge bg-danger">{{ anomalies|length }} hồ sơ cảnh báo</span>
+        <span>Danh sách hồ sơ có dấu hiệu bất thường cần rà soát</span>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ anomalies|length }} hồ sơ</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 small">
-                <thead class="table-light">
+                <thead>
                     <tr>
-                        <th class="ps-3">Mã HS</th>
+                        <th class="ps-3">Mã hồ sơ</th>
                         <th>Tiêu đề & Đơn vị chủ trì</th>
-                        <th class="text-center">Điểm rủi ro ($R_i$)</th>
-                        <th class="text-center">Điểm IF / AE (MSE)</th>
-                        <th>Chi tiết 3 nhóm vi phạm phát hiện</th>
+                        <th class="text-end">Điểm rủi ro</th>
+                        <th>Nội dung cảnh báo</th>
                         <th class="text-center">Trạng thái</th>
-                        <th></th>
+                        <th class="pe-3"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for a in anomalies %}
                     <tr>
-                        <td class="ps-3 fw-bold text-danger text-nowrap">
+                        <td class="ps-3 fw-semibold text-nowrap">
                             <a href="{{ url_for('hoso_detail', ma_ho_so=a.maHoSo) }}" class="text-danger text-decoration-none">
                                 {{ a.maHoSo }}
                             </a>
                         </td>
-                        <td style="max-width: 340px;">
-                            <div class="fw-bold text-dark">{{ a.tieuDe }}</div>
-                            <div class="text-muted"><i class="bi bi-building me-1"></i>{{ a.donViChuTri }}</div>
+                        <td style="max-width: 320px;">
+                            <div class="fw-semibold text-dark">{{ a.tieuDe }}</div>
+                            <div class="text-muted">{{ a.donViChuTri }}</div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge bg-danger fs-6 px-2 py-1">{{ "%.2f"|format(a.diemBatThuong) }}</span>
-                        </td>
-                        <td class="text-center text-nowrap">
-                            <div><small class="badge bg-light text-dark border">IF: {{ "%.3f"|format(a.if_score or 0.0) }}</small></div>
-                            <div><small class="badge bg-light text-dark border mt-1">AE MSE: {{ "%.4f"|format(a.ae_mse or 0.0) }}</small></div>
-                        </td>
+                        <td class="text-end fw-bold text-danger">{{ "%.2f"|format(a.diemBatThuong) }}</td>
                         <td>
                             <ul class="mb-0 ps-3 text-danger">
                                 {% for r in a.reasons %}
@@ -350,12 +129,10 @@
                             </ul>
                         </td>
                         <td class="text-center">
-                            <span class="badge {% if a.trangThai == 'Đã duyệt' %}bg-success{% elif a.trangThai == 'Từ chối' %}bg-danger{% elif a.trangThai == 'Yêu cầu bổ sung' %}bg-warning text-dark{% elif a.trangThai == 'Đang xét duyệt' %}bg-info text-dark{% else %}bg-secondary text-white{% endif %}">
-                                {{ a.trangThai }}
-                            </span>
+                            <span class="badge bg-light text-dark border">{{ a.trangThai }}</span>
                         </td>
                         <td class="pe-3 text-end text-nowrap">
-                            <a href="{{ url_for('hoso_detail', ma_ho_so=a.maHoSo) }}" class="btn btn-sm btn-outline-danger fw-semibold">Rà soát</a>
+                            <a href="{{ url_for('hoso_detail', ma_ho_so=a.maHoSo) }}" class="btn btn-sm btn-outline-secondary py-0 px-2">Chi tiết</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -365,51 +142,159 @@
     </div>
 </div>
 
-<!-- 6. KHO DỮ LIỆU PHẢN HỒI CỦA CÁN BỘ (FEEDBACK LOOP) -->
-<div class="card card-academic">
-    <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-database-fill-up me-2 text-success"></i>6. Lịch Sử Xác Nhận & Điều Chỉnh Nhãn AI (Fine-tuning Feedback Loop)</span>
-        <span class="badge bg-success">{{ feedbacks|length }} bản ghi huấn luyện bổ sung</span>
+<!-- 3. So sánh hiệu năng mô hình phân loại & phát hiện bất thường -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                Đánh giá mô hình phân loại văn bản (NLP)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Mô hình</th>
+                                <th class="text-end">Precision</th>
+                                <th class="text-end">Recall</th>
+                                <th class="text-end">F1-Score</th>
+                                <th class="text-end pe-3">Phản hồi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in metrics %}
+                            <tr>
+                                <td class="ps-3 fw-semibold">
+                                    {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'TF-IDF + LinearSVC') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'PhoBERT Tiếng Việt') }}
+                                </td>
+                                <td class="text-end">{{ "%.2f"|format(m.precisionScore) }}%</td>
+                                <td class="text-end">{{ "%.2f"|format(m.recallScore) }}%</td>
+                                <td class="text-end fw-bold text-primary">{{ "%.2f"|format(m.f1Score) }}%</td>
+                                <td class="text-end pe-3 text-muted">{{ "%.1f"|format(m.thoiGianPhanHoiMs) }} ms</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped align-middle mb-0 small">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3">Mã HS</th>
-                        <th>Cán bộ xác nhận / điều chỉnh</th>
-                        <th>Nhãn do AI đề xuất</th>
-                        <th>Nhãn thực tế chuẩn</th>
-                        <th class="text-center">Đối sánh</th>
-                        <th>Ghi chú & Thời gian</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fb in feedbacks %}
-                    {% set vn_cb = (fb.tenCanBo or '')
-                        | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                        | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                        | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                        | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                        | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                        | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
-                    <tr>
-                        <td class="ps-3 fw-bold"><a href="{{ url_for('hoso_detail', ma_ho_so=fb.maHoSo) }}">{{ fb.maHoSo }}</a></td>
-                        <td class="fw-semibold">{{ vn_cb }}</td>
-                        <td><span class="badge bg-primary-subtle text-primary border">{{ fb.tenNhanAI }} ({{ "%.1f"|format(fb.doTinCayLucDo) }}%)</span></td>
-                        <td><span class="badge bg-success-subtle text-success border">{{ fb.tenNhanThucTe }}</span></td>
-                        <td class="text-center">
-                            {% if fb.ketQuaKhop == 1 %}
-                            <span class="badge bg-success">✔ Xác nhận đúng</span>
-                            {% else %}
-                            <span class="badge bg-warning text-dark">✎ Đã điều chỉnh nhãn</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-muted">{{ fb.ghiChuPhanHoi }} ({{ fb.thoiGian }})</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic">
+                Nghiệp Vụ Phức Tạp 2: So Sánh 2 Mô Hình Phát Hiện Bất Thường
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Mô hình</th>
+                                <th>Hàm tiêu chuẩn</th>
+                                <th class="text-end">Ngoại lai</th>
+                                <th class="text-end pe-3">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for am in anomaly_models %}
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-semibold">{{ am.name }}</div>
+                                    <span class="text-muted" style="font-size: 0.78rem;">{{ am.type }}</span>
+                                </td>
+                                <td><code class="small">{{ am.criterion }}</code></td>
+                                <td class="text-end fw-semibold text-danger">{{ am.outlier_rate }}</td>
+                                <td class="text-end pe-3 text-muted">{{ "%.1f"|format(am.time_ms) }} ms</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Đồ thị liên kết & Lịch sử phản hồi nhãn -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>Đồ Thị Tri Thức Quan Hệ (NetworkX)</span>
+                <span class="text-muted small fw-normal">{{ graph_summary.nodes }} nút · {{ graph_summary.edges }} liên kết</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Thực thể</th>
+                                <th>Phân loại</th>
+                                <th class="text-end">Bậc liên kết</th>
+                                <th class="text-end pe-3">Centrality</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for n in graph_summary.top_nodes %}
+                            {% set vn_lbl = n.label
+                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                            <tr>
+                                <td class="ps-3 fw-semibold">{{ vn_lbl }}</td>
+                                <td class="text-muted">{{ n.type }}</td>
+                                <td class="text-end">{{ n.degree }}</td>
+                                <td class="text-end pe-3 text-muted">{{ "%.3f"|format(n.centrality) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-academic h-100">
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>Lịch sử xác nhận & điều chỉnh lĩnh vực</span>
+                <span class="text-muted small fw-normal">{{ feedbacks|length }} bản ghi</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Mã HS</th>
+                                <th>Cán bộ</th>
+                                <th>Lĩnh vực gợi ý</th>
+                                <th class="pe-3">Lĩnh vực chuẩn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fb in feedbacks %}
+                            {% set vn_cb = (fb.tenCanBo or '')
+                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
+                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
+                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
+                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
+                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+                            <tr>
+                                <td class="ps-3 fw-semibold"><a href="{{ url_for('hoso_detail', ma_ho_so=fb.maHoSo) }}" class="text-decoration-none">{{ fb.maHoSo }}</a></td>
+                                <td>{{ vn_cb }}</td>
+                                <td class="text-muted">{{ fb.tenNhanAI }}</td>
+                                <td class="pe-3 fw-semibold">{{ fb.tenNhanThucTe }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,51 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Quản lý Danh mục Hệ thống{% endblock %}
+{% block title %}Danh mục Hệ thống - Quản lý KH&CN{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h4 class="fw-bold text-primary mb-1">
-        <i class="bi bi-bookmarks-fill me-2"></i>Quản Lý Danh Mục Chuẩn Hệ Thống
-    </h4>
+<div class="mb-3">
+    <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
+        Quản Lý Danh Mục Hệ Thống
+    </h5>
     <p class="text-muted small mb-0">
-        Quản lý danh mục Lĩnh vực nghiên cứu, Loại công trình KH&CN và Danh mục Tạp chí hợp lệ.
+        Danh mục lĩnh vực nghiên cứu, loại công trình, tạp chí/hội thảo và quy chuẩn nhập liệu
     </p>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <!-- 1. Danh mục Lĩnh vực -->
     <div class="col-12">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-layers-fill me-2"></i>1. Danh Mục Lĩnh Vực Nghiên Cứu Chuẩn</span>
-                <span class="badge bg-primary">{{ linh_vucs|length }} lĩnh vực</span>
+                <span>1. Danh mục Lĩnh vực nghiên cứu</span>
+                <span class="text-muted small fw-normal">{{ linh_vucs|length }} lĩnh vực</span>
             </div>
             <div class="card-body">
                 {% if current_user.vai_tro == 'Admin' %}
-                <form method="POST" action="{{ url_for('catalog_add_linhvuc') }}" class="row g-2 mb-3 p-3 rounded bg-light border">
+                <form method="POST" action="{{ url_for('catalog_add_linhvuc') }}" class="row g-2 mb-3">
                     <div class="col-md-2">
                         <input type="text" name="maCode" class="form-control form-control-sm" placeholder="Mã (VD: LV-YSH)" required>
                     </div>
                     <div class="col-md-3">
-                        <input type="text" name="tenLinhVuc" class="form-control form-control-sm" placeholder="Tên lĩnh vực chuyên ngành..." required>
+                        <input type="text" name="tenLinhVuc" class="form-control form-control-sm" placeholder="Tên lĩnh vực..." required>
                     </div>
                     <div class="col-md-5">
                         <input type="text" name="moTa" class="form-control form-control-sm" placeholder="Mô tả phạm vi chuyên ngành...">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">+ Thêm Lĩnh vực</button>
+                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Thêm lĩnh vực</button>
                     </div>
                 </form>
                 {% endif %}
 
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle mb-0 small">
-                        <thead class="table-light">
+                    <table class="table table-sm table-bordered table-hover align-middle mb-0 small">
+                        <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Mã Lĩnh Vực</th>
-                                <th>Tên Lĩnh Vực Chuyên Ngành</th>
+                                <th>Mã</th>
+                                <th>Tên lĩnh vực</th>
                                 <th>Mô tả phạm vi</th>
-                                <th class="text-center">Hồ sơ liên kết</th>
+                                <th class="text-center">Số hồ sơ</th>
                                 <th class="text-center">Trạng thái</th>
                                 {% if current_user.vai_tro == 'Admin' %}<th class="text-end">Thao tác</th>{% endif %}
                             </tr>
@@ -53,23 +53,23 @@
                         <tbody>
                             {% for lv in linh_vucs %}
                             <tr>
-                                <td class="fw-bold">{{ lv.maLinhVuc }}</td>
+                                <td>{{ lv.maLinhVuc }}</td>
                                 <td><code>{{ lv.maCode }}</code></td>
-                                <td class="fw-bold text-primary">{{ lv.tenLinhVuc }}</td>
-                                <td>{{ lv.moTa }}</td>
-                                <td class="text-center"><span class="badge bg-secondary">{{ lv.soHoSoLienKet }}</span></td>
+                                <td class="fw-semibold">{{ lv.tenLinhVuc }}</td>
+                                <td class="text-muted">{{ lv.moTa }}</td>
+                                <td class="text-center">{{ lv.soHoSoLienKet }}</td>
                                 <td class="text-center">
                                     {% if lv.trangThai == 1 %}
-                                    <span class="badge bg-success">Đang kích hoạt</span>
+                                    <span class="text-success">Hoạt động</span>
                                     {% else %}
-                                    <span class="badge bg-secondary">Đã vô hiệu hóa</span>
+                                    <span class="text-muted">Tạm ẩn</span>
                                     {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='linhvuc', item_id=lv.maLinhVuc) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                            {% if lv.trangThai == 1 %}Vô hiệu hóa{% else %}Kích hoạt lại{% endif %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                            {% if lv.trangThai == 1 %}Ẩn{% else %}Hiện{% endif %}
                                         </button>
                                     </form>
                                 </td>
@@ -87,11 +87,11 @@
     <div class="col-lg-6">
         <div class="card card-academic h-100">
             <div class="card-header card-header-academic">
-                <i class="bi bi-award-fill me-2"></i>2. Danh Mục Loại Công Trình
+                2. Danh mục Loại công trình
             </div>
             <div class="card-body">
                 {% if current_user.vai_tro == 'Admin' %}
-                <form method="POST" action="{{ url_for('catalog_add_loai') }}" class="row g-2 mb-3 p-2 rounded bg-light border">
+                <form method="POST" action="{{ url_for('catalog_add_loai') }}" class="row g-2 mb-3">
                     <div class="col-md-3">
                         <input type="text" name="maCodeLoai" class="form-control form-control-sm" placeholder="Mã loại" required>
                     </div>
@@ -99,14 +99,14 @@
                         <input type="text" name="tenLoai" class="form-control form-control-sm" placeholder="Tên loại công trình" required>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100">Thêm</button>
+                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Thêm</button>
                     </div>
                 </form>
                 {% endif %}
 
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered align-middle mb-0 small">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Mã</th>
                                 <th>Tên loại công trình</th>
@@ -118,20 +118,22 @@
                             {% for lct in loai_cts %}
                             <tr>
                                 <td><code>{{ lct.maCodeLoai }}</code></td>
-                                <td class="fw-semibold">
+                                <td>
                                     {{ lct.tenLoai
                                        | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)')
                                        | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge {% if lct.trangThai == 1 %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ 'Hoạt động' if lct.trangThai == 1 else 'Tạm ẩn' }}
-                                    </span>
+                                    {% if lct.trangThai == 1 %}
+                                    <span class="text-success">Hoạt động</span>
+                                    {% else %}
+                                    <span class="text-muted">Tạm ẩn</span>
+                                    {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='loai', item_id=lct.maLoai) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0">Đổi TT</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">Đổi</button>
                                     </form>
                                 </td>
                                 {% endif %}
@@ -144,40 +146,40 @@
         </div>
     </div>
 
-    <!-- 3. Danh mục Tạp chí hợp lệ & Cảnh báo -->
+    <!-- 3. Danh mục Tạp chí / Hội thảo -->
     <div class="col-lg-6">
         <div class="card card-academic h-100">
             <div class="card-header card-header-academic">
-                <i class="bi bi-journal-check me-2"></i>3. Danh Mục Tạp Chí Hợp Lệ & Kiểm Tra Chéo
+                3. Danh mục Tạp chí / Hội thảo
             </div>
             <div class="card-body">
                 {% if current_user.vai_tro == 'Admin' %}
-                <form method="POST" action="{{ url_for('catalog_add_tapchi') }}" class="row g-2 mb-3 p-2 rounded bg-light border">
-                    <div class="col-md-4">
+                <form method="POST" action="{{ url_for('catalog_add_tapchi') }}" class="row g-2 mb-3">
+                    <div class="col-md-5">
                         <input type="text" name="tenTapChi" class="form-control form-control-sm" placeholder="Tên tạp chí..." required>
                     </div>
                     <div class="col-md-2">
-                        <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="Mã ISSN" required>
+                        <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="ISSN" required>
                     </div>
                     <div class="col-md-3">
                         <select name="uyTin" class="form-select form-select-sm">
-                            <option value="1">✔ Tạp chí Uy tín (Quốc tế / HĐGSNN)</option>
-                            <option value="0">🚨 Cảnh báo Không uy tín</option>
+                            <option value="1">Hợp lệ / Uy tín</option>
+                            <option value="0">Cảnh báo</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-sm btn-primary w-100">+ Thêm Tạp chí</button>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Thêm</button>
                     </div>
                 </form>
                 {% endif %}
 
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered align-middle mb-0 small">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
-                                <th>Tên Tạp chí / Hội đồng</th>
-                                <th>Mã số ISSN</th>
-                                <th>Xếp hạng / Độ uy tín</th>
+                                <th>Tên tạp chí / Hội thảo</th>
+                                <th>ISSN</th>
+                                <th>Xếp hạng</th>
                                 {% if current_user.vai_tro == 'Admin' %}<th></th>{% endif %}
                             </tr>
                         </thead>
@@ -200,19 +202,19 @@
                                 | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
                                 | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
                             <tr>
-                                <td class="fw-semibold">{{ vn_tc }}</td>
+                                <td>{{ vn_tc }}</td>
                                 <td><code>{{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }}</code></td>
                                 <td>
                                     {% if tc.uyTin == 1 %}
-                                    <span class="badge bg-success">✔ {{ vn_xh }}</span>
+                                    <span class="text-success">{{ vn_xh }}</span>
                                     {% else %}
-                                    <span class="badge bg-danger">🚨 {{ vn_xh }}</span>
+                                    <span class="text-danger fw-semibold">{{ vn_xh }}</span>
                                     {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='tapchi', item_id=tc.maTapChi) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0">Đổi TT</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">Đổi</button>
                                     </form>
                                 </td>
                                 {% endif %}
@@ -225,83 +227,42 @@
         </div>
     </div>
 
-    <!-- 4. Danh mục Quy chuẩn 12 Trường Dữ liệu Đầu vào Chuẩn hóa -->
+    <!-- 4. Quy chuẩn tham chiếu -->
     <div class="col-12">
         <div class="card card-academic">
             <div class="card-header card-header-academic">
-                <i class="bi bi-patch-check-fill me-2 text-primary"></i>4. Danh Mục Quy Chuẩn Cho Bài Báo Khoa Học & Đề Tài NCKH (Chuẩn hóa 12 Trường Đầu vào)
+                4. Quy chuẩn phân loại tham chiếu (12 trường dữ liệu đầu vào)
             </div>
             <div class="card-body">
-                <div class="row g-4">
+                <div class="row g-3 small">
                     <div class="col-md-4">
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-award-fill me-1"></i>Danh Mục Chỉ Mục Tạp Chí (Bài Báo Khoa Học)
-                        </h6>
-                        <ul class="list-group list-group-flush small border rounded">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Scopus Q1 / Web of Science (SCIE)</strong></span>
-                                <span class="badge bg-success">Chỉ mục Quốc tế Hạng 1</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Scopus Q2 / Web of Science</strong></span>
-                                <span class="badge bg-primary">Chỉ mục Quốc tế Hạng 2</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Hội đồng GSNN (0.75 - 1.0 điểm)</strong></span>
-                                <span class="badge bg-info text-dark">Chỉ mục Quốc gia</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Hội thảo Quốc tế / IEEE Xplore</strong></span>
-                                <span class="badge bg-secondary">Kỷ yếu Quốc tế</span>
-                            </li>
+                        <div class="fw-semibold mb-2">Danh Mục Chỉ Mục Tạp Chí</div>
+                        <ul class="list-group list-group-flush border rounded">
+                            <li class="list-group-item py-1">Scopus Q1 / Web of Science (SCIE)</li>
+                            <li class="list-group-item py-1">Scopus Q2 / Web of Science</li>
+                            <li class="list-group-item py-1">Hội đồng GSNN (0.75 - 1.0 điểm)</li>
+                            <li class="list-group-item py-1">Hội thảo Quốc tế / IEEE Xplore</li>
+                            <li class="list-group-item py-1">Tạp chí Khoa học Quốc gia</li>
                         </ul>
                     </div>
 
                     <div class="col-md-4">
-                        <h6 class="fw-bold text-success mb-2">
-                            <i class="bi bi-box-seam-fill me-1"></i>Danh Mục Sản Phẩm Dự Kiến (Đề Tài NCKH)
-                        </h6>
-                        <ul class="list-group list-group-flush small border rounded">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Bài báo khoa học Quốc tế / Quốc gia</strong></span>
-                                <span class="badge bg-success">Công bố học thuật</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Phần mềm / Hệ thống ứng dụng AI</strong></span>
-                                <span class="badge bg-primary">Sản phẩm công nghệ</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Giải pháp hữu ích / Quy trình kỹ thuật</strong></span>
-                                <span class="badge bg-info text-dark">Chuyển giao KH&CN</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Báo cáo tổng kết & Tài liệu chuyên khảo</strong></span>
-                                <span class="badge bg-secondary">Hồ sơ nghiệm thu</span>
-                            </li>
+                        <div class="fw-semibold mb-2">Danh Mục Sản Phẩm Dự Kiến</div>
+                        <ul class="list-group list-group-flush border rounded">
+                            <li class="list-group-item py-1">Bài báo khoa học Quốc tế / Quốc gia</li>
+                            <li class="list-group-item py-1">Phần mềm / Hệ thống ứng dụng</li>
+                            <li class="list-group-item py-1">Giải pháp hữu ích / Quy trình kỹ thuật</li>
+                            <li class="list-group-item py-1">Báo cáo tổng kết & Tài liệu chuyên khảo</li>
                         </ul>
                     </div>
 
                     <div class="col-md-4">
-                        <h6 class="fw-bold text-warning-emphasis mb-2">
-                            <i class="bi bi-calendar-check-fill me-1"></i>Danh Mục Kỳ Báo Cáo & Đơn Vị Chủ Trì
-                        </h6>
-                        <ul class="list-group list-group-flush small border rounded">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Đợt 1 - Năm học 2025-2026</strong></span>
-                                <span class="badge bg-success">Kỳ hiện hành</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Đợt 2 - Năm học 2025-2026</strong></span>
-                                <span class="badge bg-primary">Kỳ tiếp theo</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>Đợt 2 - Năm học 2024-2025</strong></span>
-                                <span class="badge bg-secondary">Kỳ lưu trữ</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><strong>6 Khoa / Viện chuyên môn</strong></span>
-                                <span class="badge bg-info text-dark">Đơn vị chủ trì</span>
-                            </li>
+                        <div class="fw-semibold mb-2">Danh Mục Kỳ Báo Cáo & Đơn Vị Chủ Trì</div>
+                        <ul class="list-group list-group-flush border rounded">
+                            <li class="list-group-item py-1">Đợt 1 - Năm học 2025-2026</li>
+                            <li class="list-group-item py-1">Đợt 2 - Năm học 2025-2026</li>
+                            <li class="list-group-item py-1">Đợt 2 - Năm học 2024-2025</li>
+                            <li class="list-group-item py-1">6 Khoa / Viện chuyên môn</li>
                         </ul>
                     </div>
                 </div>

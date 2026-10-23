@@ -495,26 +495,26 @@ class KHCNAIEngine:
         if confidence_pct > 80.0:
             return {
                 "color_class": "success",
-                "hex": "#16A34A",
-                "bg_hex": "#DCFCE7",
-                "label": "Độ tin cậy Cao (> 80%) - Khuyến nghị xác nhận",
-                "icon": "🟢",
+                "hex": "#15803d",
+                "bg_hex": "#f0fdf4",
+                "label": "Độ tin cậy cao (> 80%)",
+                "icon": "",
             }
         elif confidence_pct >= 50.0:
             return {
                 "color_class": "warning",
-                "hex": "#D97706",
-                "bg_hex": "#FEF3C7",
-                "label": "Độ tin cậy Trung bình (50% - 80%) - Cần cán bộ rà soát",
-                "icon": "🟡",
+                "hex": "#b45309",
+                "bg_hex": "#fffbeb",
+                "label": "Độ tin cậy trung bình (50% - 80%)",
+                "icon": "",
             }
         else:
             return {
                 "color_class": "danger",
-                "hex": "#DC2626",
-                "bg_hex": "#FEE2E2",
-                "label": "Độ tin cậy Thấp (< 50%) - Cảnh báo nghiên cứu liên ngành / lệch nhãn",
-                "icon": "🔴",
+                "hex": "#b91c1c",
+                "bg_hex": "#fef2f2",
+                "label": "Độ tin cậy thấp (< 50%) - Cần kiểm tra",
+                "icon": "",
             }
 
     def predict_record_field(self, tieu_de: str, tom_tat: str, tu_khoa: str, tac_gia: str = "") -> dict:

@@ -1,81 +1,76 @@
 {% extends "base.html" %}
-{% block title %}{% if mode == 'edit' %}Chỉnh sửa Hồ sơ {{ hoso.maHoSo }}{% else %}Khai báo & Nộp mới Hồ sơ KH&CN{% endif %}{% endblock %}
+{% block title %}{% if mode == 'edit' %}Chỉnh sửa Hồ sơ {{ hoso.maHoSo }}{% else %}Khai báo Hồ sơ KH&CN{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-xl-10">
+    <div class="col-xl-9">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
                 <span>
-                    <i class="bi bi-file-earmark-medical-fill me-2"></i>
                     {% if mode == 'edit' %}
-                        Chỉnh Sửa Thông Tin Hồ Sơ KH&CN: {{ hoso.maHoSo }}
+                        Chỉnh sửa hồ sơ: {{ hoso.maHoSo }}
                     {% else %}
-                        Biểu Mẫu Khai Báo & Nộp Mới Hồ Sơ KH&CN
+                        Khai báo hồ sơ Khoa học & Công nghệ
                     {% endif %}
                 </span>
-                <span class="badge bg-warning text-dark">Trạng thái: {% if hoso %}{{ hoso.trangThai }}{% else %}Chờ xét duyệt{% endif %}</span>
+                <span class="badge bg-secondary-subtle text-secondary border fw-normal">
+                    Trạng thái: {% if hoso %}{{ hoso.trangThai }}{% else %}Chờ xét duyệt{% endif %}
+                </span>
             </div>
 
             <div class="card-body p-4">
                 <form method="POST" enctype="multipart/form-data" id="hosoForm">
                     <!-- 1. Loại hình -->
-                    <div class="p-3 mb-4 rounded border bg-light">
-                        <label class="form-label fw-bold text-primary mb-2">
-                            <i class="bi bi-diagram-2-fill me-1"></i>1. Loại hình (*)
-                        </label>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="form-label fw-semibold mb-2">1. Loại hình (*)</label>
                         <div class="d-flex flex-wrap gap-4">
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="nhomCongTrinhRadio" id="radioBaiBao" value="baibao" checked onchange="onRadioNhomChange('baibao')">
-                                <label class="form-check-label fw-semibold" for="radioBaiBao">
-                                    <i class="bi bi-journal-bookmark-fill text-primary me-1"></i>Bài báo khoa học
-                                </label>
+                                <label class="form-check-label" for="radioBaiBao">Bài báo khoa học</label>
                             </div>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="nhomCongTrinhRadio" id="radioDeTai" value="detai" onchange="onRadioNhomChange('detai')">
-                                <label class="form-check-label fw-semibold" for="radioDeTai">
-                                    <i class="bi bi-kanban-fill text-success me-1"></i>Đề tài NCKH
-                                </label>
+                                <label class="form-check-label" for="radioDeTai">Đề tài NCKH</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label fw-bold" id="lblTieuDe">2. Tiêu đề công trình / Tên đề tài (*)</label>
+                            <label class="form-label fw-semibold" id="lblTieuDe">2. Tiêu đề công trình / Tên đề tài (*)</label>
                             <input type="text" name="tieuDe" id="inpTieuDe" class="form-control"
                                    value="{{ hoso.tieuDe if hoso else '' }}"
-                                   placeholder="VD: Nghiên cứu ứng dụng mô hình ngôn ngữ PhoBERT trong phân loại văn bản khoa học tiếng Việt..." required>
+                                   placeholder="Nhập tên công trình hoặc đề tài..." required>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold" id="lblTomTat">3. Tóm tắt nội dung (*)</label>
+                            <label class="form-label fw-semibold" id="lblTomTat">3. Tóm tắt nội dung (*)</label>
                             <textarea name="tomTat" id="inpTomTat" rows="4" class="form-control"
-                                      placeholder="Nhập tóm tắt mục tiêu, phương pháp nghiên cứu và kết quả chính của công trình..." required>{{ hoso.tomTat if hoso else '' }}</textarea>
+                                      placeholder="Tóm tắt mục tiêu, phương pháp và kết quả chính..." required>{{ hoso.tomTat if hoso else '' }}</textarea>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">4. Từ khóa (*)</label>
+                            <label class="form-label fw-semibold">4. Từ khóa (*)</label>
                             <input type="text" name="tuKhoa" id="inpTuKhoa" class="form-control"
                                    value="{{ hoso.tuKhoa if hoso else '' }}"
-                                   placeholder="VD: trí tuệ nhân tạo, học sâu, phobert, phân loại văn bản" required>
+                                   placeholder="Các từ khóa cách nhau bởi dấu phẩy" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">5. Đơn vị chủ trì (*)</label>
+                            <label class="form-label fw-semibold">5. Đơn vị chủ trì (*)</label>
                             <input type="text" name="donViChuTri" id="inpDonViChuTri" class="form-control"
                                    value="{{ hoso.donViChuTri if hoso else current_user.don_vi }}"
                                    placeholder="VD: Khoa Công nghệ Thông tin" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">6. Năm công bố (*)</label>
+                            <label class="form-label fw-semibold">6. Năm công bố (*)</label>
                             <input type="number" name="namCongBo" id="inpNamCongBo" class="form-control"
                                    value="{{ hoso.namCongBo if hoso else 2026 }}" min="2015" max="2030" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">7. Kỳ báo cáo (*)</label>
+                            <label class="form-label fw-semibold">7. Kỳ báo cáo (*)</label>
                             <select name="kyBaoCao" id="selKyBaoCao" class="form-select" required>
                                 {% for ky in ['Đợt 1 - Năm học 2025-2026', 'Đợt 2 - Năm học 2025-2026', 'Đợt 2 - Năm học 2024-2025'] %}
                                 <option value="{{ ky }}" {% if hoso and hoso.kyBaoCao == ky %}selected{% endif %}>{{ ky }}</option>
@@ -83,42 +78,13 @@
                             </select>
                         </div>
 
-                        <!-- Live AI Preview Box (PhoBERT & TF-IDF+SVM) -->
-                        <div class="col-12">
-                            <div class="p-3 rounded border" style="background-color: #f8fafc;">
-                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                                    <div>
-                                        <strong class="text-primary"><i class="bi bi-robot me-1"></i>Trợ lý AI Phân tích & Gợi ý Nhãn Lĩnh vực Tức thời</strong>
-                                        <div class="small text-muted">Tự động xử lý văn bản tiếng Việt từ Tiêu đề, Tóm tắt, Từ khóa và gợi ý Lĩnh vực đăng ký phù hợp nhất</div>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="runLiveAIPreview()">
-                                        <i class="bi bi-magic me-1"></i>Phân tích & Gợi ý Nhãn AI ngay
-                                    </button>
-                                </div>
-                                <div id="aiPreviewResult" class="d-none mt-2 pt-2 border-top">
-                                    <div class="row g-2 align-items-center">
-                                        <div class="col-md-7">
-                                            <div class="small fw-semibold text-secondary mb-1">Chuỗi văn bản sau khi làm sạch & tách từ ghép tiếng Việt:</div>
-                                            <div id="previewSegmented" class="segmented-box small"></div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <div class="p-2 rounded border bg-white">
-                                                <div class="small text-muted">Nhãn lĩnh vực AI đề xuất:</div>
-                                                <div id="previewPhobertLabel" class="fw-bold text-primary fs-6"></div>
-                                                <div id="previewConfidenceBadge" class="mt-1"></div>
-                                                <div class="small text-muted mt-1">Mô hình đối chiếu: <span id="previewSvmLabel" class="fw-semibold"></span></div>
-                                                <button type="button" class="btn btn-xs btn-sm btn-success mt-2 w-100" onclick="applyAISuggestion()">
-                                                    <i class="bi bi-check2-all me-1"></i>Chọn lĩnh vực này vào biểu mẫu
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">8. Lĩnh vực đăng ký (*)</label>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-semibold mb-0">8. Lĩnh vực đăng ký (*)</label>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="runLiveAIPreview()">
+                                    Gợi ý lĩnh vực từ nội dung
+                                </button>
+                            </div>
                             <select name="maLinhVuc" id="selMaLinhVuc" class="form-select" required>
                                 {% for lv in linh_vucs %}
                                 <option value="{{ lv.maLinhVuc }}" {% if hoso and hoso.maLinhVuc == lv.maLinhVuc %}selected{% endif %}>
@@ -129,7 +95,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">9. Loại công trình (*)</label>
+                            <label class="form-label fw-semibold mb-1">9. Loại công trình (*)</label>
                             <select name="maLoai" id="selMaLoai" class="form-select" onchange="onLoaiSelectChange()" required>
                                 {% for lct in loai_cts %}
                                 <option value="{{ lct.maLoai }}"
@@ -141,86 +107,79 @@
                             </select>
                         </div>
 
-                        <!-- ======================================================== -->
-                        <!-- PHẦN A: THÔNG TIN BÀI BÁO KHOA HỌC (Mục 10 & 11)         -->
-                        <!-- ======================================================== -->
-                        <div id="sectionBaiBao" class="col-12">
-                            <div class="p-3 rounded border border-primary bg-light mb-2">
-                                <h6 class="fw-bold text-primary mb-3">
-                                    <i class="bi bi-journal-text me-1"></i>Thông Tin Công Bố Bài Báo Khoa Học
-                                </h6>
-                                <div class="row g-3">
-                                    <div class="col-md-7">
-                                        <label class="form-label fw-bold">10. Tên tạp chí / Hội thảo</label>
-                                        <select name="maTapChi" class="form-select">
-                                            <option value="">-- Chọn tạp chí / hội thảo trong danh mục (nếu có) --</option>
-                                            {% for tc in tap_chis %}
-                                            {% set vn_xh = tc.xepHang
-                                                | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
-                                                | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
-                                                | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
-                                                | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
-                                                | replace('Predatory', 'Không uy tín')
-                                                | replace('Discontinued', 'Ngừng chỉ mục') %}
-                                            {% set vn_tc = tc.tenTapChi
-                                                | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
-                                                | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
-                                                | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
-                                                | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
-                                                | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
-                                                | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
-                                                | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
-                                                | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
-                                            <option value="{{ tc.maTapChi }}" {% if hoso and hoso.maTapChi == tc.maTapChi %}selected{% endif %}>
-                                                {{ vn_tc }} (Mã: {{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }} - {{ vn_xh }})
-                                            </option>
-                                            {% endfor %}
-                                        </select>
+                        <!-- Khung kết quả gợi ý lĩnh vực (chỉ hiện khi bấm nút gợi ý) -->
+                        <div id="aiPreviewResult" class="col-12 d-none">
+                            <div class="p-3 rounded border bg-light small">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <div>
+                                        <span class="text-muted">Lĩnh vực gợi ý:</span>
+                                        <strong id="previewPhobertLabel" class="text-primary ms-1"></strong>
+                                        <span id="previewConfidenceBadge" class="ms-2"></span>
+                                        <span class="text-muted ms-2">(Đối chiếu SVM: <span id="previewSvmLabel"></span>)</span>
                                     </div>
-                                    <div class="col-md-5">
-                                        <label class="form-label fw-bold">11. Chỉ mục tạp chí</label>
-                                        <select name="chiMucTapChi" class="form-select">
-                                            <option value="">-- Chọn chỉ mục tạp chí --</option>
-                                            {% for cm in ['Scopus Q1 / Web of Science (SCIE)', 'Scopus Q2 / Web of Science', 'Hội đồng GSNN (1.0 điểm)', 'Hội đồng GSNN (0.75 điểm)', 'Hội thảo Quốc tế / IEEE Xplore', 'Tạp chí Khoa học Quốc gia'] %}
-                                            <option value="{{ cm }}" {% if hoso and hoso.chiMucTapChi == cm %}selected{% endif %}>{{ cm }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="applyAISuggestion()">
+                                        Áp dụng lĩnh vực này
+                                    </button>
+                                </div>
+                                <div class="mt-2 text-muted" style="font-size: 0.78rem;">
+                                    Từ khóa tách từ: <span id="previewSegmented" class="font-monospace"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ======================================================== -->
-                        <!-- PHẦN B: THÔNG TIN ĐỀ TÀI NCKH (Mục 12)                   -->
-                        <!-- ======================================================== -->
-                        <div id="sectionDeTai" class="col-12 d-none">
-                            <div class="p-3 rounded border border-success bg-light mb-2">
-                                <h6 class="fw-bold text-success mb-3">
-                                    <i class="bi bi-kanban me-1"></i>Thông Tin Đề Tài Nghiên Cứu Khoa Học
-                                </h6>
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold">12. Sản phẩm dự kiến</label>
-                                        <input type="text" name="sanPhamDuKien" class="form-control"
-                                               value="{{ hoso.sanPhamDuKien if hoso and hoso.sanPhamDuKien else '' }}"
-                                               placeholder="VD: 02 bài báo khoa học, 01 phần mềm ứng dụng AI">
-                                    </div>
+                        <!-- Mục 10 & 11: Bài báo khoa học -->
+                        <div id="sectionBaiBao" class="col-12">
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <label class="form-label fw-semibold">10. Tên tạp chí / Hội thảo</label>
+                                    <select name="maTapChi" class="form-select">
+                                        <option value="">-- Chọn tạp chí / hội thảo trong danh mục --</option>
+                                        {% for tc in tap_chis %}
+                                        {% set vn_xh = tc.xepHang
+                                            | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
+                                            | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
+                                            | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
+                                            | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
+                                            | replace('Predatory', 'Không uy tín')
+                                            | replace('Discontinued', 'Ngừng chỉ mục') %}
+                                        {% set vn_tc = tc.tenTapChi
+                                            | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
+                                            | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
+                                            | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
+                                            | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
+                                            | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
+                                            | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
+                                            | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
+                                            | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
+                                        <option value="{{ tc.maTapChi }}" {% if hoso and hoso.maTapChi == tc.maTapChi %}selected{% endif %}>
+                                            {{ vn_tc }} ({{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }} - {{ vn_xh }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold">11. Chỉ mục tạp chí</label>
+                                    <select name="chiMucTapChi" class="form-select">
+                                        <option value="">-- Chọn chỉ mục tạp chí --</option>
+                                        {% for cm in ['Scopus Q1 / Web of Science (SCIE)', 'Scopus Q2 / Web of Science', 'Hội đồng GSNN (1.0 điểm)', 'Hội đồng GSNN (0.75 điểm)', 'Hội thảo Quốc tế / IEEE Xplore', 'Tạp chí Khoa học Quốc gia'] %}
+                                        <option value="{{ cm }}" {% if hoso and hoso.chiMucTapChi == cm %}selected{% endif %}>{{ cm }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Mục 12: Đề tài NCKH -->
+                        <div id="sectionDeTai" class="col-12 d-none">
+                            <label class="form-label fw-semibold">12. Sản phẩm dự kiến</label>
+                            <input type="text" name="sanPhamDuKien" class="form-control"
+                                   value="{{ hoso.sanPhamDuKien if hoso and hoso.sanPhamDuKien else '' }}"
+                                   placeholder="VD: 02 bài báo khoa học, 01 phần mềm ứng dụng">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold">Đính kèm tệp minh chứng công bố / thuyết minh (PDF/DOCX/ZIP - Tùy chọn)</label>
-                            <div class="input-group">
-                                <label class="btn btn-outline-primary mb-0 fw-semibold" for="fileDinhKemInput">
-                                    <i class="bi bi-folder2-open me-1"></i>Chọn tệp
-                                </label>
-                                <input type="file" name="fileDinhKem" id="fileDinhKemInput" class="d-none"
-                                       onchange="document.getElementById('fileDinhKemText').value = this.files.length ? this.files[0].name : 'Chưa có tệp nào được chọn'">
-                                <input type="text" id="fileDinhKemText" class="form-control bg-white"
-                                       value="Chưa có tệp nào được chọn" readonly
-                                       onclick="document.getElementById('fileDinhKemInput').click()" style="cursor: pointer;">
-                            </div>
+                            <label class="form-label fw-semibold">Tệp minh chứng đính kèm (PDF/DOCX/ZIP - Tùy chọn)</label>
+                            <input type="file" name="fileDinhKem" id="fileDinhKemInput" class="form-control">
                             {% if hoso and hoso.fileDinhKem %}
                             <div class="form-text small">Tệp hiện tại: <code>{{ hoso.fileDinhKem }}</code></div>
                             {% endif %}
@@ -228,13 +187,12 @@
                     </div>
 
                     <hr class="my-4">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-end gap-2">
                         <a href="{{ url_for('hoso_list') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>Hủy & Quay lại
+                            Hủy
                         </a>
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-cloud-arrow-up-fill me-2"></i>
-                            {% if mode == 'edit' %}LƯU CẬP NHẬT & CHẠY LẠI PHÂN TÍCH AI{% else %}NỘP HỒ SƠ & KÍCH HOẠT AI PHÂN LOẠI{% endif %}
+                        <button type="submit" class="btn btn-primary px-4" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+                            {% if mode == 'edit' %}Lưu cập nhật{% else %}Lưu và nộp hồ sơ{% endif %}
                         </button>
                     </div>
                 </form>
@@ -251,25 +209,17 @@ let suggestedLabelId = null;
 function updateFormFieldsByNhom(nhom) {
     const secBaiBao = document.getElementById('sectionBaiBao');
     const secDeTai = document.getElementById('sectionDeTai');
-    const lblTieuDe = document.getElementById('lblTieuDe');
-    const lblTomTat = document.getElementById('lblTomTat');
-
     if (nhom === 'detai') {
         secBaiBao.classList.add('d-none');
         secDeTai.classList.remove('d-none');
-        if (lblTieuDe) lblTieuDe.textContent = '2. Tiêu đề công trình / Tên đề tài (*)';
-        if (lblTomTat) lblTomTat.textContent = '3. Tóm tắt nội dung (*)';
     } else {
         secBaiBao.classList.remove('d-none');
         secDeTai.classList.add('d-none');
-        if (lblTieuDe) lblTieuDe.textContent = '2. Tiêu đề công trình / Tên đề tài (*)';
-        if (lblTomTat) lblTomTat.textContent = '3. Tóm tắt nội dung (*)';
     }
 }
 
 function onRadioNhomChange(nhom) {
     updateFormFieldsByNhom(nhom);
-    // Tự động chọn 1 option loại công trình tương ứng
     const selLoai = document.getElementById('selMaLoai');
     for (let opt of selLoai.options) {
         const optNhom = (opt.getAttribute('data-nhom') || '').toLowerCase();
@@ -297,7 +247,6 @@ function onLoaiSelectChange() {
     }
 }
 
-// Khởi chạy khi load trang
 document.addEventListener('DOMContentLoaded', function() {
     onLoaiSelectChange();
 });
@@ -309,7 +258,7 @@ async function runLiveAIPreview() {
     const donViChuTri = document.getElementById('inpDonViChuTri').value;
 
     if (!tieuDe && !tomTat) {
-        alert('Vui lòng nhập Tiêu đề và Tóm tắt trước khi chạy gợi ý AI!');
+        alert('Vui lòng nhập Tiêu đề và Tóm tắt trước khi lấy gợi ý.');
         return;
     }
 
@@ -328,7 +277,7 @@ async function runLiveAIPreview() {
 
     const badge = data.badge;
     document.getElementById('previewConfidenceBadge').innerHTML =
-        `<span class="badge bg-${badge.color_class}">${badge.icon} Độ tin cậy: ${data.phobert_confidence}% - ${badge.label}</span>`;
+        `<span class="badge bg-${badge.color_class}-subtle text-${badge.color_class} border">${data.phobert_confidence}%</span>`;
 }
 
 function applyAISuggestion() {

@@ -1,95 +1,56 @@
 {% extends "base.html" %}
-{% block title %}Đăng nhập Hệ thống - Quản lý Hồ sơ KH&CN Tích hợp AI{% endblock %}
+{% block title %}Đăng nhập - Hệ thống Quản lý Hồ sơ KH&CN{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 82vh;">
-    <div class="col-12 col-lg-10 col-xl-9">
-        <div class="card card-academic overflow-hidden shadow-lg">
-            <div class="row g-0">
-                <!-- Left Info Banner -->
-                <div class="col-md-6 p-4 p-lg-5 text-white d-flex flex-column justify-content-between"
-                     style="background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 55%, #4c1d95 100%);">
-                    <div>
-                        <span class="badge bg-warning text-dark fw-bold mb-3 px-3 py-2">
-                            <i class="bi bi-cpu-fill me-1"></i>QUẢN LÝ KHOA HỌC & CÔNG NGHỆ
-                        </span>
-                        <h3 class="fw-bold mb-3">HỆ THỐNG HỖ TRỢ QUẢN LÝ HỒ SƠ KHOA HỌC & CÔNG NGHỆ</h3>
-                        <p class="text-light opacity-75 mb-4">
-                            Nền tảng trực tuyến tích hợp Trí tuệ Nhân tạo hỗ trợ tự động hóa phân loại chuyên ngành và rà soát rủi ro hồ sơ nghiên cứu khoa học.
-                        </p>
-                        <div class="d-flex flex-column gap-2 small">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-check2-circle text-info fs-5"></i>
-                                <span><strong>Phân quyền theo vai trò:</strong> Quản lý tập trung cho Giảng viên, Cán bộ thẩm định và Quản trị viên.</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-check2-circle text-info fs-5"></i>
-                                <span><strong>Phân loại tự động bằng AI:</strong> Gợi ý nhãn lĩnh vực chuyên ngành từ nội dung tóm tắt và từ khóa.</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-check2-circle text-info fs-5"></i>
-                                <span><strong>Cảnh báo bất thường thông minh:</strong> Tự động kiểm tra chéo tạp chí, lĩnh vực và trùng lặp nội dung.</span>
-                            </div>
-                        </div>
+<div class="row justify-content-center align-items-center" style="min-height: 78vh;">
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+        <div class="card card-academic">
+            <div class="card-body p-4">
+                <div class="text-center mb-4 pb-2 border-bottom">
+                    <div class="fw-bold text-uppercase" style="color: var(--primary-navy); font-size: 1rem;">
+                        Hệ thống Quản lý Hồ sơ KH&CN
                     </div>
-
-                    <div class="mt-4 pt-3 border-top border-secondary">
-                        <div class="small fw-bold text-warning mb-2">
-                            <i class="bi bi-lightning-charge-fill me-1"></i>ĐĂNG NHẬP NHANH THEO VAI TRÒ:
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-light"
-                                    onclick="fillLogin('admin@uni.edu.vn', 'Admin@123')">
-                                🛡️ Quản trị viên (Nguyễn Thành Phát)
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-warning"
-                                    onclick="fillLogin('canbo@uni.edu.vn', 'CanBo@123')">
-                                ⚖️ Cán bộ duyệt (Lê Thanh Phong)
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-info"
-                                    onclick="fillLogin('tacgia@uni.edu.vn', 'TacGia@123')">
-                                🎓 Tác giả / GV (Nguyễn Thành Tài)
-                            </button>
-                        </div>
+                    <div class="text-muted small mt-1">
+                        Cổng thông tin kê khai và thẩm định công trình nghiên cứu
                     </div>
                 </div>
 
-                <!-- Right Login Form -->
-                <div class="col-md-6 p-4 p-lg-5 bg-white d-flex flex-column justify-content-center">
-                    <div class="mb-4">
-                        <h4 class="fw-bold text-primary mb-1">Đăng nhập Hệ thống</h4>
-                        <p class="text-muted small mb-0">Nhập thông tin tài khoản cán bộ / giảng viên để truy cập hệ thống</p>
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold mb-1">Email đăng nhập</label>
+                        <input type="email" name="email" id="loginEmail" class="form-control"
+                               placeholder="ten_tai_khoan@uni.edu.vn" required autofocus>
                     </div>
 
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Địa chỉ Email (*)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-envelope-at text-primary"></i></span>
-                                <input type="email" name="email" id="loginEmail" class="form-control"
-                                       placeholder="canbo@uni.edu.vn" required autofocus>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold mb-1">Mật khẩu</label>
+                        <input type="password" name="matKhau" id="loginPassword" class="form-control"
+                               placeholder="Nhập mật khẩu" required>
+                    </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Mật khẩu (*)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-lock-fill text-primary"></i></span>
-                                <input type="password" name="matKhau" id="loginPassword" class="form-control"
-                                       placeholder="Nhập mật khẩu..." required>
-                            </div>
-                        </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+                        Đăng nhập
+                    </button>
+                </form>
 
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>ĐĂNG NHẬP HỆ THỐNG
+                <div class="mt-4 pt-3 border-top">
+                    <div class="small text-muted mb-2">Chọn nhanh tài khoản thử nghiệm:</div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center"
+                                onclick="fillLogin('admin@uni.edu.vn', 'Admin@123')">
+                            <span><strong>Quản trị viên:</strong> Nguyễn Thành Phát</span>
+                            <code class="small">admin@uni.edu.vn</code>
                         </button>
-                    </form>
-
-                    <div class="mt-4 p-3 rounded bg-light border small">
-                        <div class="fw-bold text-secondary mb-1">Tài khoản mặc định:</div>
-                        <div>• <strong>Quản trị viên (Nguyễn Thành Phát):</strong> <code>admin@uni.edu.vn</code> / <code>Admin@123</code></div>
-                        <div>• <strong>Cán bộ duyệt (Lê Thanh Phong):</strong> <code>canbo@uni.edu.vn</code> / <code>CanBo@123</code></div>
-                        <div>• <strong>Tác giả / GV (Nguyễn Thành Tài):</strong> <code>tacgia@uni.edu.vn</code> / <code>TacGia@123</code></div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center"
+                                onclick="fillLogin('canbo@uni.edu.vn', 'CanBo@123')">
+                            <span><strong>Cán bộ duyệt:</strong> Lê Thanh Phong</span>
+                            <code class="small">canbo@uni.edu.vn</code>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center"
+                                onclick="fillLogin('tacgia@uni.edu.vn', 'TacGia@123')">
+                            <span><strong>Tác giả / GV:</strong> Nguyễn Thành Tài</span>
+                            <code class="small">tacgia@uni.edu.vn</code>
+                        </button>
                     </div>
                 </div>
             </div>
