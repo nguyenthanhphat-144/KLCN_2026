@@ -968,7 +968,7 @@ def _append_comparison_sheets_to_excel(records, summary):
     ws_stat.append(["BẢNG 1: THỐNG KÊ BỘ DỮ LIỆU HUẤN LUYỆN & KIỂM THỬ CHUẨN 12 TRƯỜNG (240 MẪU)"])
     ws_stat.cell(row=1, column=1).font = Font(name="Times New Roman", size=13, bold=True)
     ws_stat.append([])
-    stat_headers = ["Mã lĩnh vực", "Tên lĩnh vực đăng ký (Nhãn)", "Tổng mẫu", "Tập Train (75%)", "Tập Test (25%)", "Bài báo KH", "Đề tài NCKH", "Mẫu Liên ngành", "Số từ TB (PyVi)"]
+    stat_headers = ["Mã lĩnh vực", "Tên lĩnh vực đăng ký (Nhãn)", "Tổng mẫu", "Tập Train (75%)", "Tập Test (25%)", "Bài báo KH", "Đề tài NCKH", "Mẫu Liên ngành"]
     ws_stat.append(stat_headers)
     for col_idx in range(1, len(stat_headers) + 1):
         c = ws_stat.cell(row=3, column=col_idx)
@@ -978,10 +978,10 @@ def _append_comparison_sheets_to_excel(records, summary):
         c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     ds = summary["dataset_stats"]
-    for idx, f in enumerate(ds["per_field"], start=4):
+    for idx, f in enumerate(ds["by_field"], start=4):
         ws_stat.append([
-            f["ma_code"], f["ten_linh_vuc"], f["total"], f["train"], f["test"],
-            f["bai_bao"], f["de_tai"], f["interdisciplinary"], f["avg_tokens"]
+            f["code"], f["name"], f["total"], f["train"], f["test"],
+            f["bai_bao"], f["de_tai"], f["interdisciplinary"]
         ])
         for col_idx in range(1, len(stat_headers) + 1):
             c = ws_stat.cell(row=idx, column=col_idx)
@@ -989,11 +989,11 @@ def _append_comparison_sheets_to_excel(records, summary):
             c.border = thin_border
             c.alignment = Alignment(horizontal="left" if col_idx == 2 else "center", vertical="center")
 
-    tot_row = 4 + len(ds["per_field"])
+    tot_row = 4 + len(ds["by_field"])
     ws_stat.append([
         "TỔNG CỘNG", "Toàn bộ 6 lĩnh vực chuyên ngành (12 trường chuẩn)",
         ds["total_samples"], ds["train_samples"], ds["test_samples"],
-        ds["total_bai_bao"], ds["total_de_tai"], ds["total_interdisciplinary"], ds["avg_tokens"]
+        ds["total_bai_bao"], ds["total_de_tai"], ds["total_interdisciplinary"]
     ])
     for col_idx in range(1, len(stat_headers) + 1):
         c = ws_stat.cell(row=tot_row, column=col_idx)
@@ -1002,7 +1002,7 @@ def _append_comparison_sheets_to_excel(records, summary):
         c.border = thin_border
         c.alignment = Alignment(horizontal="left" if col_idx == 2 else "center", vertical="center")
 
-    for i, w in enumerate([16, 44, 14, 18, 18, 16, 16, 18, 18], start=1):
+    for i, w in enumerate([16, 44, 14, 18, 18, 16, 16, 18], start=1):
         ws_stat.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
 
     # Sheet 3: So sánh 2 mô hình & Chọn mô hình chính
@@ -1056,7 +1056,7 @@ def _append_comparison_sheets_to_excel(records, summary):
 
     for idx, pf in enumerate(summary["per_field_comparison"], start=13):
         ws_cmp.append([
-            pf["ma_code"], pf["ten_linh_vuc"],
+            pf["code"], pf["name"],
             pf["svm_precision"], pf["svm_recall"], pf["svm_f1"],
             pf["phobert_precision"], pf["phobert_recall"], pf["phobert_f1"],
             f"+{pf['delta_f1']}" if pf["delta_f1"] >= 0 else str(pf["delta_f1"])
