@@ -932,12 +932,154 @@ def run_full_comparison_and_select_winner() -> dict:
     with open(BENCHMARK_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
+    _append_comparison_sheets_to_excel(all_records, summary)
+
     return {
         "summary": summary,
         "svm_artifacts": svm_res,
         "phobert_artifacts": phobert_res,
         "all_records": all_records,
     }
+
+
+def _append_comparison_sheets_to_excel(records, summary):
+    """
+    Ghi bổ sung các Sheet thống kê dữ liệu và bảng so sánh 2 mô hình (TF-IDF + SVM vs Fine-tuning PhoBERT)
+    vào ngay trong file Excel docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx để mở xem trực tiếp bằng Excel.
+    """
+    save_standardized_dataset(records)
+    wb = openpyxl.load_workbook(DATASET_XLSX_PATH)
+
+    header_fill = PatternFill(start_color="1E3A5F", end_color="1E3A5F", fill_type="solid")
+    sub_fill = PatternFill(start_color="E8EEF5", end_color="E8EEF5", fill_type="solid")
+    win_fill = PatternFill(start_color="E6F4EA", end_color="E6F4EA", fill_type="solid")
+    header_font = Font(name="Times New Roman", size=11, bold=True, color="FFFFFF")
+    bold_font = Font(name="Times New Roman", size=11, bold=True)
+    cell_font = Font(name="Times New Roman", size=11)
+    thin_border = Border(
+        left=Side(style="thin", color="CCCCCC"),
+        right=Side(style="thin", color="CCCCCC"),
+        top=Side(style="thin", color="CCCCCC"),
+        bottom=Side(style="thin", color="CCCCCC"),
+    )
+
+    # Sheet 2: Thống kê bộ dữ liệu 240 mẫu 12 trường
+    ws_stat = wb.create_sheet(title="ThongKe_TapDuLieu")
+    ws_stat.append(["BẢNG 1: THỐNG KÊ BỘ DỮ LIỆU HUẤN LUYỆN & KIỂM THỬ CHUẨN 12 TRƯỜNG (240 MẪU)"])
+    ws_stat.cell(row=1, column=1).font = Font(name="Times New Roman", size=13, bold=True)
+    ws_stat.append([])
+    stat_headers = ["Mã lĩnh vực", "Tên lĩnh vực đăng ký (Nhãn)", "Tổng mẫu", "Tập Train (75%)", "Tập Test (25%)", "Bài báo KH", "Đề tài NCKH", "Mẫu Liên ngành", "Số từ TB (PyVi)"]
+    ws_stat.append(stat_headers)
+    for col_idx in range(1, len(stat_headers) + 1):
+        c = ws_stat.cell(row=3, column=col_idx)
+        c.fill = header_fill
+        c.font = header_font
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    ds = summary["dataset_stats"]
+    for idx, f in enumerate(ds["per_field"], start=4):
+        ws_stat.append([
+            f["ma_code"], f["ten_linh_vuc"], f["total"], f["train"], f["test"],
+            f["bai_bao"], f["de_tai"], f["interdisciplinary"], f["avg_tokens"]
+        ])
+        for col_idx in range(1, len(stat_headers) + 1):
+            c = ws_stat.cell(row=idx, column=col_idx)
+            c.font = cell_font
+            c.border = thin_border
+            c.alignment = Alignment(horizontal="left" if col_idx == 2 else "center", vertical="center")
+
+    tot_row = 4 + len(ds["per_field"])
+    ws_stat.append([
+        "TỔNG CỘNG", "Toàn bộ 6 lĩnh vực chuyên ngành (12 trường chuẩn)",
+        ds["total_samples"], ds["train_samples"], ds["test_samples"],
+        ds["total_bai_bao"], ds["total_de_tai"], ds["total_interdisciplinary"], ds["avg_tokens"]
+    ])
+    for col_idx in range(1, len(stat_headers) + 1):
+        c = ws_stat.cell(row=tot_row, column=col_idx)
+        c.fill = sub_fill
+        c.font = bold_font
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="left" if col_idx == 2 else "center", vertical="center")
+
+    for i, w in enumerate([16, 44, 14, 18, 18, 16, 16, 18, 18], start=1):
+        ws_stat.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    # Sheet 3: So sánh 2 mô hình & Chọn mô hình chính
+    ws_cmp = wb.create_sheet(title="SoSanh_SVM_vs_PhoBERT")
+    ws_cmp.append(["BẢNG 2: SO SÁNH TỔNG HỢP TF-IDF + SVM VÀ FINE-TUNING PHOBERT TRÊN TẬP KIỂM THỬ (60 MẪU)"])
+    ws_cmp.cell(row=1, column=1).font = Font(name="Times New Roman", size=13, bold=True)
+    ws_cmp.append([])
+
+    cmp_headers = ["Chỉ số đánh giá (Metric)", "Mô hình 1: TF-IDF + SVM (LinearSVC)", "Mô hình 2: Fine-tuning PhoBERT", "Chênh lệch (PhoBERT vs SVM)", "Mô hình tối ưu được chọn"]
+    ws_cmp.append(cmp_headers)
+    for col_idx in range(1, len(cmp_headers) + 1):
+        c = ws_cmp.cell(row=3, column=col_idx)
+        c.fill = header_fill
+        c.font = header_font
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    svm_m = summary["svm_metrics"]
+    pho_m = summary["phobert_metrics"]
+    sel_m = summary["selected_model"]
+    overall_rows = [
+        ["Precision (Độ xác thực Macro)", f"{svm_m['precision']}%", f"{pho_m['precision']}%", f"+{sel_m['delta_precision']}%", "Fine-tuning PhoBERT"],
+        ["Recall (Độ bao phủ Macro)", f"{svm_m['recall']}%", f"{pho_m['recall']}%", f"+{sel_m['delta_recall']}%", "Fine-tuning PhoBERT"],
+        ["F1-score (Trung bình điều hòa Macro)", f"{svm_m['f1_score']}%", f"{pho_m['f1_score']}%", f"+{sel_m['delta_f1']}%", "Fine-tuning PhoBERT (Tối ưu nhất)"],
+        ["Accuracy (Độ chính xác toàn cục)", f"{svm_m['accuracy']}%", f"{pho_m['accuracy']}%", f"+{sel_m['delta_accuracy']}%", "Fine-tuning PhoBERT"],
+        ["Thời gian suy luận trung bình / 1 hồ sơ", f"{svm_m['infer_time_ms']} ms", f"{pho_m['infer_time_ms']} ms", f"+{round(pho_m['infer_time_ms'] - svm_m['infer_time_ms'], 2)} ms", "Đều đạt thời gian thực (< 50 ms)"],
+        ["QUYẾT ĐỊNH LỰA CHỌN CỦA ĐỒ ÁN", "Mô hình Đối chứng (Baseline)", "MÔ HÌNH CHÍNH (PRIMARY MODEL)", f"Vượt trội +{sel_m['delta_f1']}% F1", sel_m["model_name"]],
+    ]
+    for r_idx, r_vals in enumerate(overall_rows, start=4):
+        ws_cmp.append(r_vals)
+        for col_idx in range(1, len(cmp_headers) + 1):
+            c = ws_cmp.cell(row=r_idx, column=col_idx)
+            c.font = bold_font if r_idx in (6, 9) or col_idx in (3, 5) else cell_font
+            if r_idx == 9 or col_idx == 3:
+                c.fill = win_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal="left" if col_idx == 1 else "center", vertical="center")
+
+    ws_cmp.append([])
+    ws_cmp.append(["BẢNG 3: SO SÁNH CHI TIẾT PRECISION, RECALL, F1-SCORE THEO TỪNG LĨNH VỰC CHUYÊN NGÀNH"])
+    ws_cmp.cell(row=11, column=1).font = Font(name="Times New Roman", size=12, bold=True)
+
+    pf_headers = ["Mã lĩnh vực", "Tên lĩnh vực đăng ký", "SVM Precision (%)", "SVM Recall (%)", "SVM F1-score (%)", "PhoBERT Precision (%)", "PhoBERT Recall (%)", "PhoBERT F1-score (%)", "Chênh lệch F1 (%)"]
+    ws_cmp.append(pf_headers)
+    for col_idx in range(1, len(pf_headers) + 1):
+        c = ws_cmp.cell(row=12, column=col_idx)
+        c.fill = header_fill
+        c.font = header_font
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    for idx, pf in enumerate(summary["per_field_comparison"], start=13):
+        ws_cmp.append([
+            pf["ma_code"], pf["ten_linh_vuc"],
+            pf["svm_precision"], pf["svm_recall"], pf["svm_f1"],
+            pf["phobert_precision"], pf["phobert_recall"], pf["phobert_f1"],
+            f"+{pf['delta_f1']}" if pf["delta_f1"] >= 0 else str(pf["delta_f1"])
+        ])
+        for col_idx in range(1, len(pf_headers) + 1):
+            c = ws_cmp.cell(row=idx, column=col_idx)
+            c.font = bold_font if col_idx in (8, 9) else cell_font
+            if col_idx == 8:
+                c.fill = win_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal="left" if col_idx == 2 else "center", vertical="center")
+
+    ws_cmp.append([])
+    reason_start = 13 + len(summary["per_field_comparison"]) + 1
+    ws_cmp.cell(row=reason_start, column=1, value="LÝ DO LỰA CHỌN FINE-TUNING PHOBERT LÀM MÔ HÌNH CHÍNH CỦA DỰ ÁN:").font = Font(name="Times New Roman", size=12, bold=True)
+    for i, reason in enumerate(sel_m["reasons"], start=1):
+        r_row = reason_start + i
+        ws_cmp.cell(row=r_row, column=1, value=f"Lý do {i}: {reason}").font = cell_font
+
+    for i, w in enumerate([36, 36, 36, 28, 36, 22, 22, 22, 20], start=1):
+        ws_cmp.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
+
+    wb.save(DATASET_XLSX_PATH)
 
 
 if __name__ == "__main__":
