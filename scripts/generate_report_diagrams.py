@@ -50,15 +50,15 @@ def create_diagram_workflow():
     print('Generated grayscale images/hinh1_quytrinh_5buoc.png')
 
 def create_diagram_pipeline():
-    fig, ax = plt.subplots(figsize=(10, 4.5), dpi=300)
+    fig, ax = plt.subplots(figsize=(10.5, 4.5), dpi=300)
     ax.axis('off')
 
     boxes = [
-        (0.02, 0.35, 0.16, 0.35, 'Hồ Sơ KH&CN\n(Tiêu đề, Tóm tắt,\nTừ khóa, Đơn vị)', '#f9f9f9', '#000000'),
-        (0.22, 0.35, 0.16, 0.35, 'Tiền Xử Lý\n(PyVi Tách từ,\nLọc Stopwords,\nHợp nhất văn bản)', '#f0f0f0', '#000000'),
-        (0.42, 0.55, 0.22, 0.35, 'PhoBERT Deep Learning\n(vinai/phobert-base,\nClassification Head)', '#e0e0e0', '#000000'),
-        (0.42, 0.12, 0.22, 0.35, 'Baseline LinearSVC\n(TF-IDF N-gram,\nPlatt Scaling Calibrated)', '#e0e0e0', '#000000'),
-        (0.68, 0.35, 0.14, 0.35, 'Ensemble / Best\nConfidence Score\n(Softmax Prob %)', '#d0d0d0', '#000000'),
+        (0.02, 0.35, 0.16, 0.35, 'Hồ Sơ KH&CN\n(12 trường chuẩn:\nTiêu đề, Tóm tắt,\nTừ khóa, Tạp chí...)', '#f9f9f9', '#000000'),
+        (0.22, 0.35, 0.16, 0.35, 'Tiền Xử Lý\n(PyVi Tách từ,\nLọc Stopwords,\nHợp nhất 12 trường)', '#f0f0f0', '#000000'),
+        (0.42, 0.55, 0.22, 0.35, 'Fine-tuning PhoBERT\n(vinai/phobert-base,\nF1: 94.96%)', '#e0e0e0', '#000000'),
+        (0.42, 0.12, 0.22, 0.35, 'Baseline TF-IDF + SVM\n(LinearSVC Calibrated,\nF1: 88.44%)', '#e0e0e0', '#000000'),
+        (0.68, 0.35, 0.14, 0.35, 'Chọn Mô Hình\nChính: PhoBERT\n(+6.52% F1-score)', '#d0d0d0', '#000000'),
         (0.86, 0.35, 0.12, 0.35, 'Gợi Ý Lĩnh Vực\n& Cảnh Báo\nLệch Nhãn', '#c0c0c0', '#000000'),
     ]
 
@@ -79,7 +79,7 @@ def create_diagram_pipeline():
         ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
                     arrowprops=dict(arrowstyle='->', lw=1.5, color='#000000'))
 
-    plt.title('Kiến Trúc Pipeline Tiền Xử Lý & Phân Loại Văn Bản Tự Động (PhoBERT & LinearSVC)', fontsize=11, weight='bold', pad=15)
+    plt.title('Kiến Trúc Pipeline Tiền Xử Lý, So Sánh & Lựa Chọn Mô Hình Chính (PhoBERT vs TF-IDF + SVM)', fontsize=10.5, weight='bold', pad=15)
     plt.tight_layout()
     plt.savefig('images/hinh2_kientruc_ai_pipeline.png', dpi=300)
     plt.close()
@@ -116,18 +116,18 @@ def create_diagram_anomaly():
 def create_diagram_experiments():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.2), dpi=300)
     metrics = ['Accuracy', 'Precision', 'Recall', 'F1-score']
-    phobert_scores = [0.942, 0.948, 0.939, 0.943]
-    svm_scores = [0.885, 0.891, 0.880, 0.884]
+    phobert_scores = [0.9500, 0.9571, 0.9500, 0.9496]
+    svm_scores = [0.8833, 0.8928, 0.8833, 0.8844]
     x = np.arange(len(metrics))
     width = 0.35
-    ax1.bar(x - width/2, phobert_scores, width, label='PhoBERT (vinai/phobert-base)', color='#333333')
-    ax1.bar(x + width/2, svm_scores, width, label='Baseline LinearSVC (TF-IDF)', color='#888888')
+    ax1.bar(x - width/2, phobert_scores, width, label='Fine-tuning PhoBERT (Mô hình Chính)', color='#333333')
+    ax1.bar(x + width/2, svm_scores, width, label='TF-IDF + SVM (LinearSVC Baseline)', color='#888888')
     ax1.set_ylabel('Điểm số (0.0 - 1.0)', fontsize=9, weight='bold')
-    ax1.set_title('So Sánh Hiệu Năng Phân Loại Chuyên Ngành', fontsize=10, weight='bold')
+    ax1.set_title('So Sánh Trên Tập Test 60 Mẫu (240 Mẫu 12 Trường)', fontsize=9.5, weight='bold')
     ax1.set_xticks(x)
     ax1.set_xticklabels(metrics, fontsize=9)
     ax1.set_ylim(0.75, 1.0)
-    ax1.legend(loc='lower right', fontsize=8)
+    ax1.legend(loc='lower right', fontsize=7.5)
     ax1.grid(axis='y', linestyle='--', alpha=0.5, color='#cccccc')
 
     models = ['Isolation Forest', 'Deep Autoencoder']
@@ -161,9 +161,9 @@ def create_diagram_system_architecture():
     ax.text(0.06, 0.88, 'TẦNG TRÌNH DIỄN (PRESENTATION LAYER - UI/UX & TEMPLATES)', fontsize=9, weight='bold', color='#000000')
     ui_boxes = [
         (0.06, 0.71, 0.19, 0.14, 'Dashboard Thống Kê\n(7 KPI, Biểu đồ Chart.js)', '#e8e8e8'),
-        (0.28, 0.71, 0.20, 0.14, 'Kê Khai Hồ Sơ Động\n(Live AI Preview)', '#e8e8e8'),
+        (0.28, 0.71, 0.20, 0.14, 'Kê Khai 12 Trường\n(Live PhoBERT Preview)', '#e8e8e8'),
         (0.51, 0.71, 0.20, 0.14, 'Thẩm Định Chi Tiết\n(5 Bước & Cảnh Báo AI)', '#e8e8e8'),
-        (0.74, 0.71, 0.20, 0.14, 'Trung Tâm Quản Trị AI\n(Priority Queue, Graph)', '#e8e8e8'),
+        (0.74, 0.71, 0.20, 0.14, 'Trung Tâm Thực Nghiệm\n(So sánh SVM vs PhoBERT)', '#e8e8e8'),
     ]
     for x, y, w, h, t, c in ui_boxes:
         r = patches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.01', facecolor=c, edgecolor='#333333', linewidth=1)
@@ -176,8 +176,8 @@ def create_diagram_system_architecture():
     ax.text(0.06, 0.58, 'TẦNG NGHIỆP VỤ & TRÍ TUỆ NHÂN TẠO (APPLICATION & AI ENGINE)', fontsize=9, weight='bold', color='#000000')
     app_boxes = [
         (0.06, 0.38, 0.17, 0.16, 'Flask Application\n- Routing & Session\n- RBAC (3 Roles)\n- Audit Log Bất biến', '#dddddd'),
-        (0.26, 0.38, 0.22, 0.16, 'NLP Tiền Xử Lý\n- PyVi ViTokenizer\n- Hợp nhất 4 trường\n- Lọc từ dừng chuyên ngành', '#dddddd'),
-        (0.51, 0.38, 0.21, 0.16, 'AI Phân Loại\n- VinAI PhoBERT-base\n- Baseline LinearSVC\n- Feedback Retraining Loop', '#dddddd'),
+        (0.26, 0.38, 0.22, 0.16, 'NLP Tiền Xử Lý\n- PyVi ViTokenizer\n- Hợp nhất 12 trường\n- Lọc từ dừng chuyên ngành', '#dddddd'),
+        (0.51, 0.38, 0.21, 0.16, 'AI Phân Loại & Thực Nghiệm\n- Chính: Fine-tune PhoBERT\n- Đối chứng: TF-IDF + SVM\n- Tập chuẩn 240 mẫu 12 trường', '#dddddd'),
         (0.75, 0.38, 0.20, 0.16, 'Phát Hiện Bất Thường\n- Đồ thị NetworkX\n- Isolation Forest (iTrees)\n- Deep Autoencoder MLP', '#dddddd'),
     ]
     for x, y, w, h, t, c in app_boxes:
