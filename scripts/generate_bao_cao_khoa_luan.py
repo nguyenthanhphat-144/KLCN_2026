@@ -1416,7 +1416,7 @@ def generate_thesis_report():
     add_h1(doc, "4.7. Các chức năng hỗ trợ quản trị, Dashboard và nạp dữ liệu")
     add_body(doc, "Để đảm bảo hệ thống vận hành trơn tru và toàn diện, đề tài phát triển các phân hệ hỗ trợ quản trị chuyên sâu:")
     add_bullet_1(doc, "Dashboard Điều hành Tổng quan: Trang tổng quan (dashboard.html) hiển thị hệ thống 7 thẻ KPI trực quan: Tổng số hồ sơ, Chờ xét duyệt, Đang xét duyệt, Đã duyệt, Từ chối, Yêu cầu bổ sung, và Hồ sơ có cảnh báo rủi ro AI. Các biểu đồ Doughnut Chart và Bar Chart phân bổ hồ sơ theo lĩnh vực và theo năm công bố giúp Ban Giám hiệu nắm bắt tức thì bức tranh toàn cảnh nghiên cứu khoa học của toàn trường.")
-    add_bullet_1(doc, "Công cụ Nạp dữ liệu Hàng loạt (Bulk Dataset Ingestion Engine): Hệ thống xây dựng công cụ Python import_large_dataset.py kết hợp tệp mẫu Excel chuẩn hóa Mau_Nhap_Lieu_HoSo_KHCN.xlsx. Công cụ cho phép nạp hàng nghìn hồ sơ lịch sử từ các năm trước vào hệ thống; tự động chạy pipeline tiền xử lý PyVi, suy luận nhãn PhoBERT, tính toán đồ thị tri thức NetworkX và thiết lập điểm rủi ro cho toàn bộ cơ sở dữ liệu chỉ trong vài phút.")
+    add_bullet_1(doc, "Công cụ Nạp dữ liệu Hàng loạt (Bulk Dataset Ingestion Engine): Hệ thống xây dựng công cụ Python import_large_dataset.py kết hợp tệp dữ liệu chuẩn hóa 12 trường Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx. Công cụ cho phép nạp hàng loạt hồ sơ lịch sử vào hệ thống; tự động chạy pipeline tiền xử lý PyVi, suy luận nhãn PhoBERT, tính toán đồ thị tri thức NetworkX và thiết lập điểm rủi ro cho toàn bộ cơ sở dữ liệu chỉ trong vài phút.")
 
     add_figure_custom(doc, "images/hinh4_dashboard_overview.jpg",
                       "Hình 4.4: Giao diện Dashboard điều hành tổng quan với 7 thẻ KPI và biểu đồ phân loại", width_cm=14.5)
@@ -1430,7 +1430,7 @@ def generate_thesis_report():
     add_body(doc, "Môi trường thực nghiệm hệ thống được thiết lập trên hạ tầng phần cứng và phần mềm chuẩn:")
     add_bullet_1(doc, "Hạ tầng phần cứng: Máy chủ trạm CPU Intel Core i7-13700H (14 nhân, 20 luồng, xung nhịp 5.0 GHz), 32 GB RAM DDR5, GPU NVIDIA GeForce RTX 4060 (8GB VRAM GDDR6), ổ cứng 1TB NVMe PCIe 4.0 SSD.")
     add_bullet_1(doc, "Hạ tầng phần mềm: Hệ điều hành Windows 11 64-bit, Python 3.12, Microsoft SQL Server 2025 Developer Edition kết hợp SQLite3, thư viện Scikit-learn, NetworkX, PyVi và kiến trúc tinh chỉnh PhoBERT.")
-    add_body(doc, "Nhằm đảm bảo việc đối sánh giữa hai mô hình TF-IDF + SVM (LinearSVC) và Fine-tuning PhoBERT diễn ra khách quan, triệt để và sát với bài toán thực tế nhất, nhóm nghiên cứu đã tham khảo cấu trúc của 03 nguồn dữ liệu học thuật tiếng Việt uy tín: (1) Hệ thống Tạp chí Khoa học Việt Nam Trực tuyến – VJOL (Vietnam Journals Online) thuộc Bộ KH&CN; (2) Cơ sở dữ liệu Công bố KH&CN Quốc gia VISTA (Cục Thông tin KH&CN Quốc gia – NASATI); và (3) Tập dữ liệu chuẩn phân loại văn bản tiếng Việt VNTC. Trên cơ sở đó, nhóm đã xây dựng và chuẩn hóa Bộ dữ liệu huấn luyện & kiểm thử dùng chung gồm 240 hồ sơ KH&CN (lưu trữ tại tệp docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx và .csv), trong đó mỗi mẫu đều chứa đầy đủ 12 trường dữ liệu đầu vào của đề tài:")
+    add_body(doc, "Nhằm đảm bảo việc đối sánh giữa hai mô hình TF-IDF + SVM (LinearSVC) và Fine-tuning PhoBERT diễn ra khách quan, triệt để và sát với bài toán thực tế nhất, nhóm nghiên cứu đã tham khảo cấu trúc của 03 nguồn dữ liệu học thuật tiếng Việt uy tín: (1) Hệ thống Tạp chí Khoa học Việt Nam Trực tuyến – VJOL (Vietnam Journals Online) thuộc Bộ KH&CN; (2) Cơ sở dữ liệu Công bố KH&CN Quốc gia VISTA (Cục Thông tin KH&CN Quốc gia – NASATI); và (3) Tập dữ liệu chuẩn phân loại văn bản tiếng Việt VNTC. Trên cơ sở đó, nhóm đã xây dựng và chuẩn hóa Bộ dữ liệu huấn luyện & kiểm thử dùng chung gồm 240 hồ sơ KH&CN (lưu trữ tại tệp docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx), trong đó mỗi mẫu đều chứa đầy đủ 12 trường dữ liệu đầu vào của đề tài:")
     add_bullet_1(doc, "Nhóm trường văn bản ngữ nghĩa: (1) Loại hình ('Bài báo khoa học' / 'Đề tài NCKH'), (2) Tiêu đề công trình / Tên đề tài, (3) Tóm tắt nội dung, (4) Từ khóa.")
     add_bullet_1(doc, "Nhóm trường quản lý & nhãn mục tiêu: (5) Đơn vị chủ trì, (6) Năm công bố, (7) Kỳ báo cáo, (8) Lĩnh vực đăng ký (nhãn thực tế Ground-truth phân bố đều trên 6 lĩnh vực), (9) Loại công trình.")
     add_bullet_1(doc, "Nhóm trường đặc thù theo loại hình: (10) Tên tạp chí / Hội thảo, (11) Chỉ mục tạp chí (đối với Bài báo khoa học), và (12) Sản phẩm dự kiến (đối với Đề tài NCKH).")
@@ -1570,16 +1570,9 @@ def generate_thesis_report():
         r_ref.font.color.rgb = RGBColor(0, 0, 0)
 
     # Save document
-    backup_file = os.path.join(BASE_DIR, "docs", "Bao_Cao_Khoa_Luan_CapNhat_SoSanh2MoHinh.docx")
-    os.makedirs(os.path.dirname(backup_file), exist_ok=True)
-    doc.save(backup_file)
-    print(f"Saved updated report to: {backup_file}")
-    try:
-        print(f"Saving report to: {OUTPUT_FILE}...")
-        doc.save(OUTPUT_FILE)
-        print("SUCCESS: Bao_Cao_Khoa_Luan.docx generated successfully!")
-    except PermissionError:
-        print("NOTE: Bao_Cao_Khoa_Luan.docx is currently open in Microsoft Word; saved latest version to docs/Bao_Cao_Khoa_Luan_CapNhat_SoSanh2MoHinh.docx")
+    print(f"Saving report to: {OUTPUT_FILE}...")
+    doc.save(OUTPUT_FILE)
+    print("SUCCESS: Bao_Cao_Khoa_Luan.docx generated successfully!")
 
 if __name__ == '__main__':
     generate_thesis_report()

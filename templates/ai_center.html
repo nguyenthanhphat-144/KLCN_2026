@@ -12,11 +12,8 @@
         </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{ url_for('download_training_dataset', format='xlsx') }}" class="btn btn-outline-secondary btn-sm">
+        <a href="{{ url_for('download_training_dataset') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-file-earmark-excel me-1"></i>Tải bộ dữ liệu 12 trường (.xlsx)
-        </a>
-        <a href="{{ url_for('download_training_dataset', format='csv') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-filetype-csv me-1"></i>Tải CSV (.csv)
         </a>
     </div>
 </div>

@@ -1412,17 +1412,9 @@ def ai_retrain():
 @app.route("/ai-center/download-dataset")
 @login_required
 def download_training_dataset():
-    from model_benchmark import DATASET_XLSX_PATH, DATASET_CSV_PATH, save_standardized_dataset
-    fmt = request.args.get("format", "xlsx").strip().lower()
-    if not os.path.exists(DATASET_XLSX_PATH) or not os.path.exists(DATASET_CSV_PATH):
+    from model_benchmark import DATASET_XLSX_PATH, save_standardized_dataset
+    if not os.path.exists(DATASET_XLSX_PATH):
         save_standardized_dataset()
-    if fmt == "csv":
-        return send_file(
-            DATASET_CSV_PATH,
-            as_attachment=True,
-            download_name="Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.csv",
-            mimetype="text/csv",
-        )
     return send_file(
         DATASET_XLSX_PATH,
         as_attachment=True,

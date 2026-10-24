@@ -47,7 +47,6 @@ if hasattr(sys.stdout, "reconfigure"):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
 DATASET_XLSX_PATH = os.path.join(DOCS_DIR, "Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx")
-DATASET_CSV_PATH = os.path.join(DOCS_DIR, "Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.csv")
 BENCHMARK_JSON_PATH = os.path.join(DOCS_DIR, "Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json")
 
 FIELD_LABELS = {
@@ -543,17 +542,11 @@ def _generate_240_standardized_records():
 
 def save_standardized_dataset(records=None):
     """
-    Lưu bộ dữ liệu chuẩn 240 mẫu (đầy đủ 12 cột) ra file Excel (.xlsx) và CSV (.csv).
+    Lưu bộ dữ liệu chuẩn 240 mẫu (đầy đủ 12 cột) ra file Excel (.xlsx).
     """
     os.makedirs(DOCS_DIR, exist_ok=True)
     if records is None:
         records = _generate_240_standardized_records()
-
-    with open(DATASET_CSV_PATH, "w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=TWELVE_COLUMNS)
-        writer.writeheader()
-        for r in records:
-            writer.writerow({col: r[col] for col in TWELVE_COLUMNS})
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -659,7 +652,7 @@ def get_shared_train_test_split(records=None):
     if records is None and _CACHED_SPLIT is not None:
         return _CACHED_SPLIT
     if records is None:
-        if not os.path.exists(DATASET_XLSX_PATH) or not os.path.exists(DATASET_CSV_PATH):
+        if not os.path.exists(DATASET_XLSX_PATH):
             records = save_standardized_dataset()
         else:
             records = _generate_240_standardized_records()
