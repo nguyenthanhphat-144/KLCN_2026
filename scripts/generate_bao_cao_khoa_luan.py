@@ -31,7 +31,7 @@ import sys
 import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor, Cm
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import qn, nsdecls
@@ -44,11 +44,21 @@ IMAGES_DIR = os.path.join(BASE_DIR, "images")
 
 def set_cell_background(cell, fill_hex):
     tcPr = cell._tc.get_or_add_tcPr()
-    shd = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
-    tcPr.append(shd)
+    old = tcPr.find(qn('w:shd'))
+    if old is not None:
+        tcPr.remove(old)
+    shd = parse_xml(f'<w:shd {nsdecls("w")} w:val="clear" w:color="auto" w:fill="{fill_hex}"/>')
+    tcMar = tcPr.find(qn('w:tcMar'))
+    if tcMar is not None:
+        tcMar.addprevious(shd)
+    else:
+        tcPr.append(shd)
 
 def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
     tcPr = cell._tc.get_or_add_tcPr()
+    old = tcPr.find(qn('w:tcMar'))
+    if old is not None:
+        tcPr.remove(old)
     tcMar = parse_xml(f'''
         <w:tcMar {nsdecls("w")}>
             <w:top w:w="{top}" w:type="dxa"/>
@@ -61,6 +71,9 @@ def set_cell_margins(cell, top=100, bottom=100, left=140, right=140):
 
 def set_table_borders(table, color="808080", sz="4", val="single"):
     tblPr = table._tbl.tblPr
+    old = tblPr.find(qn('w:tblBorders'))
+    if old is not None:
+        tblPr.remove(old)
     borders = parse_xml(f'''
         <w:tblBorders {nsdecls("w")}>
             <w:top w:val="{val}" w:sz="{sz}" w:space="0" w:color="{color}"/>
@@ -71,30 +84,31 @@ def set_table_borders(table, color="808080", sz="4", val="single"):
             <w:insideV w:val="none"/>
         </w:tblBorders>
     ''')
-    tblPr.append(borders)
+    tblLook = tblPr.find(qn('w:tblLook'))
+    if tblLook is not None:
+        tblLook.addprevious(borders)
+    else:
+        tblPr.append(borders)
 
 def add_page_number_field(run):
-    fldChar1 = OxmlElement('w:fldChar')
-    fldChar1.set(qn('w:fldCharType'), 'begin')
-    instrText = OxmlElement('w:instrText')
-    instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = 'PAGE'
-    fldChar2 = OxmlElement('w:fldChar')
-    fldChar2.set(qn('w:fldCharType'), 'separate')
-    fldChar3 = OxmlElement('w:fldChar')
-    fldChar3.set(qn('w:fldCharType'), 'end')
-    r = run._r
-    r.append(fldChar1)
-    r.append(instrText)
-    r.append(fldChar2)
-    r.append(fldChar3)
+    p = run._r.getparent()
+    p.remove(run._r)
+    p.append(parse_xml(f'<w:r {nsdecls("w")}><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r>'))
+    p.append(parse_xml(f'<w:r {nsdecls("w")}><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r>'))
+    p.append(parse_xml(f'<w:r {nsdecls("w")}><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r>'))
+    p.append(parse_xml(f'<w:r {nsdecls("w")}><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>1</w:t></w:r>'))
+    p.append(parse_xml(f'<w:r {nsdecls("w")}><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r>'))
 
 def set_section_page_numbering(section, fmt='decimal', start=1):
     sectPr = section._sectPr
     pgNumType = sectPr.find(qn('w:pgNumType'))
     if pgNumType is None:
         pgNumType = OxmlElement('w:pgNumType')
-        sectPr.append(pgNumType)
+        cols = sectPr.find(qn('w:cols'))
+        if cols is not None:
+            cols.addprevious(pgNumType)
+        else:
+            sectPr.append(pgNumType)
     pgNumType.set(qn('w:fmt'), fmt)
     if start is not None:
         pgNumType.set(qn('w:start'), str(start))
@@ -268,11 +282,16 @@ def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     set_table_borders(table, color="808080")
 
-    # Header Row: lặp lại tiêu đề bảng nếu sang trang mới (tblHeader)
+    # Header Row: lặp lại tiêu đề bảng nếu sang trang mới (cantSplit MUST precede tblHeader in CT_TrPr)
     hdr_row = table.rows[0]
     trPr = hdr_row._tr.get_or_add_trPr()
-    trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
     trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
+    trPr.append(parse_xml(f'<w:tblHeader {nsdecls("w")}/>'))
+
+    if col_widths and len(col_widths) == len(headers):
+        for row in table.rows:
+            for idx, w in enumerate(col_widths):
+                row.cells[idx].width = Cm(w)
 
     hdr_cells = hdr_row.cells
     for i, title in enumerate(headers):
@@ -314,11 +333,6 @@ def add_table_custom(doc, caption_text, headers, rows_data, col_widths=None):
                 run.font.size = Pt(12) # Quy chuẩn: cỡ chữ 12
                 run.font.color.rgb = RGBColor(0, 0, 0)
 
-    if col_widths and len(col_widths) == len(headers):
-        for row in table.rows:
-            for idx, w in enumerate(col_widths):
-                row.cells[idx].width = Cm(w)
-
     p_post = doc.add_paragraph()
     p_post.paragraph_format.space_before = Pt(2)
     p_post.paragraph_format.space_after = Pt(6)
@@ -350,7 +364,7 @@ def add_figure_custom(doc, img_rel_path, caption_text, width_cm=14.5):
 def add_blank_supervisor_review(doc):
     """
     Tạo trang 'NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN' để trống hoàn toàn
-    với 19 dòng chấm leader='dot' (pos 8504 dxa) và khung ký tên như file mẫu HUIT 2025.
+    với 19 dòng chấm leader='dot' và khung ký tên như file mẫu HUIT 2025.
     """
     add_chapter_title(doc, "NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN")
 
@@ -360,27 +374,19 @@ def add_blank_supervisor_review(doc):
 
     for _ in range(19):
         p_dot = doc.add_paragraph()
-        pPr = p_dot._p.get_or_add_pPr()
-        pPr.append(parse_xml(f'''
-            <w:tabs {nsdecls("w")}>
-                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
-            </w:tabs>
-        '''))
-        pPr.append(parse_xml(f'<w:spacing {nsdecls("w")} w:before="120" w:after="120" w:line="360" w:lineRule="auto"/>'))
         p_dot.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p_dot.paragraph_format.space_before = Pt(6)
+        p_dot.paragraph_format.space_after = Pt(6)
+        p_dot.paragraph_format.line_spacing = 1.5
+        p_dot.paragraph_format.tab_stops.add_tab_stop(Cm(15.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
         r = p_dot.add_run("\t")
         r.font.name = 'Times New Roman'
         r.font.size = Pt(13)
 
     p_title = doc.add_paragraph()
-    pPr_t = p_title._p.get_or_add_pPr()
-    pPr_t.append(parse_xml(f'''
-        <w:tabs {nsdecls("w")}>
-            <w:tab w:val="center" w:pos="5670"/>
-        </w:tabs>
-    '''))
     p_title.paragraph_format.space_before = Pt(12)
     p_title.paragraph_format.space_after = Pt(2)
+    p_title.paragraph_format.tab_stops.add_tab_stop(Cm(10.0), WD_TAB_ALIGNMENT.CENTER)
     r_t = p_title.add_run("\tGIẢNG VIÊN HƯỚNG DẪN")
     r_t.font.name = 'Times New Roman'
     r_t.font.size = Pt(13)
@@ -388,14 +394,9 @@ def add_blank_supervisor_review(doc):
     r_t.font.color.rgb = RGBColor(0, 0, 0)
 
     p_sub = doc.add_paragraph()
-    pPr_s = p_sub._p.get_or_add_pPr()
-    pPr_s.append(parse_xml(f'''
-        <w:tabs {nsdecls("w")}>
-            <w:tab w:val="center" w:pos="5670"/>
-        </w:tabs>
-    '''))
     p_sub.paragraph_format.space_before = Pt(0)
     p_sub.paragraph_format.space_after = Pt(50)
+    p_sub.paragraph_format.tab_stops.add_tab_stop(Cm(10.0), WD_TAB_ALIGNMENT.CENTER)
     r_s = p_sub.add_run("\t(Ký và ghi rõ họ tên)")
     r_s.font.name = 'Times New Roman'
     r_s.font.size = Pt(13)
@@ -405,7 +406,7 @@ def add_blank_supervisor_review(doc):
 def add_automatic_toc(doc, toc_items):
     """
     Tạo Mục Lục tự động thông qua Word Field Code 'TOC \\o "1-3" \\h \\z \\u'
-    kèm danh mục pre-rendered với tab stop leader='dot' tại 8504 dxa (lề phải).
+    kèm danh mục pre-rendered với tab stop leader='dot' tại 15.0 cm (lề phải).
     """
     add_chapter_title(doc, "MỤC LỤC")
 
@@ -413,25 +414,16 @@ def add_automatic_toc(doc, toc_items):
     p_start = doc.add_paragraph()
     p_start.paragraph_format.space_before = Pt(0)
     p_start.paragraph_format.space_after = Pt(0)
-    p_start._p.append(parse_xml(f'''
-        <w:r {nsdecls("w")}>
-            <w:fldChar w:fldCharType="begin"/>
-            <w:instrText xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText>
-            <w:fldChar w:fldCharType="separate"/>
-        </w:r>
-    '''))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="begin"/></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:instrText xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="separate"/></w:r>'))
 
     for title, page_no in toc_items:
         p_t = doc.add_paragraph()
-        pPr = p_t._p.get_or_add_pPr()
-        pPr.append(parse_xml(f'''
-            <w:tabs {nsdecls("w")}>
-                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
-            </w:tabs>
-        '''))
         p_t.paragraph_format.space_before = Pt(2)
         p_t.paragraph_format.space_after = Pt(2)
         p_t.paragraph_format.line_spacing = 1.3
+        p_t.paragraph_format.tab_stops.add_tab_stop(Cm(15.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
         is_bold = any(title.strip().startswith(prefix) for prefix in [
             'LỜI', 'NHẬN', 'TÓM', 'ABSTRACT', 'MỤC', 'DANH', 'PHẦN MỞ ĐẦU', 'CHƯƠNG', 'KẾT LUẬN', 'TÀI LIỆU'
@@ -458,32 +450,23 @@ def add_automatic_toc(doc, toc_items):
 def add_automatic_figure_list(doc, figures_list):
     """
     Tạo Danh Mục Hình tự động thông qua Word Field Code 'TOC \\c "Hình" \\h \\z'
-    kèm tab stop leader='dot' tại 8504 dxa (lề phải).
+    kèm tab stop leader='dot' tại 15.0 cm (lề phải).
     """
     add_chapter_title(doc, "DANH MỤC HÌNH")
 
     p_start = doc.add_paragraph()
     p_start.paragraph_format.space_before = Pt(0)
     p_start.paragraph_format.space_after = Pt(0)
-    p_start._p.append(parse_xml(f'''
-        <w:r {nsdecls("w")}>
-            <w:fldChar w:fldCharType="begin"/>
-            <w:instrText xml:space="preserve"> TOC \\c "Hình" \\h \\z </w:instrText>
-            <w:fldChar w:fldCharType="separate"/>
-        </w:r>
-    '''))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="begin"/></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:instrText xml:space="preserve"> TOC \\c "Hình" \\h \\z </w:instrText></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="separate"/></w:r>'))
 
     for cap, page_no in figures_list:
         p_f = doc.add_paragraph()
-        pPr = p_f._p.get_or_add_pPr()
-        pPr.append(parse_xml(f'''
-            <w:tabs {nsdecls("w")}>
-                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
-            </w:tabs>
-        '''))
         p_f.paragraph_format.space_before = Pt(2)
         p_f.paragraph_format.space_after = Pt(2)
         p_f.paragraph_format.line_spacing = 1.3
+        p_f.paragraph_format.tab_stops.add_tab_stop(Cm(15.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
         r_f = p_f.add_run(cap)
         r_f.font.name = 'Times New Roman'
@@ -504,32 +487,23 @@ def add_automatic_figure_list(doc, figures_list):
 def add_automatic_table_list(doc, tables_list):
     """
     Tạo Danh Mục Bảng tự động thông qua Word Field Code 'TOC \\c "Bảng" \\h \\z'
-    kèm tab stop leader='dot' tại 8504 dxa (lề phải).
+    kèm tab stop leader='dot' tại 15.0 cm (lề phải).
     """
     add_chapter_title(doc, "DANH MỤC BẢNG")
 
     p_start = doc.add_paragraph()
     p_start.paragraph_format.space_before = Pt(0)
     p_start.paragraph_format.space_after = Pt(0)
-    p_start._p.append(parse_xml(f'''
-        <w:r {nsdecls("w")}>
-            <w:fldChar w:fldCharType="begin"/>
-            <w:instrText xml:space="preserve"> TOC \\c "Bảng" \\h \\z </w:instrText>
-            <w:fldChar w:fldCharType="separate"/>
-        </w:r>
-    '''))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="begin"/></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:instrText xml:space="preserve"> TOC \\c "Bảng" \\h \\z </w:instrText></w:r>'))
+    p_start._p.append(parse_xml(f'<w:r {nsdecls("w")}><w:fldChar w:fldCharType="separate"/></w:r>'))
 
     for cap, page_no in tables_list:
         p_t = doc.add_paragraph()
-        pPr = p_t._p.get_or_add_pPr()
-        pPr.append(parse_xml(f'''
-            <w:tabs {nsdecls("w")}>
-                <w:tab w:val="right" w:leader="dot" w:pos="8504"/>
-            </w:tabs>
-        '''))
         p_t.paragraph_format.space_before = Pt(2)
         p_t.paragraph_format.space_after = Pt(2)
         p_t.paragraph_format.line_spacing = 1.3
+        p_t.paragraph_format.tab_stops.add_tab_stop(Cm(15.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
 
         r_t = p_t.add_run(cap)
         r_t.font.name = 'Times New Roman'
@@ -552,10 +526,6 @@ def add_automatic_table_list(doc, tables_list):
 def generate_thesis_report():
     print("Beginning generation of Bao_Cao_Khoa_Luan.docx...")
     doc = Document()
-
-    # Bật tính năng tự động cập nhật trường khi mở tài liệu trong Word
-    settings = doc.settings._element
-    settings.append(parse_xml(f'<w:updateFields {nsdecls("w")} w:val="true"/>'))
 
     # ==================== SECTION 1: COVER PAGES (No page numbering) ====================
     s1 = doc.sections[0]
