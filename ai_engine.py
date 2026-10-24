@@ -36,7 +36,6 @@ from model_benchmark import (
     combine_12_fields_for_tfidf,
     combine_12_fields_for_phobert,
     DATASET_XLSX_PATH,
-    DATASET_CSV_PATH,
     BENCHMARK_JSON_PATH,
 )
 

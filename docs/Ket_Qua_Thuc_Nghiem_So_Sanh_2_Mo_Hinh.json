@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-24 19:46:12",
+  "timestamp": "2026-10-24 21:00:57",
   "dataset_stats": {
     "total_samples": 240,
     "train_samples": 180,
@@ -101,7 +101,7 @@
     "recall": 88.33,
     "f1_score": 88.44,
     "accuracy": 88.33,
-    "train_time_ms": 153.59,
+    "train_time_ms": 194.02,
     "infer_time_ms": 2.16,
     "train_samples": 180,
     "test_samples": 60,
@@ -221,8 +221,8 @@
     "recall": 95.0,
     "f1_score": 94.96,
     "accuracy": 95.0,
-    "train_time_ms": 34718.18,
-    "infer_time_ms": 39.38,
+    "train_time_ms": 16795.13,
+    "infer_time_ms": 38.32,
     "train_samples": 180,
     "test_samples": 60,
     "per_class": [
@@ -420,7 +420,7 @@
     "recall": 95.0,
     "f1_score": 94.96,
     "accuracy": 95.0,
-    "infer_time_ms": 39.38,
+    "infer_time_ms": 38.32,
     "delta_precision": 6.43,
     "delta_recall": 6.67,
     "delta_f1": 6.52,
@@ -430,7 +430,7 @@
       "Giải quyết triệt để bài toán hồ sơ KH&CN liên ngành (Interdisciplinary Records): Mô hình túi từ TF-IDF + SVM chỉ đếm tần suất từ độc lập nên bị nhiễu khi gặp công trình giao thoa (ví dụ: ứng dụng trí tuệ nhân tạo trong tài chính ngân hàng hoặc nghiên cứu ngôn ngữ học thuật ngữ cơ khí - điện tử), trong khi cơ chế Self-Attention hai chiều của PhoBERT nắm bắt chính xác ngữ cảnh chủ đạo.",
       "Hiểu sâu cấu trúc từ ghép và ngữ nghĩa học thuật tiếng Việt: PhoBERT được tiền huấn luyện trên 20GB ngữ liệu tiếng Việt kết hợp tách từ PyVi và mã hóa BPE, giúp nhận diện chính xác các cụm thuật ngữ chuyên ngành phức tạp trong cả 12 trường đầu vào.",
       "Phân bố xác suất đầu ra (Softmax Confidence) đáng tin cậy hơn cho quy trình thẩm định 5 bước: Xác suất độ tin cậy của PhoBERT phản ánh sát thực tế mức độ chắc chắn ngữ nghĩa, phục vụ trực tiếp cho việc tính Điểm rủi ro lệch nhãn ở Chức năng 6.",
-      "Thời gian suy luận đáp ứng hoàn hảo yêu cầu thời gian thực: Nhờ đóng băng 8 tầng Transformer bên dưới (Layers 0..7), thời gian phản hồi trung bình của PhoBERT chỉ khoảng 39.38 ms/hồ sơ (nhỏ hơn ngưỡng yêu cầu 50 ms), hoàn toàn phù hợp để làm Mô hình chính thức duy nhất của dự án."
+      "Thời gian suy luận đáp ứng hoàn hảo yêu cầu thời gian thực: Nhờ đóng băng 8 tầng Transformer bên dưới (Layers 0..7), thời gian phản hồi trung bình của PhoBERT chỉ khoảng 38.32 ms/hồ sơ (nhỏ hơn ngưỡng yêu cầu 50 ms), hoàn toàn phù hợp để làm Mô hình chính thức duy nhất của dự án."
     ]
   }
 }
