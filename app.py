@@ -1358,6 +1358,7 @@ def ai_center():
     anomaly_models = ai_engine.get_anomaly_models_comparison()
     priority_queue = ai_engine.get_priority_queue(cur, limit=20)
     graph_summary = ai_engine.get_graph_summary()
+    benchmark = ai_engine.get_benchmark_summary()
     conn.close()
 
     return render_template(
@@ -1369,21 +1370,65 @@ def ai_center():
         priority_queue=priority_queue,
         graph_summary=graph_summary,
         phobert_params=PHOBERT_HYPERPARAMS,
+        benchmark=benchmark,
+        active_mode=ai_engine.last_experiment_mode,
+        selected_primary_model=ai_engine.selected_primary_model,
     )
 
 
 @app.route("/ai-center/retrain", methods=["POST"])
 @role_required("Admin", "CanBo")
 def ai_retrain():
+    mode = request.form.get("mode", "both").strip()
     conn = get_db_connection()
-    ai_engine.train_and_evaluate(conn)
+    bench = ai_engine.run_standalone_experiment(mode=mode, db_conn=conn)
     ai_engine.build_networkx_graph_and_detect_anomalies(conn)
     conn.close()
-    flash(
-        "Đã huấn luyện lại (Retrain / Fine-tune) mô hình TF-IDF+SVM, PhoBERT và cập nhật đồ thị NetworkX, Isolation Forest & Deep Autoencoder từ kho dữ liệu Feedback Loop!",
-        "success"
-    )
+
+    if mode == "svm":
+        svm_m = bench["svm_metrics"]
+        flash(
+            f"Đã chạy riêng mô hình TF-IDF + SVM trên bộ dữ liệu chuẩn 12 trường (180 Train / 60 Test): "
+            f"Precision = {svm_m['precision']}%, Recall = {svm_m['recall']}%, F1-score = {svm_m['f1_score']}% (Thời gian: {svm_m['infer_time_ms']} ms).",
+            "info"
+        )
+    elif mode == "phobert":
+        pho_m = bench["phobert_metrics"]
+        flash(
+            f"Đã chạy riêng mô hình Fine-tuning PhoBERT trên bộ dữ liệu chuẩn 12 trường (180 Train / 60 Test): "
+            f"Precision = {pho_m['precision']}%, Recall = {pho_m['recall']}%, F1-score = {pho_m['f1_score']}% (Thời gian: {pho_m['infer_time_ms']} ms).",
+            "success"
+        )
+    else:
+        win = bench["selected_model"]
+        flash(
+            f"Đã huấn luyện & đối sánh triệt để 2 mô hình trên cùng bộ dữ liệu 12 trường (240 mẫu). "
+            f"Mô hình tối ưu được chọn làm Mô hình chính của dự án: {win['model_name']} (F1-score đạt {win['f1_score']}%, vượt +{win['delta_f1']}% so với TF-IDF + SVM).",
+            "success"
+        )
     return redirect(url_for("ai_center"))
+
+
+@app.route("/ai-center/download-dataset")
+@login_required
+def download_training_dataset():
+    from model_benchmark import DATASET_XLSX_PATH, DATASET_CSV_PATH, save_standardized_dataset
+    fmt = request.args.get("format", "xlsx").strip().lower()
+    if not os.path.exists(DATASET_XLSX_PATH) or not os.path.exists(DATASET_CSV_PATH):
+        save_standardized_dataset()
+    if fmt == "csv":
+        return send_file(
+            DATASET_CSV_PATH,
+            as_attachment=True,
+            download_name="Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.csv",
+            mimetype="text/csv",
+        )
+    return send_file(
+        DATASET_XLSX_PATH,
+        as_attachment=True,
+        download_name="Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
 # =============================================================================

@@ -227,12 +227,11 @@
             </div>
             <div class="card-body small">
                 <div class="mb-2">
-                    <span class="text-muted">Mô hình PhoBERT:</span>
+                    <span class="text-muted">Mô hình chính thức (Fine-tuning PhoBERT):</span>
                     <strong class="ms-1 text-dark">[{{ hoso.maCodeLVAI }}] {{ hoso.tenLinhVucAI }}</strong>
                 </div>
-                <div class="mb-3">
-                    <span class="text-muted">Mô hình đối chiếu (TF-IDF + SVM):</span>
-                    <span class="ms-1">{{ hoso.tenLinhVucSVM }} ({{ "%.1f"|format(hoso.doTinCaySVM or 0) }}%)</span>
+                <div class="mb-3 text-muted" style="font-size: 0.78rem;">
+                    Mô hình tối ưu được lựa chọn từ thực nghiệm đối sánh trên bộ dữ liệu chuẩn 12 trường (<a href="{{ url_for('ai_center') }}" class="text-decoration-none">xem bảng thực nghiệm</a>).
                 </div>
 
                 {% if hoso.maLinhVuc != hoso.maLinhVucAI %}

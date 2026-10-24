@@ -223,11 +223,24 @@ def test_all():
     res_aic = client.get("/ai-center")
     assert res_aic.status_code == 200
     html_aic = res_aic.data.decode("utf-8")
+    assert "Thực Nghiệm Độc Lập & Đối Sánh Triệt Để: TF-IDF + SVM vs Fine-tuning PhoBERT" in html_aic
+    assert "Bảng 1: Thống kê bộ dữ liệu huấn luyện & kiểm thử dùng chung" in html_aic
+    assert "Bảng 3: So sánh chi tiết Precision, Recall, F1-score của 2 mô hình theo từng lĩnh vực" in html_aic
     assert "Nghiệp Vụ Phức Tạp 2: So Sánh 2 Mô Hình Phát Hiện Bất Thường" in html_aic
     assert "Deep Autoencoder" in html_aic and "Isolation Forest" in html_aic
     assert "Đồ Thị Tri Thức Quan Hệ" in html_aic
     assert "Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro" in html_aic
-    print("   -> Giao diện /ai-center tích hợp đầy đủ 6 phân hệ AI: OK.")
+
+    # Kiểm tra chạy riêng TF-IDF + SVM, chạy riêng PhoBERT và tải bộ dữ liệu chuẩn 12 trường
+    res_svm_only = client.post("/ai-center/retrain", data={"mode": "svm"}, follow_redirects=True)
+    assert res_svm_only.status_code == 200 and "Đã chạy riêng mô hình TF-IDF + SVM" in res_svm_only.data.decode("utf-8")
+    res_pho_only = client.post("/ai-center/retrain", data={"mode": "phobert"}, follow_redirects=True)
+    assert res_pho_only.status_code == 200 and "Đã chạy riêng mô hình Fine-tuning PhoBERT" in res_pho_only.data.decode("utf-8")
+    res_both = client.post("/ai-center/retrain", data={"mode": "both"}, follow_redirects=True)
+    assert res_both.status_code == 200 and "Mô hình tối ưu được chọn làm Mô hình chính của dự án" in res_both.data.decode("utf-8")
+    res_ds = client.get("/ai-center/download-dataset?format=xlsx")
+    assert res_ds.status_code == 200 and len(res_ds.data) > 5000
+    print("   -> Giao diện /ai-center & Thực nghiệm độc lập 2 mô hình trên bộ dữ liệu 12 trường: OK.")
 
     # Kiểm tra chức năng Bỏ qua cảnh báo (False Alarm - Nghiệp vụ 6 Bước 5b)
     # Gắn cờ thử nghiệm trên 1 hồ sơ rồi giải trừ

@@ -893,9 +893,12 @@ def generate_thesis_report():
         ("   4.6. Chức năng 6 – Phát hiện Bất thường & Xếp hạng Ưu tiên Hàng đợi", "59"),
         ("   4.7. Các chức năng hỗ trợ quản trị, Dashboard và nạp dữ liệu", "63"),
         ("CHƯƠNG 5: THỬ NGHIỆM, ĐÁNH GIÁ KẾT QUẢ VÀ TRIỂN KHAI", "66"),
-        ("   5.1. Thiết lập Môi trường thử nghiệm và Tập dữ liệu kiểm thử", "66"),
-        ("   5.2. Đánh giá Thực nghiệm Mô hình Phân loại (PhoBERT vs LinearSVC)", "68"),
-        ("   5.3. Đánh giá Thực nghiệm Phân hệ Phát hiện Bất thường (IF vs Autoencoder)", "71"),
+        ("   5.1. Thiết lập Môi trường thử nghiệm và Bộ dữ liệu chuẩn 12 trường", "66"),
+        ("   5.2. Thực nghiệm Đối sánh Độc lập: TF-IDF + SVM và Fine-tuning PhoBERT", "68"),
+        ("      5.2.1. Thống kê bộ dữ liệu huấn luyện và kiểm thử dùng chung", "68"),
+        ("      5.2.2. Kết quả đối sánh Precision, Recall, F1-score của hai mô hình", "69"),
+        ("      5.2.3. Lý do lựa chọn Fine-tuning PhoBERT làm mô hình chính của dự án", "71"),
+        ("   5.3. Đánh giá Thực nghiệm Phân hệ Phát hiện Bất thường (IF vs Autoencoder)", "72"),
         ("   5.4. Đánh giá Hiệu năng Hệ thống và Tính ổn định", "74"),
         ("KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN", "76"),
         ("TÀI LIỆU THAM KHẢO", "78"),
@@ -958,11 +961,12 @@ def generate_thesis_report():
         ("Bảng 2.1: Siêu tham số tối ưu huấn luyện mô hình học sâu VinAI PhoBERT", "22"),
         ("Bảng 2.2: So sánh đặc tính giải thuật giữa Rừng cô lập (Isolation Forest) và Deep Autoencoder", "28"),
         ("Bảng 3.1: Ma trận phân quyền kiểm soát truy cập dựa trên vai trò (RBAC)", "36"),
-        ("Bảng 3.2: Lược đồ thuộc tính chi tiết bảng dữ liệu cốt lõi HoSoKHCN (24 trường dữ liệu)", "38"),
+        ("Bảng 3.2: Lược đồ thuộc tính bảng dữ liệu cốt lõi HoSoKHCN chuẩn hóa theo 12 trường đầu vào", "38"),
         ("Bảng 3.3: Lược đồ thuộc tính bảng lưu vết kiểm toán bất biến LichSuXetDuyet", "40"),
-        ("Bảng 4.1: Danh mục chuẩn 7 nhóm lĩnh vực nghiên cứu KH&CN theo quy chuẩn Bộ KH&CN", "49"),
-        ("Bảng 5.1: Kết quả thực nghiệm so sánh độ chính xác giữa PhoBERT và Baseline LinearSVC", "70"),
-        ("Bảng 5.2: Kết quả thực nghiệm phân hệ phát hiện bất thường và hiệu quả rút ngắn thời gian", "73"),
+        ("Bảng 4.1: Danh mục chuẩn các nhóm lĩnh vực nghiên cứu KH&CN trong hệ thống", "49"),
+        ("Bảng 5.1: Thống kê bộ dữ liệu huấn luyện và kiểm thử chuẩn 12 trường dùng chung (240 mẫu)", "68"),
+        ("Bảng 5.2: Kết quả thực nghiệm so sánh độc lập giữa TF-IDF + SVM và Fine-tuning PhoBERT", "70"),
+        ("Bảng 5.3: Kết quả thực nghiệm phân hệ phát hiện bất thường và hiệu quả rút ngắn thời gian", "73"),
     ]
     add_automatic_table_list(doc, tables_list)
 
@@ -1118,14 +1122,14 @@ def generate_thesis_report():
     add_h1(doc, "2.1. Quy trình Tiền xử lý văn bản tiếng Việt học thuật")
     add_body(doc, "Văn bản khoa học tiếng Việt có đặc thù ngữ nghĩa phức tạp: từ ghép chiếm tỷ trọng lớn (từ 2 đến 3 tiếng ghép lại), xuất hiện nhiều thuật ngữ chuyên môn mượn tiếng nước ngoài, và độ dài giữa các trường thông tin không đồng đều. Để làm sạch dữ liệu đầu vào cho các mô hình học máy và học sâu, hệ thống xây dựng pipeline tiền xử lý qua 04 công đoạn tuần tự:")
 
-    add_h2(doc, "2.1.1. Cơ chế hợp nhất 4 trường dữ liệu đặc thù")
-    add_body(doc, "Thay vì chỉ dựa vào tiêu đề hoặc tóm tắt riêng lẻ, hệ thống áp dụng cơ chế hợp nhất thông tin từ 04 trường dữ liệu phản ánh toàn diện bản chất của công trình:")
-    add_bullet_1(doc, "Tiêu đề công trình (Title): Chứa đựng các từ khóa trọng tâm và bài toán nghiên cứu chính.")
-    add_bullet_1(doc, "Tóm tắt khoa học (Abstract): Diễn giải phương pháp luận, công cụ, mô hình và kết quả thực nghiệm.")
-    add_bullet_1(doc, "Từ khóa (Keywords): Tập hợp các định danh chuyên ngành cô đọng.")
-    add_bullet_1(doc, "Thông tin tác giả và đơn vị (Author & Affiliation): Cung cấp bối cảnh chuyên môn (ví dụ Khoa CNTT, Khoa Điện, Khoa Hóa).")
-    add_body(doc, "Văn bản hợp nhất T được biểu diễn theo công thức ghép nối có trọng số logic:")
-    add_body(doc, "T = Tiêu đề ⊕ Tóm tắt ⊕ Từ khóa ⊕ Thông tin tác giả", bold_prefix="Biểu thức hợp nhất: ")
+    add_h2(doc, "2.1.1. Cơ chế hợp nhất đặc trưng từ bộ 12 trường dữ liệu đầu vào chuẩn hóa")
+    add_body(doc, "Nhằm đảm bảo mô hình học máy và học sâu khai thác triệt để thông tin nghiệp vụ thực tế của hồ sơ KH&CN, hệ thống chuẩn hóa cấu trúc dữ liệu đầu vào gồm đúng 12 trường thông tin cốt lõi: (1) Loại hình ('Bài báo khoa học' hoặc 'Đề tài NCKH'); (2) Tiêu đề công trình / Tên đề tài; (3) Tóm tắt nội dung; (4) Từ khóa; (5) Đơn vị chủ trì; (6) Năm công bố; (7) Kỳ báo cáo; (8) Lĩnh vực đăng ký (nhãn mục tiêu phục vụ huấn luyện và đối chiếu); (9) Loại công trình; (10) Tên tạp chí / Hội thảo; (11) Chỉ mục tạp chí; và (12) Sản phẩm dự kiến.")
+    add_bullet_1(doc, "Tiêu đề công trình / Tên đề tài: Chứa đựng mệnh đề phương pháp nghiên cứu cốt lõi và bài toán trọng tâm.")
+    add_bullet_1(doc, "Tóm tắt nội dung (Abstract): Diễn giải chi tiết phương pháp luận, công cụ, mô hình toán học và kết quả thực nghiệm.")
+    add_bullet_1(doc, "Từ khóa (Keywords): Tập hợp các định danh thuật ngữ chuyên ngành cô đọng nhất của hồ sơ.")
+    add_bullet_1(doc, "Đơn vị chủ trì, Tên tạp chí / Hội thảo, Chỉ mục tạp chí và Sản phẩm dự kiến: Cung cấp ngữ cảnh học thuật quan trọng giúp phân biệt chính xác các công trình giao thoa liên ngành.")
+    add_body(doc, "Văn bản hợp nhất T được biểu diễn theo công thức ghép nối có trọng số ngữ nghĩa:")
+    add_body(doc, "T = Loại hình ⊕ Tiêu đề ⊕ Tóm tắt ⊕ Từ khóa ⊕ Đơn vị chủ trì ⊕ Tạp chí/Chỉ mục/Sản phẩm dự kiến", bold_prefix="Biểu thức hợp nhất: ")
 
     add_h2(doc, "2.1.2. Chuẩn hóa ký tự và tách từ ghép ngữ nghĩa bằng PyVi")
     add_body(doc, "Tiếng Việt là ngôn ngữ đơn lập, ranh giới giữa các từ không trùng với khoảng trắng như tiếng Anh. Ví dụ, cụm từ \"trí tuệ nhân tạo\" gồm 4 tiếng nhưng là một khái niệm đơn nhất. Nếu không tách từ chính xác, mô hình sẽ coi \"trí\", \"tuệ\", \"nhân\", \"tạo\" là các từ độc lập, làm sai lệch ngữ nghĩa.")
@@ -1283,36 +1287,32 @@ def generate_thesis_report():
                      t5_headers, t5_data, col_widths=[5.0, 3.2, 3.5, 3.2])
 
     add_h1(doc, "3.3. Thiết kế Cơ sở dữ liệu quan hệ SQL Server 2025")
-    add_body(doc, "Cơ sở dữ liệu của hệ thống được chuẩn hóa đạt dạng chuẩn 3 (3NF) trên Microsoft SQL Server 2025. Để đáp ứng hoàn toàn các yêu cầu của bản 'Mô tả nghiệp vụ revision', bảng dữ liệu cốt lõi HoSoKHCN đã được mở rộng thêm 12 cột chuyên dụng và tái cấu trúc các ràng buộc toàn vẹn:")
+    add_body(doc, "Cơ sở dữ liệu của hệ thống được chuẩn hóa đạt dạng chuẩn 3 (3NF) trên Microsoft SQL Server 2025. Bảng dữ liệu cốt lõi HoSoKHCN được thiết kế chuẩn hóa xoay quanh đúng 12 trường thông tin nhập liệu đầu vào kết hợp các thuộc tính quản lý trạng thái và kết quả phân tích AI:")
 
-    t6_headers = ["Tên trường (Column)", "Kiểu dữ liệu", "Ràng buộc (Constraints)", "Mô tả nghiệp vụ chuyên sâu theo Revision"]
+    t6_headers = ["Tên trường (Column)", "Kiểu dữ liệu", "Ràng buộc (Constraints)", "Mô tả nghiệp vụ chuẩn hóa theo 12 trường đầu vào"]
     t6_data = [
-        ["maHoSo", "INT / NVARCHAR(50)", "PRIMARY KEY, IDENTITY", "Mã định danh duy nhất của hồ sơ công trình KH&CN"],
-        ["maNguoiNop", "INT", "FOREIGN KEY -> NguoiDung", "Mã định danh tài khoản giảng viên kê khai nộp hồ sơ"],
-        ["loaiHoSo", "NVARCHAR(50)", "NOT NULL", "Phân loại: 'Bài báo khoa học' hoặc 'Đề tài NCKH'"],
-        ["tieuDe", "NVARCHAR(500)", "NOT NULL", "Tên bài báo hoặc Tên đề tài nghiên cứu khoa học"],
-        ["tomTat", "NVARCHAR(MAX)", "NOT NULL", "Tóm tắt bài báo hoặc Mục tiêu, nội dung nghiên cứu đề tài"],
-        ["tuKhoa", "NVARCHAR(300)", "NULL", "Các từ khóa khoa học cách nhau bằng dấu phẩy"],
-        ["thongTinTacGia", "NVARCHAR(500)", "NOT NULL", "Họ tên các tác giả, đơn vị công tác và vai trò"],
-        ["maLinhVuc", "INT", "FOREIGN KEY -> LinhVuc", "Mã lĩnh vực chuyên ngành do giảng viên tự chọn kê khai"],
-        ["maLinhVucAI", "INT", "FOREIGN KEY -> LinhVuc", "Mã lĩnh vực do mô hình học sâu PhoBERT dự đoán"],
-        ["doTinCayAI", "FLOAT", "CHECK (0 <= Val <= 100)", "Mức độ tin cậy phần trăm của mô hình AI phân loại"],
-        ["maTapChi", "INT", "FOREIGN KEY -> TapChiHopLe", "Mã tạp chí xuất bản (đối với nhóm Bài báo khoa học)"],
-        ["doi", "NVARCHAR(150)", "NULL (Revision mở rộng)", "Mã định danh đối tượng số quốc tế (DOI bài báo)"],
-        ["tapSo", "NVARCHAR(50)", "NULL (Revision mở rộng)", "Tập (Volume) và Số (Issue) phát hành của tạp chí"],
-        ["trangBaiBao", "NVARCHAR(50)", "NULL (Revision mở rộng)", "Khoảng số trang của bài báo (ví dụ: '112-125')"],
-        ["chiMucTapChi", "NVARCHAR(100)", "NULL (Revision mở rộng)", "Cơ sở dữ liệu chỉ mục: Scopus Q1, WoS SCIE, HĐGSNN"],
-        ["maDeTai", "NVARCHAR(50)", "NULL (Revision mở rộng)", "Mã số hợp đồng hoặc quyết định phê duyệt đề tài NCKH"],
-        ["capDeTai", "NVARCHAR(50)", "NULL (Revision mở rộng)", "Cấp quản lý: Cấp Nhà nước, Bộ/Tỉnh, Cấp Trường"],
-        ["chuNhiemDeTai", "NVARCHAR(200)", "NULL (Revision mở rộng)", "Họ tên Chủ nhiệm đề tài nghiên cứu khoa học"],
-        ["kinhPhi", "BIGINT / DECIMAL", "NULL (Revision mở rộng)", "Tổng kinh phí phê duyệt thực hiện đề tài (VNĐ)"],
-        ["ketQuaNghiemThu", "NVARCHAR(50)", "NULL (Revision mở rộng)", "Đánh giá nghiệm thu: Xuất sắc, Tốt, Đạt, Không đạt"],
+        ["maHoSo", "NVARCHAR(30)", "PRIMARY KEY", "Mã định danh duy nhất của hồ sơ công trình KH&CN"],
+        ["nhomCongTrinh", "NVARCHAR(100)", "Trường 1 (Loại hình)", "Phân loại: 'Bài báo khoa học' hoặc 'Đề tài NCKH'"],
+        ["tieuDe", "NVARCHAR(500)", "NOT NULL (Trường 2)", "Tiêu đề công trình hoặc Tên đề tài nghiên cứu khoa học"],
+        ["tomTat", "NVARCHAR(MAX)", "NOT NULL (Trường 3)", "Tóm tắt nội dung bài báo hoặc mục tiêu, nội dung đề tài"],
+        ["tuKhoa", "NVARCHAR(500)", "NOT NULL (Trường 4)", "Các từ khóa chuyên ngành cách nhau bởi dấu phẩy"],
+        ["donViChuTri", "NVARCHAR(255)", "NOT NULL (Trường 5)", "Đơn vị chủ trì / Khoa quản lý công trình"],
+        ["namCongBo", "INT", "NOT NULL (Trường 6)", "Năm công bố bài báo hoặc năm thực hiện đề tài"],
+        ["kyBaoCao", "NVARCHAR(100)", "NOT NULL (Trường 7)", "Kỳ báo cáo thống kê (ví dụ: Đợt 1 - Năm học 2025-2026)"],
+        ["maLinhVuc", "INT", "FOREIGN KEY (Trường 8)", "Lĩnh vực đăng ký do tác giả kê khai (liên kết LinhVuc)"],
+        ["maLoai", "INT", "FOREIGN KEY (Trường 9)", "Loại công trình (liên kết bảng LoaiCongTrinh)"],
+        ["maTapChi", "INT", "FOREIGN KEY (Trường 10)", "Tên tạp chí / Hội thảo công bố (liên kết TapChiHopLe)"],
+        ["chiMucTapChi", "NVARCHAR(100)", "NULL (Trường 11)", "Chỉ mục tạp chí: Scopus Q1/Q2, HĐGSNN, IEEE Xplore..."],
+        ["sanPhamDuKien", "NVARCHAR(500)", "NULL (Trường 12)", "Sản phẩm dự kiến của đề tài nghiên cứu khoa học"],
+        ["vanBanDaTachTu", "NVARCHAR(MAX)", "AI Preprocessing", "Văn bản hợp nhất sau khi làm sạch và tách từ bằng PyVi"],
+        ["maLinhVucAI", "INT", "FOREIGN KEY -> LinhVuc", "Mã lĩnh vực do Mô hình chính (Fine-tuning PhoBERT) dự đoán"],
+        ["doTinCayAI", "FLOAT", "CHECK (0 <= Val <= 100)", "Độ tin cậy Softmax (%) của Mô hình chính PhoBERT"],
         ["trangThai", "NVARCHAR(50)", "CHECK 5 giá trị hợp lệ", "'Chờ xét duyệt', 'Đang xét duyệt', 'Đã duyệt', 'Từ chối', 'Yêu cầu bổ sung'"],
-        ["diemBatThuong", "FLOAT", "CHECK (0.0 <= Val <= 1.0)", "Điểm rủi ro tổng hợp (Composite Risk Score) từ AI"],
+        ["diemBatThuong", "FLOAT", "CHECK (0.0 <= Val <= 1.0)", "Điểm rủi ro tổng hợp (Composite Risk Score) từ Chức năng 6"],
         ["coCanhBao", "INT / BIT", "DEFAULT 0", "Cờ đánh dấu phát hiện bất thường: 1 (Cảnh báo), 0 (An toàn)"],
         ["chiTietCanhBao", "NVARCHAR(MAX)", "JSON Payload", "Chi tiết lý do cảnh báo, điểm IF, Autoencoder và trùng lặp"],
     ]
-    add_table_custom(doc, "Bảng 3.2: Lược đồ thuộc tính chi tiết bảng dữ liệu cốt lõi HoSoKHCN (24 trường dữ liệu)",
+    add_table_custom(doc, "Bảng 3.2: Lược đồ thuộc tính bảng dữ liệu cốt lõi HoSoKHCN chuẩn hóa theo 12 trường đầu vào",
                      t6_headers, t6_data, col_widths=[3.0, 3.0, 3.5, 5.5])
 
     add_body(doc, "Bên cạnh bảng hồ sơ chính, bảng kiểm toán bất biến LichSuXetDuyet giữ vai trò tối quan trọng trong việc đảm bảo tính minh bạch pháp lý và truy vết hành vi của các cán bộ thẩm định:")
@@ -1349,15 +1349,15 @@ def generate_thesis_report():
     # ==================== CHƯƠNG 4 ====================
     add_chapter_title(doc, "CHƯƠNG 4: CÀI ĐẶT CHI TIẾT CÁC CHỨC NĂNG HỆ THỐNG")
 
-    add_h1(doc, "4.1. Chức năng 1 – Biểu mẫu Kê khai và Nộp hồ sơ động")
-    add_body(doc, "Chức năng kê khai và nộp hồ sơ được thiết kế lại toàn diện theo bản 'Mô tả nghiệp vụ revision', giải quyết triệt để tình trạng dùng chung biểu mẫu thiếu thông tin trước đây:")
+    add_h1(doc, "4.1. Chức năng 1 – Biểu mẫu Kê khai và Nộp hồ sơ động chuẩn hóa 12 trường")
+    add_body(doc, "Chức năng kê khai và nộp hồ sơ được tinh gọn và chuẩn hóa xoay quanh đúng 12 trường dữ liệu đầu vào cốt lõi: (1) Loại hình, (2) Tiêu đề công trình / Tên đề tài, (3) Tóm tắt nội dung, (4) Từ khóa, (5) Đơn vị chủ trì, (6) Năm công bố, (7) Kỳ báo cáo, (8) Lĩnh vực đăng ký, (9) Loại công trình, (10) Tên tạp chí / Hội thảo, (11) Chỉ mục tạp chí, và (12) Sản phẩm dự kiến:")
     add_h2(doc, "4.1.1. Bộ chuyển mạch thông minh giữa Bài báo khoa học và Đề tài NCKH")
-    add_body(doc, "Tại giao diện nộp mới (hoso_form.html), khi người dùng nhấp chọn loại hình công trình, mã JavaScript phía client sẽ tự động chuyển đổi giao diện hiển thị phù hợp:")
-    add_bullet_1(doc, "Khi chọn 'Bài báo khoa học': Hệ thống hiển thị các trường nhập chuyên dụng cho xuất bản học thuật bao gồm: Danh mục Tạp chí công bố (liên kết bảng TapChiHopLe để kiểm tra độ uy tín), Mã định danh quốc tế DOI (Digital Object Identifier), Tập số (Volume/Issue), Khoảng trang bài báo, và Cơ sở dữ liệu chỉ mục (Scopus Q1/Q2/Q3/Q4, WoS SCIE/SSCI, hoặc Danh mục HĐGSNN).")
-    add_bullet_1(doc, "Khi chọn 'Đề tài NCKH': Giao diện tự động thay đổi nhãn Tiêu đề thành 'Tên đề tài NCKH', Tóm tắt thành 'Mục tiêu & Nội dung nghiên cứu', đồng thời kích hoạt các ô nhập: Mã số đề tài, Cấp quản lý (Cấp Nhà nước, Cấp Bộ/Tỉnh, Cấp Trường, Đề tài Sinh viên), Chủ nhiệm đề tài, Danh sách thành viên tham gia, Tổng kinh phí (VNĐ), Sản phẩm dự kiến và Kết quả nghiệm thu (Xuất sắc, Tốt, Đạt).")
+    add_body(doc, "Tại giao diện nộp mới (hoso_form.html), các trường từ (1) đến (9) luôn hiển thị thống nhất; khi người dùng nhấp chọn Loại hình ở mục (1), mã JavaScript phía client sẽ tự động bật/tắt các trường đặc thù từ (10) đến (12):")
+    add_bullet_1(doc, "Khi chọn 'Bài báo khoa học': Hệ thống hiển thị mục (10) Tên tạp chí / Hội thảo (liên kết bảng TapChiHopLe để kiểm tra chéo độ uy tín) và mục (11) Chỉ mục tạp chí (Scopus Q1 / Web of Science (SCIE), Scopus Q2 / Web of Science, Hội đồng GSNN (1.0 điểm), Hội đồng GSNN (0.75 điểm), Hội thảo Quốc tế / IEEE Xplore, Tạp chí Khoa học Quốc gia), đồng thời ẩn mục (12).")
+    add_bullet_1(doc, "Khi chọn 'Đề tài NCKH': Giao diện tự động ẩn mục (10), (11) và hiển thị mục (12) Sản phẩm dự kiến (ví dụ: 02 bài báo khoa học, 01 phần mềm ứng dụng) để phục vụ thống kê đầu ra của đề tài.")
 
-    add_h2(doc, "4.1.2. Tính năng Live AI Preview thời gian thực")
-    add_body(doc, "Một điểm nhấn đột phá của hệ thống là tính năng 'Phân tích & Gợi ý Nhãn AI ngay' (Live AI Preview). Thay vì phải bấm nộp hồ sơ mới biết được kết quả phân loại, giảng viên có thể bấm nút 'Live AI Preview' ngay trong quá trình soạn thảo. Hệ thống sẽ gửi yêu cầu bất đồng bộ (AJAX POST) chứa tiêu đề, tóm tắt, từ khóa và tác giả tới API AI Engine. Mô hình PhoBERT sẽ tiền xử lý tức thì và trả về chuyên ngành dự đoán kèm mức độ tin cậy % chỉ sau 35–45ms. Nhờ đó, giảng viên có thể chủ động đối chiếu và điều chỉnh lựa chọn lĩnh vực của mình cho chuẩn xác trước khi chính thức nộp hồ sơ.")
+    add_h2(doc, "4.1.2. Tính năng Gợi ý lĩnh vực trực tiếp từ Mô hình chính (Fine-tuning PhoBERT)")
+    add_body(doc, "Trên biểu mẫu nhập liệu, giảng viên có thể bấm nút 'Gợi ý lĩnh vực từ nội dung' ngay trong quá trình soạn thảo. Hệ thống gửi yêu cầu bất đồng bộ (AJAX POST) tới API AI Engine, sử dụng duy nhất Mô hình chính thức đã được lựa chọn của dự án là Fine-tuning PhoBERT để phân tích tức thì và trả về lĩnh vực gợi ý kèm độ tin cậy % chỉ sau ~38ms.")
 
     add_figure_custom(doc, "images/hinh4_hoso_form_ai.jpg",
                       "Hình 4.1: Giao diện Kê khai và nộp hồ sơ động tích hợp tính năng Live AI Preview", width_cm=14.5)
@@ -1426,33 +1426,59 @@ def generate_thesis_report():
     # ==================== CHƯƠNG 5 ====================
     add_chapter_title(doc, "CHƯƠNG 5: THỬ NGHIỆM, ĐÁNH GIÁ KẾT QUẢ VÀ TRIỂN KHAI")
 
-    add_h1(doc, "5.1. Thiết lập Môi trường thử nghiệm và Tập dữ liệu kiểm thử")
-    add_body(doc, "Môi trường thực nghiệm hệ thống được thiết lập trên hạ tầng phần cứng chuẩn:")
+    add_h1(doc, "5.1. Thiết lập Môi trường thử nghiệm và Bộ dữ liệu chuẩn 12 trường")
+    add_body(doc, "Môi trường thực nghiệm hệ thống được thiết lập trên hạ tầng phần cứng và phần mềm chuẩn:")
     add_bullet_1(doc, "Hạ tầng phần cứng: Máy chủ trạm CPU Intel Core i7-13700H (14 nhân, 20 luồng, xung nhịp 5.0 GHz), 32 GB RAM DDR5, GPU NVIDIA GeForce RTX 4060 (8GB VRAM GDDR6), ổ cứng 1TB NVMe PCIe 4.0 SSD.")
-    add_bullet_1(doc, "Hạ tầng phần mềm: Hệ điều hành Windows 11 64-bit, Python 3.12, Microsoft SQL Server 2025 Developer Edition kết hợp SQL Server Management Studio (SSMS), thư viện PyTorch 2.3, HuggingFace Transformers 4.40, Scikit-learn 1.4, NetworkX 3.2, và PyVi 0.1.1.")
-    add_bullet_1(doc, "Tập dữ liệu thử nghiệm: Bao gồm 120 hồ sơ khoa học đa dạng thuộc 6 lĩnh vực đào tạo của Trường Đại học Công Thương TP. HCM. Tập dữ liệu được phân chia theo tỷ lệ chuẩn: 70% dành cho huấn luyện (Training Set), 15% dành cho kiểm định siêu tham số (Validation Set), và 15% dành cho đánh giá độc lập (Test Set).")
+    add_bullet_1(doc, "Hạ tầng phần mềm: Hệ điều hành Windows 11 64-bit, Python 3.12, Microsoft SQL Server 2025 Developer Edition kết hợp SQLite3, thư viện Scikit-learn, NetworkX, PyVi và kiến trúc tinh chỉnh PhoBERT.")
+    add_body(doc, "Nhằm đảm bảo việc đối sánh giữa hai mô hình TF-IDF + SVM (LinearSVC) và Fine-tuning PhoBERT diễn ra khách quan, triệt để và sát với bài toán thực tế nhất, nhóm nghiên cứu đã tham khảo cấu trúc của 03 nguồn dữ liệu học thuật tiếng Việt uy tín: (1) Hệ thống Tạp chí Khoa học Việt Nam Trực tuyến – VJOL (Vietnam Journals Online) thuộc Bộ KH&CN; (2) Cơ sở dữ liệu Công bố KH&CN Quốc gia VISTA (Cục Thông tin KH&CN Quốc gia – NASATI); và (3) Tập dữ liệu chuẩn phân loại văn bản tiếng Việt VNTC. Trên cơ sở đó, nhóm đã xây dựng và chuẩn hóa Bộ dữ liệu huấn luyện & kiểm thử dùng chung gồm 240 hồ sơ KH&CN (lưu trữ tại tệp docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx và .csv), trong đó mỗi mẫu đều chứa đầy đủ 12 trường dữ liệu đầu vào của đề tài:")
+    add_bullet_1(doc, "Nhóm trường văn bản ngữ nghĩa: (1) Loại hình ('Bài báo khoa học' / 'Đề tài NCKH'), (2) Tiêu đề công trình / Tên đề tài, (3) Tóm tắt nội dung, (4) Từ khóa.")
+    add_bullet_1(doc, "Nhóm trường quản lý & nhãn mục tiêu: (5) Đơn vị chủ trì, (6) Năm công bố, (7) Kỳ báo cáo, (8) Lĩnh vực đăng ký (nhãn thực tế Ground-truth phân bố đều trên 6 lĩnh vực), (9) Loại công trình.")
+    add_bullet_1(doc, "Nhóm trường đặc thù theo loại hình: (10) Tên tạp chí / Hội thảo, (11) Chỉ mục tạp chí (đối với Bài báo khoa học), và (12) Sản phẩm dự kiến (đối với Đề tài NCKH).")
 
-    add_h1(doc, "5.2. Đánh giá Thực nghiệm Mô hình Phân loại (PhoBERT vs LinearSVC)")
-    add_body(doc, "Nhóm nghiên cứu đã thực hiện các bài đo kiểm thực nghiệm so sánh độc lập giữa mô hình Deep Learning VinAI PhoBERT và mô hình Baseline LinearSVC qua 04 chỉ số đo lường chuẩn mực: Độ chính xác tổng quát (Accuracy), Độ chuẩn xác (Precision), Độ thu hồi (Recall), và Điểm F1 trung bình vĩ mô (Macro F1-score):")
+    add_h1(doc, "5.2. Thực nghiệm Đối sánh Độc lập: TF-IDF + SVM và Fine-tuning PhoBERT")
+    add_h2(doc, "5.2.1. Thống kê bộ dữ liệu huấn luyện và kiểm thử dùng chung")
+    add_body(doc, "Bộ dữ liệu 240 hồ sơ KH&CN chuẩn 12 trường được phân chia theo phương pháp phân tầng theo chủ đề độc lập (Stratified Topic Split) với tỷ lệ 75% dành cho huấn luyện (180 mẫu Train, 30 mẫu/lĩnh vực) và 25% dành cho kiểm thử độc lập (60 mẫu Test, 10 mẫu/lĩnh vực). Đặc biệt, để kiểm nghiệm khả năng phân tích ngữ nghĩa sâu, bộ dữ liệu bao gồm 144 mẫu đơn ngành chuẩn (60%) và 96 mẫu giao thoa liên ngành khó (40%, ví dụ: ứng dụng học sâu trong tài chính ngân hàng hoặc thiết kế mạch cảm biến giám sát xử lý nước thải). Bảng 5.1 trình bày thống kê chi tiết của bộ dữ liệu dùng chung cho cả hai mô hình:")
 
-    t9_headers = ["Lĩnh vực Chuyên ngành", "Chỉ số Đo lường", "Baseline: TF-IDF + LinearSVC", "Deep Learning: VinAI PhoBERT", "Mức độ Cải thiện (+Δ)"]
-    t9_data = [
-        ["1. CNTT & Truyền thông", "Precision / Recall / F1", "90.2% / 88.5% / 89.3%", "95.5% / 94.8% / 95.1%", "+5.8% (Vượt trội ngữ nghĩa)"],
-        ["2. Điện – Điện tử – Tự động hóa", "Precision / Recall / F1", "88.0% / 87.2% / 87.6%", "94.2% / 93.5% / 93.8%", "+6.2% (Tách biệt thuật ngữ)"],
-        ["3. Cơ khí – Chế tạo máy", "Precision / Recall / F1", "87.5% / 86.8% / 87.1%", "93.8% / 92.5% / 93.1%", "+6.0% (Chính xác cơ học)"],
-        ["4. Kinh tế – Quản trị kinh doanh", "Precision / Recall / F1", "89.5% / 89.0% / 89.2%", "94.8% / 94.2% / 94.5%", "+5.3% (Phân loại tài chính tốt)"],
-        ["5. Hóa học – Sinh học – Môi trường", "Precision / Recall / F1", "88.2% / 87.5% / 87.8%", "94.0% / 93.8% / 93.9%", "+6.1% (Nhận diện công thức/hóa chất)"],
-        ["6. KH Xã hội & Giáo dục", "Precision / Recall / F1", "91.0% / 90.0% / 90.5%", "96.2% / 95.0% / 95.6%", "+5.1% (Hiểu sâu từ ngữ học thuật)"],
-        ["TOÀN BỘ HỆ THỐNG", "Accuracy trung bình", "88.5%", "94.2%", "+5.7% (Độ chính xác vượt bậc)"],
-        ["TOÀN BỘ HỆ THỐNG", "Macro F1-score", "88.4%", "94.3%", "+5.9% (Cân bằng giữa các lớp)"],
-        ["HIỆU NĂNG SUY LUẬN", "Thời gian phản hồi / hồ sơ", "8.2 ms", "42.5 ms", "Đều đạt chuẩn thời gian thực (<50ms)"],
+    t_ds_headers = ["Mã & Tên Lĩnh vực đăng ký (Nhãn)", "Tổng mẫu", "Tập Train (75%)", "Tập Test (25%)", "Bài báo KH", "Đề tài NCKH", "Mẫu Liên ngành"]
+    t_ds_data = [
+        ["[LV-CNTT] Công nghệ thông tin và Truyền thông", "40", "30", "10", "29", "11", "16"],
+        ["[LV-DDT] Kỹ thuật Điện - Điện tử và Tự động hóa", "40", "30", "10", "29", "11", "16"],
+        ["[LV-CKD] Kỹ thuật Cơ khí, Chế tạo máy và Giao thông", "40", "30", "10", "29", "11", "16"],
+        ["[LV-KTQL] Kinh tế, Quản trị kinh doanh và Tài chính", "40", "30", "10", "29", "11", "16"],
+        ["[LV-HSMT] Hóa học, Sinh học, Y Dược và Môi trường", "40", "30", "10", "29", "11", "16"],
+        ["[LV-XHNV] Khoa học Xã hội, Nhân văn và Giáo dục học", "40", "30", "10", "29", "11", "16"],
+        ["TỔNG CỘNG TOÀN BỘ TẬP DỮ LIỆU (12 TRƯỜNG)", "240", "180", "60", "174", "66", "96"],
     ]
-    add_table_custom(doc, "Bảng 5.1: Kết quả thực nghiệm so sánh độ chính xác giữa PhoBERT và Baseline LinearSVC",
-                     t9_headers, t9_data, col_widths=[3.5, 3.5, 3.2, 3.2, 3.6])
+    add_table_custom(doc, "Bảng 5.1: Thống kê bộ dữ liệu huấn luyện và kiểm thử chuẩn 12 trường dùng chung (240 mẫu)",
+                     t_ds_headers, t_ds_data, col_widths=[4.8, 1.6, 1.8, 1.8, 1.6, 1.7, 1.7])
 
-    add_body(doc, "Nhận xét kết quả thực nghiệm phân loại:")
-    add_bullet_1(doc, "Mô hình VinAI PhoBERT đạt Macro F1-score trung bình 94.3%, vượt trội hơn mô hình Baseline LinearSVC (+5.9%). Sự vượt trội này thể hiện rõ nhất ở các bài báo có tính liên ngành cao (như ứng dụng AI trong kỹ thuật điện hoặc hóa sinh), nơi mô hình PhoBERT nắm bắt được ngữ cảnh hai chiều của toàn văn bản thay vì chỉ đếm tần suất từ khóa đơn lẻ như TF-IDF.")
-    add_bullet_1(doc, "Về thời gian đáp ứng, mô hình PhoBERT đạt 42.5ms cho mỗi yêu cầu suy luận, hoàn toàn đáp ứng xuất sắc yêu cầu tương tác thời gian thực của tính năng Live AI Preview trên giao diện người dùng.")
+    add_h2(doc, "5.2.2. Kết quả đối sánh Precision, Recall, F1-score của hai mô hình")
+    add_body(doc, "Thông qua module thực nghiệm độc lập model_benchmark.py (tích hợp trực tiếp tại trang /ai-center với 3 chế độ: Chạy riêng TF-IDF + SVM, Chạy riêng Fine-tuning PhoBERT, và Chạy đối sánh cả 2 mô hình), hai mô hình được huấn luyện trên cùng tập Train (180 mẫu) và đánh giá trên cùng tập Test độc lập (60 mẫu). Bảng 5.2 tổng hợp chi tiết kết quả Precision, Recall và F1-score theo từng lĩnh vực và trên toàn bộ tập kiểm thử:")
+
+    t9_headers = ["Lĩnh vực Chuyên ngành (10 mẫu Test/ngành)", "Chỉ số Đo lường", "Mô hình 1: TF-IDF + SVM", "Mô hình 2: Fine-tuning PhoBERT", "Chênh lệch (+Δ F1)"]
+    t9_data = [
+        ["1. [LV-CNTT] CNTT & Truyền thông", "Precision / Recall / F1", "88.89% / 80.00% / 84.21%", "100.0% / 80.00% / 88.89%", "+4.68% F1-score"],
+        ["2. [LV-DDT] Điện – Điện tử & Tự động hóa", "Precision / Recall / F1", "100.0% / 80.00% / 88.89%", "100.0% / 90.00% / 94.74%", "+5.85% F1-score"],
+        ["3. [LV-CKD] Cơ khí, Chế tạo máy & Giao thông", "Precision / Recall / F1", "100.0% / 100.0% / 100.0%", "100.0% / 100.0% / 100.0%", "0.00% (Đạt tuyệt đối)"],
+        ["4. [LV-KTQL] Kinh tế, Quản trị & Tài chính", "Precision / Recall / F1", "90.00% / 90.00% / 90.00%", "100.0% / 100.0% / 100.0%", "+10.00% F1-score"],
+        ["5. [LV-HSMT] Hóa, Sinh, Y Dược & Môi trường", "Precision / Recall / F1", "81.82% / 90.00% / 85.71%", "83.33% / 100.0% / 90.91%", "+5.20% F1-score"],
+        ["6. [LV-XHNV] KH Xã hội, Nhân văn & Giáo dục", "Precision / Recall / F1", "75.00% / 90.00% / 81.82%", "90.91% / 100.0% / 95.24%", "+13.42% F1-score"],
+        ["TOÀN BỘ TẬP KIỂM THỬ (60 MẪU)", "Macro Precision", "89.28%", "95.71%", "+6.43%"],
+        ["TOÀN BỘ TẬP KIỂM THỬ (60 MẪU)", "Macro Recall", "88.33%", "95.00%", "+6.67%"],
+        ["TOÀN BỘ TẬP KIỂM THỬ (60 MẪU)", "Macro F1-score", "88.44%", "94.96%", "+6.52% (Vượt trội)"],
+        ["TOÀN BỘ TẬP KIỂM THỬ (60 MẪU)", "Accuracy tổng thể", "88.33% (53/60 mẫu)", "95.00% (57/60 mẫu)", "+6.67%"],
+        ["HIỆU NĂNG SUY LUẬN TRỰC TUYẾN", "Thời gian phản hồi / hồ sơ", "2.07 ms", "38.31 ms", "Đều đạt chuẩn < 50 ms"],
+    ]
+    add_table_custom(doc, "Bảng 5.2: Kết quả thực nghiệm so sánh độc lập giữa TF-IDF + SVM và Fine-tuning PhoBERT",
+                     t9_headers, t9_data, col_widths=[3.8, 3.2, 3.2, 3.2, 3.1])
+
+    add_h2(doc, "5.2.3. Lý do lựa chọn Fine-tuning PhoBERT làm mô hình chính của dự án")
+    add_body(doc, "Từ kết quả thực nghiệm đối sánh triệt để trên cùng bộ dữ liệu chuẩn 12 trường tại Bảng 5.2, hệ thống quyết định chỉ lựa chọn duy nhất mô hình Học sâu Tinh chỉnh PhoBERT (Fine-tuning PhoBERT) làm Mô hình chính thức (Primary Model) vận hành toàn bộ chức năng gợi ý và kiểm tra lệch lĩnh vực của dự án (và chỉ giữ TF-IDF + SVM làm mô hình đối chứng trong phân hệ thực nghiệm), dựa trên 05 lý do khoa học và thực tiễn cốt lõi sau:")
+    add_bullet_1(doc, "Độ chính xác F1-score vượt trội trên cùng tập kiểm thử độc lập: Fine-tuning PhoBERT đạt Macro F1-score 94.96% (Macro Precision 95.71%, Macro Recall 95.00%, Accuracy 95.00%), vượt xa mô hình cơ sở TF-IDF + SVM tới +6.52% về F1-score, +6.43% về Precision và +6.67% về Recall.", bold_prefix="Lý do 1 – Hiệu năng phân loại vượt trội: ")
+    add_bullet_1(doc, "Giải quyết triệt để bài toán hồ sơ KH&CN giao thoa liên ngành (Interdisciplinary Records): Mô hình túi từ TF-IDF + SVM chỉ đếm tần suất xuất hiện độc lập của từng từ vựng, dẫn đến việc bị nhiễu nặng khi một công trình thuộc ngành A nhưng ứng dụng vào bối cảnh ngành B (ví dụ: đề tài thiết kế phần cứng mạng cảm biến không dây phục vụ giảng dạy đại học bị SVM phân loại nhầm sang ngành Giáo dục học, làm F1-score của ngành XHNV ở SVM giảm còn 81.82%). Ngược lại, cơ chế Self-Attention hai chiều trên 12 đầu chú ý của PhoBERT nắm bắt được cấu trúc ngữ pháp của mệnh đề phương pháp ở đầu tiêu đề cùng ngữ cảnh đơn vị chủ trì và tạp chí công bố, giúp đạt F1-score 95.24% ở ngành XHNV (+13.42%) và 100% ở ngành Kinh tế (+10.00%).", bold_prefix="Lý do 2 – Xử lý xuất sắc văn bản liên ngành: ")
+    add_bullet_1(doc, "Hiểu sâu cấu trúc từ ghép và thuật ngữ học thuật tiếng Việt: Nhờ được tiền huấn luyện trên 20GB ngữ liệu tiếng Việt kết hợp tách từ ghép PyVi và mã hóa subword Byte-Pair Encoding (BPE), PhoBERT bảo toàn trọn vẹn ngữ nghĩa của các cụm thuật ngữ chuyên môn dài và xử lý tốt các thuật ngữ viết tắt quốc tế xuất hiện trong cả 12 trường đầu vào.", bold_prefix="Lý do 3 – Tối ưu cho đặc thù tiếng Việt học thuật: ")
+    add_bullet_1(doc, "Phân bố xác suất đầu ra (Softmax Confidence) đáng tin cậy hơn cho quy trình thẩm định 5 bước: Xác suất dự đoán từ tầng Classification Head của PhoBERT phản ánh trung thực mức độ chắc chắn ngữ nghĩa của mô hình, giúp hệ thống gán nhãn màu cảnh báo (Xanh > 80%, Vàng 50%–80%, Đỏ < 50%) và tính toán đặc trưng độ lệch nhãn cho mô hình phát hiện bất thường ở Chức năng 6 chính xác hơn hẳn so với xác suất nội suy Platt Scaling của LinearSVC.", bold_prefix="Lý do 4 – Độ tin cậy xác suất phục vụ Chức năng 6: ")
+    add_bullet_1(doc, "Thời gian suy luận đáp ứng hoàn hảo yêu cầu tương tác thời gian thực: Nhờ chiến lược đóng băng 8 tầng Transformer phía dưới (Freeze Layers 0..7) và chỉ tinh chỉnh 4 tầng trên cùng (Layers 8..11), thời gian phản hồi trung bình của PhoBERT chỉ mất 38.31 ms/hồ sơ – thấp hơn nhiều so với ngưỡng yêu cầu thời gian thực (50 ms). Do đó, việc chọn duy nhất Fine-tuning PhoBERT làm mô hình chính vừa giúp giao diện hệ thống tinh gọn, nhất quán cho giảng viên và cán bộ xét duyệt, vừa đảm bảo độ chính xác cao nhất.", bold_prefix="Lý do 5 – Đảm bảo thời gian thực và tính nhất quán giao diện: ")
 
     add_figure_custom(doc, "images/hinh5_danhgia_hieunang.png",
                       "Hình 5.1: Đồ thị đánh giá so sánh hiệu năng phân loại (PhoBERT vs LinearSVC) và phát hiện bất thường", width_cm=14.5)
@@ -1468,7 +1494,7 @@ def generate_thesis_report():
         ["Điểm số bất thường trung bình (Avg Score)", "0.325 (chuẩn hóa [0.0, 1.0])", "0.0418 (sai số MSE)", "0.785 (cho hồ sơ vi phạm)"],
         ["Thời gian rà soát trung bình của Hội đồng", "15 – 20 phút / hồ sơ", "15 – 20 phút / hồ sơ", "4 – 6 phút / hồ sơ (Giảm 68%)"],
     ]
-    add_table_custom(doc, "Bảng 5.2: Kết quả thực nghiệm phân hệ phát hiện bất thường và hiệu quả rút ngắn thời gian",
+    add_table_custom(doc, "Bảng 5.3: Kết quả thực nghiệm phân hệ phát hiện bất thường và hiệu quả rút ngắn thời gian",
                      t10_headers, t10_data, col_widths=[4.5, 3.5, 3.5, 3.5])
 
     add_body(doc, "Nhận xét kết quả thực nghiệm phát hiện bất thường:")
@@ -1544,9 +1570,16 @@ def generate_thesis_report():
         r_ref.font.color.rgb = RGBColor(0, 0, 0)
 
     # Save document
-    print(f"Saving report to: {OUTPUT_FILE}...")
-    doc.save(OUTPUT_FILE)
-    print("SUCCESS: Bao_Cao_Khoa_Luan.docx generated successfully!")
+    backup_file = os.path.join(BASE_DIR, "docs", "Bao_Cao_Khoa_Luan_CapNhat_SoSanh2MoHinh.docx")
+    os.makedirs(os.path.dirname(backup_file), exist_ok=True)
+    doc.save(backup_file)
+    print(f"Saved updated report to: {backup_file}")
+    try:
+        print(f"Saving report to: {OUTPUT_FILE}...")
+        doc.save(OUTPUT_FILE)
+        print("SUCCESS: Bao_Cao_Khoa_Luan.docx generated successfully!")
+    except PermissionError:
+        print("NOTE: Bao_Cao_Khoa_Luan.docx is currently open in Microsoft Word; saved latest version to docs/Bao_Cao_Khoa_Luan_CapNhat_SoSanh2MoHinh.docx")
 
 if __name__ == '__main__':
     generate_thesis_report()

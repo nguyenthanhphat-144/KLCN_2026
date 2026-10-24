@@ -112,10 +112,9 @@
                             <div class="p-3 rounded border bg-light small">
                                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                     <div>
-                                        <span class="text-muted">Lĩnh vực gợi ý:</span>
+                                        <span class="text-muted">Lĩnh vực gợi ý (Mô hình chính Fine-tuning PhoBERT):</span>
                                         <strong id="previewPhobertLabel" class="text-primary ms-1"></strong>
                                         <span id="previewConfidenceBadge" class="ms-2"></span>
-                                        <span class="text-muted ms-2">(Đối chiếu SVM: <span id="previewSvmLabel"></span>)</span>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="applyAISuggestion()">
                                         Áp dụng lĩnh vực này
@@ -273,7 +272,6 @@ async function runLiveAIPreview() {
     document.getElementById('aiPreviewResult').classList.remove('d-none');
     document.getElementById('previewSegmented').textContent = data.segmented_text || '(Trống)';
     document.getElementById('previewPhobertLabel').textContent = data.phobert_label_name;
-    document.getElementById('previewSvmLabel').textContent = `${data.svm_label_name} (${data.svm_confidence}%)`;
 
     const badge = data.badge;
     document.getElementById('previewConfidenceBadge').innerHTML =
