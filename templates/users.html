@@ -25,8 +25,8 @@
                         <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Nguyễn Văn A" required>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Email đăng nhập (*)</label>
-                        <input type="email" name="email" class="form-control form-control-sm" placeholder="user@uni.edu.vn" required>
+                        <label class="form-label fw-semibold mb-1">Thư điện tử đăng nhập (*)</label>
+                        <input type="email" name="email" class="form-control form-control-sm" placeholder="tai_khoan@uni.edu.vn" required>
                     </div>
                     <div class="mb-2">
                         <label class="form-label fw-semibold mb-1">Mật khẩu khởi tạo (*)</label>
@@ -63,9 +63,9 @@
                     <table class="table table-hover align-middle mb-0 small">
                         <thead>
                             <tr>
-                                <th class="ps-3">ID</th>
+                                <th class="ps-3">Mã số</th>
                                 <th>Họ và tên</th>
-                                <th>Email</th>
+                                <th>Thư điện tử</th>
                                 <th>Đơn vị công tác</th>
                                 <th>Vai trò</th>
                                 <th class="pe-3 text-end">Phân quyền</th>
@@ -75,6 +75,7 @@
                             {% for u in users %}
                             {% set vn_hoten = (u.hoTen or '')
                                 | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
+                                | replace('PGS.TS. Trần Quốc Bảo (Quản trị viên)', 'Nguyễn Thành Phát')
                                 | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
                                 | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
                                 | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')

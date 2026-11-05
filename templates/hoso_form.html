@@ -99,7 +99,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="form-label fw-semibold mb-0">9. Lĩnh vực đăng ký (*)</label>
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="btnAIPreview" onclick="runLiveAIPreview()">
-                                    Gợi ý tự động bằng AI (Lĩnh vực & Loại)
+                                    Gợi ý phân loại tự động
                                 </button>
                             </div>
                             <select name="maLinhVuc" id="selMaLinhVuc" class="form-select" required>
@@ -124,13 +124,13 @@
                             </select>
                         </div>
 
-                        <!-- Khung kết quả gợi ý AI (Lĩnh vực & Loại công trình) -->
+                        <!-- Khung kết quả gợi ý phân loại -->
                         <div id="aiPreviewResult" class="col-12 d-none">
                             <div class="p-3 rounded border bg-light small">
                                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                                     <div>
                                         <div class="mb-1">
-                                            <span class="text-muted">Lĩnh vực gợi ý (PyTorch PhoBERT):</span>
+                                            <span class="text-muted">Lĩnh vực gợi ý:</span>
                                             <strong id="previewPhobertLabel" class="text-primary ms-1"></strong>
                                             <span id="previewConfidenceBadge" class="ms-2"></span>
                                         </div>
@@ -140,15 +140,15 @@
                                             <span id="previewWorkTypeConf" class="text-muted ms-1"></span>
                                         </div>
                                         <div class="text-muted" style="font-size: 0.78rem;">
-                                            Đối chứng TF-IDF + SVM: <span id="previewSvmCompare"></span> · Thời gian suy luận: <span id="previewInferMs"></span> ms
+                                            Mô hình đối chứng: <span id="previewSvmCompare"></span> · Thời gian xử lý: <span id="previewInferMs"></span> ms
                                         </div>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2" onclick="applyAISuggestion()">
-                                        Áp dụng gợi ý AI
+                                        Áp dụng gợi ý
                                     </button>
                                 </div>
                                 <div class="mt-2 pt-2 border-top text-muted" style="font-size: 0.78rem;">
-                                    Chuỗi tách từ tiếng Việt (PyVi): <span id="previewSegmented" class="font-monospace"></span>
+                                    Văn bản sau tách từ ghép: <span id="previewSegmented" class="font-monospace"></span>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +188,7 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Tệp minh chứng đính kèm (PDF/DOCX/ZIP - Tùy chọn)</label>
+                            <label class="form-label fw-semibold">Tệp minh chứng đính kèm (tùy chọn)</label>
                             <input type="file" name="fileDinhKem" id="fileDinhKemInput" class="form-control">
                             {% if hoso and hoso.fileDinhKem %}
                             <div class="form-text small">Tệp hiện tại: <code>{{ hoso.fileDinhKem }}</code></div>
@@ -284,7 +284,7 @@ async function runLiveAIPreview() {
 
     const btn = document.getElementById('btnAIPreview');
     const oldText = btn.textContent;
-    btn.textContent = 'Đang phân tích bằng PyTorch PhoBERT...';
+    btn.textContent = 'Đang phân tích nội dung...';
     btn.disabled = true;
 
     try {

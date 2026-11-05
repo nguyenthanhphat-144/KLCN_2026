@@ -20,10 +20,10 @@
             <i class="bi bi-plus-lg me-1"></i>Khai báo mới
         </a>
         <a href="{{ url_for('export_excel') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-file-earmark-excel me-1"></i>Xuất Excel
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Xuất bảng tính
         </a>
         <a href="{{ url_for('export_pdf') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-file-earmark-pdf me-1"></i>Xuất PDF
+            <i class="bi bi-file-earmark-richtext me-1"></i>Xuất báo cáo in
         </a>
     </div>
 </div>
@@ -250,9 +250,9 @@
                         <thead>
                             <tr>
                                 <th class="ps-3">Mô hình</th>
-                                <th class="text-end">Precision</th>
-                                <th class="text-end">Recall</th>
-                                <th class="text-end">F1-Score</th>
+                                <th class="text-end">Độ chuẩn xác</th>
+                                <th class="text-end">Độ phủ</th>
+                                <th class="text-end">Điểm F1</th>
                                 <th class="text-end pe-3">Thời gian</th>
                             </tr>
                         </thead>
@@ -260,7 +260,11 @@
                             {% for m in ai_metrics %}
                             <tr>
                                 <td class="ps-3 fw-semibold">
-                                    {{ m.tenMoHinh | replace('Baseline: TF-IDF + LinearSVC (Support Vector Machine)', 'TF-IDF + LinearSVC') | replace('Deep Learning: Fine-tuning PhoBERT (vinai/phobert-base)', 'PhoBERT Tiếng Việt') }}
+                                    {{ m.tenMoHinh
+                                        | replace('Mô hình Cơ sở: TF-IDF + Học máy SVM (LinearSVC)', 'TF-IDF + SVM')
+                                        | replace('Mô hình cơ sở: TF-IDF kết hợp SVM', 'TF-IDF + SVM')
+                                        | replace('Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt (vinai/phobert-base)', 'Tinh chỉnh PhoBERT')
+                                        | replace('Mô hình học sâu: Tinh chỉnh PhoBERT tiếng Việt', 'Tinh chỉnh PhoBERT') }}
                                 </td>
                                 <td class="text-end">{{ "%.2f"|format(m.precisionScore) }}%</td>
                                 <td class="text-end">{{ "%.2f"|format(m.recallScore) }}%</td>

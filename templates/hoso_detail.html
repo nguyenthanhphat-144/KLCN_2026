@@ -28,9 +28,9 @@
 
         {% if (hoso.trangThai == 'Chờ xét duyệt' and hoso.maNguoiNop == current_user.id) or current_user.vai_tro == 'Admin' %}
         <form method="POST" action="{{ url_for('hoso_soft_delete', ma_ho_so=hoso.maHoSo) }}" class="d-inline"
-              onsubmit="return confirm('Xác nhận xóa mềm hồ sơ này?');">
+              onsubmit="return confirm('Xác nhận chuyển hồ sơ này vào thùng rác?');">
             <button type="submit" class="btn btn-sm btn-outline-secondary">
-                Xóa mềm
+                Xóa tạm thời
             </button>
         </form>
         {% endif %}
@@ -96,7 +96,7 @@
                                 <td colspan="3">
                                     <span class="fw-semibold">{{ hoso.tenTapChi }}</span>
                                     {% if hoso.chiSoISSN %}
-                                    <span class="text-muted ms-1">(ISSN: {{ hoso.chiSoISSN }})</span>
+                                    <span class="text-muted ms-1">(Mã số: {{ hoso.chiSoISSN }})</span>
                                     {% endif %}
                                     {% if hoso.tapChiUyTin == 0 %}
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1">Ngoài danh mục uy tín ({{ hoso.xepHang }})</span>
@@ -139,7 +139,7 @@
                 </div>
 
                 <details class="mb-3">
-                    <summary class="small text-muted" style="cursor: pointer;">Xem chuỗi văn bản sau tiền xử lý &amp; tách từ tiếng Việt (PyVi)</summary>
+                    <summary class="small text-muted" style="cursor: pointer;">Xem văn bản sau tiền xử lý và tách từ ghép</summary>
                     <div class="segmented-box mt-2">{{ hoso.vanBanDaTachTu }}</div>
                 </details>
 
@@ -194,14 +194,14 @@
         <!-- Gợi ý phân loại tự động (Lĩnh vực & Loại công trình) -->
         <div class="card card-academic mb-3">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-                <span>Kết quả phân loại tự động (PyTorch PhoBERT)</span>
+                <span>Kết quả phân loại tự động (PhoBERT)</span>
                 <span class="badge {% if badge_info.color_class == 'success' %}badge-ai-green{% elif badge_info.color_class == 'warning' %}badge-ai-yellow{% else %}badge-ai-red{% endif %}">
                     Độ tin cậy: {{ "%.1f"|format(hoso.doTinCayAI or 0) }}%
                 </span>
             </div>
             <div class="card-body small">
                 <div class="mb-2">
-                    <span class="text-muted">Lĩnh vực dự đoán (PhoBERT):</span>
+                    <span class="text-muted">Lĩnh vực dự đoán:</span>
                     <strong class="ms-1 text-dark">[{{ hoso.maCodeLVAI }}] {{ hoso.tenLinhVucAI }}</strong>
                 </div>
                 {% if hoso.nhomCongTrinhAI %}
@@ -212,13 +212,13 @@
                 </div>
                 {% endif %}
                 <div class="mb-3 text-muted" style="font-size: 0.78rem;">
-                    Đối chứng Baseline TF-IDF + SVM: {{ hoso.tenLinhVucSVM or 'Chưa có' }} ({{ "%.1f"|format(hoso.doTinCaySVM or 0) }}%) ·
-                    <a href="{{ url_for('ai_center') }}" class="text-decoration-none">Xem thực nghiệm đối sánh</a>
+                    Mô hình đối chứng (TF-IDF + SVM): {{ hoso.tenLinhVucSVM or 'Chưa có' }} ({{ "%.1f"|format(hoso.doTinCaySVM or 0) }}%) ·
+                    <a href="{{ url_for('ai_center') }}" class="text-decoration-none">Xem bảng so sánh</a>
                 </div>
 
                 {% if hoso.maLinhVuc != hoso.maLinhVucAI %}
                 <div class="alert alert-warning py-2 px-3 small mb-3">
-                    <strong>Lệch lĩnh vực:</strong> Tác giả đăng ký <em>"{{ hoso.tenLinhVuc }}"</em> nhưng mô hình PhoBERT dự đoán <em>"{{ hoso.tenLinhVucAI }}"</em>.
+                    <strong>Lệch lĩnh vực:</strong> Khai báo <em>"{{ hoso.tenLinhVuc }}"</em> nhưng hệ thống dự đoán <em>"{{ hoso.tenLinhVucAI }}"</em>.
                 </div>
                 {% endif %}
 
@@ -273,9 +273,9 @@
                 <table class="table table-sm table-bordered text-center mb-3">
                     <thead>
                         <tr>
-                            <th>Tổng hợp</th>
-                            <th>Isolation Forest</th>
-                            <th>PyTorch AE (MSE)</th>
+                            <th>Điểm tổng hợp</th>
+                            <th>Điểm cô lập</th>
+                            <th>Sai số tái tạo</th>
                             <th>Độ tương đồng</th>
                         </tr>
                     </thead>

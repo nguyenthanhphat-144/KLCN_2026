@@ -4,10 +4,10 @@
 {% block content %}
 <div class="mb-3">
     <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
-        Quản Lý Danh Mục Hệ Thống (4 Danh Mục Chuẩn Hóa)
+        Quản Lý Danh Mục Hệ Thống
     </h5>
     <p class="text-muted small mb-0">
-        Quản trị đầy đủ (Thêm mới, Cập nhật, Vô hiệu hóa/Kích hoạt) cho Danh mục Lĩnh vực, Loại công trình, Tạp chí/Hội thảo và Danh mục Tác giả
+        Thêm mới, chỉnh sửa và ẩn/hiện danh mục lĩnh vực, loại công trình, tạp chí và tác giả
     </p>
 </div>
 
@@ -43,7 +43,7 @@
                     <table class="table table-sm table-bordered table-hover align-middle mb-0 small">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>STT</th>
                                 <th>Mã</th>
                                 <th>Tên lĩnh vực</th>
                                 <th>Mô tả phạm vi</th>
@@ -224,7 +224,7 @@
                         <input type="text" name="tenTapChi" class="form-control form-control-sm" placeholder="Tên tạp chí..." required>
                     </div>
                     <div class="col-md-2">
-                        <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="ISSN" required>
+                        <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="Mã ấn phẩm" required>
                     </div>
                     <div class="col-md-2">
                         <input type="text" name="xepHang" class="form-control form-control-sm" placeholder="Xếp hạng" value="HĐGSNN">
@@ -246,7 +246,7 @@
                         <thead>
                             <tr>
                                 <th>Tên tạp chí / Hội thảo</th>
-                                <th>ISSN</th>
+                                <th>Mã ấn phẩm</th>
                                 <th>Xếp hạng</th>
                                 <th class="text-center">Trạng thái</th>
                                 {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 110px;">Thao tác</th>{% endif %}
@@ -344,7 +344,7 @@
                         <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Họ và tên tác giả..." required>
                     </div>
                     <div class="col-md-2">
-                        <input type="email" name="email" class="form-control form-control-sm" placeholder="Email học thuật...">
+                        <input type="email" name="email" class="form-control form-control-sm" placeholder="Thư điện tử...">
                     </div>
                     <div class="col-md-2">
                         <input type="text" name="donViCongTac" class="form-control form-control-sm" placeholder="Khoa / Viện công tác..." required>
@@ -368,10 +368,10 @@
                             <tr>
                                 <th>Mã TG</th>
                                 <th>Học hàm / Họ tên</th>
-                                <th>Email</th>
+                                <th>Thư điện tử</th>
                                 <th>Đơn vị công tác</th>
                                 <th>Lĩnh vực chuyên môn chính</th>
-                                <th>ORCID</th>
+                                <th>Mã định danh</th>
                                 <th class="text-center">Số hồ sơ</th>
                                 <th class="text-center">Trạng thái</th>
                                 {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 120px;">Thao tác</th>{% endif %}

@@ -829,9 +829,9 @@ def run_tfidf_svm_standalone(train_records=None, test_records=None) -> dict:
     m = _compute_classification_metrics(y_test_field, y_pred_field, y_test_wt, y_pred_wt)
     return {
         "model_key": "tfidf_svm",
-        "model_name": "Mô hình Cơ sở: TF-IDF + Học máy SVM (LinearSVC)",
-        "short_name": "TF-IDF + LinearSVC",
-        "architecture": "TfidfVectorizer (ngram 1..2, max_features=5000, sublinear_tf) + LinearSVC (C=1.0, Platt Scaling)",
+        "model_name": "Mô hình cơ sở: TF-IDF kết hợp SVM",
+        "short_name": "TF-IDF + SVM",
+        "architecture": "Biểu diễn trọng số từ ghép (1-2 từ) kết hợp máy véc-tơ hỗ trợ tuyến tính",
         **m,
         "train_time_ms": train_time_ms,
         "infer_time_ms": infer_time_ms,
@@ -903,12 +903,9 @@ def run_phobert_standalone(train_records=None, test_records=None, force_retrain:
     m = _compute_classification_metrics(y_test_field, y_pred_field, y_test_wt, y_pred_wt)
     return {
         "model_key": "phobert",
-        "model_name": "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt (vinai/phobert-base)",
-        "short_name": "Fine-tuning PhoBERT",
-        "architecture": (
-            f"PyTorch vinai/phobert-base ({HYPERPARAMETERS['frozen_lower_layers']}; "
-            f"{HYPERPARAMETERS['trainable_upper_layers']}; AdamW)"
-        ),
+        "model_name": "Mô hình học sâu: Tinh chỉnh PhoBERT tiếng Việt",
+        "short_name": "Tinh chỉnh PhoBERT",
+        "architecture": "Mạng ngôn ngữ tiếng Việt 12 tầng biến đổi (tinh chỉnh tầng trên cùng và hai nhánh phân loại)",
         **m,
         "train_time_ms": train_time_ms,
         "infer_time_ms": infer_time_ms,
@@ -988,7 +985,7 @@ def evaluate_manual_vs_automated_classification(test_records, svm_res: dict, pho
 
     return {
         "manual_baseline": {
-            "method_name": "Phân loại thủ công (Rà soát & đối chiếu danh mục bằng mắt thường)",
+            "method_name": "Phân loại thủ công (Rà soát trực tiếp)",
             "precision": manual_m["precision"],
             "recall": manual_m["recall"],
             "f1_score": manual_m["f1_score"],
@@ -996,10 +993,10 @@ def evaluate_manual_vs_automated_classification(test_records, svm_res: dict, pho
             "work_type_f1": manual_m["work_type_f1"],
             "avg_time_sec": manual_sec_per_record,
             "batch_60_time_min": round((manual_sec_per_record * total_test) / 60.0, 1),
-            "consistency_note": "Phụ thuộc chủ quan người duyệt; dễ nhầm lẫn ở các hồ sơ liên ngành có nhiều thuật ngữ miền ứng dụng.",
+            "consistency_note": "Phụ thuộc chủ quan người duyệt, dễ nhầm ở hồ sơ liên ngành.",
         },
         "tfidf_svm_auto": {
-            "method_name": "Tự động: TF-IDF + LinearSVC (Baseline học máy)",
+            "method_name": "Tự động: Mô hình TF-IDF + SVM",
             "precision": svm_res["precision"],
             "recall": svm_res["recall"],
             "f1_score": svm_res["f1_score"],
@@ -1008,10 +1005,10 @@ def evaluate_manual_vs_automated_classification(test_records, svm_res: dict, pho
             "avg_time_ms": svm_res["infer_time_ms"],
             "avg_time_sec": svm_sec_per_record,
             "batch_60_time_sec": round((svm_res["infer_time_ms"] * total_test) / 1000.0, 3),
-            "consistency_note": "Nhất quán 100% theo tần suất từ, nhưng chưa hiểu cấu trúc ngữ cảnh câu phức liên ngành.",
+            "consistency_note": "Nhất quán theo tần suất từ nhưng hạn chế với câu dài đa nghĩa.",
         },
         "phobert_auto": {
-            "method_name": "Tự động: Fine-tuning PhoBERT (Mô hình chính PyTorch)",
+            "method_name": "Tự động: Tinh chỉnh PhoBERT (Mô hình chính)",
             "precision": phobert_res["precision"],
             "recall": phobert_res["recall"],
             "f1_score": phobert_res["f1_score"],
@@ -1022,7 +1019,7 @@ def evaluate_manual_vs_automated_classification(test_records, svm_res: dict, pho
             "batch_60_time_sec": round((phobert_res["infer_time_ms"] * total_test) / 1000.0, 2),
             "speedup_factor_vs_manual": speedup_vs_manual,
             "delta_f1_vs_manual": round(phobert_res["f1_score"] - manual_m["f1_score"], 2),
-            "consistency_note": "Nhất quán 100%, hiểu ngữ cảnh hai chiều tiếng Việt và kèm xác suất độ tin cậy hỗ trợ cán bộ xét duyệt.",
+            "consistency_note": "Nhất quán, hiểu ngữ cảnh hai chiều tiếng Việt và kèm độ tin cậy.",
         },
     }
 
@@ -1071,27 +1068,15 @@ def run_full_comparison_and_select_winner(force_retrain_phobert: bool = True) ->
 
     selection_reasons = [
         (
-            f"Độ chính xác F1-score thực nghiệm cao nhất trên cùng tập kiểm thử độc lập (60 mẫu, cùng một hàm đầu vào công bằng): "
-            f"{winner['short_name']} đạt Macro F1-score {winner['f1_score']}% (Precision {winner['precision']}%, Recall {winner['recall']}%), "
-            f"cao hơn +{delta_f1}% so với {runner_up['short_name']} ({runner_up['f1_score']}%), đồng thời phân loại Nhóm loại công trình đạt F1 {winner['work_type_f1']}%."
+            f"Đạt điểm F1 cao nhất trên 60 mẫu kiểm thử độc lập: {winner['f1_score']}% "
+            f"(cao hơn +{delta_f1}% so với {runner_up['short_name']}) và phân loại đúng {winner['work_type_f1']}% nhóm loại hình."
         ),
         (
-            "Xử lý hiệu quả hồ sơ KH&CN liên ngành (Interdisciplinary Records): Mô hình túi từ TF-IDF + LinearSVC cộng tuyến tính trọng số từ đơn/từ đôi "
-            "nên dễ bị kéo lệch khi phần mô tả miền ứng dụng chứa nhiều thuật ngữ ngành khác hơn mệnh đề phương pháp cốt lõi; "
-            "trong khi cơ chế Self-Attention hai chiều của vinai/phobert-base nắm bắt đúng quan hệ cú pháp giữa phương pháp nghiên cứu và đối tượng ứng dụng."
+            "Hiểu ngữ cảnh hai chiều tiếng Việt, giúp phân biệt chính xác phương pháp cốt lõi và miền ứng dụng trong các hồ sơ liên ngành."
         ),
         (
-            "Tương thích bản ngữ tiếng Việt học thuật: Trọng số tiền huấn luyện vinai/phobert-base trên 20GB văn bản tiếng Việt kết hợp tách từ ghép PyVi "
-            "giúp biểu diễn ngữ nghĩa sâu các cụm thuật ngữ chuyên ngành dài ngay cả với tập dữ liệu quy mô cấp Trường (180 mẫu huấn luyện)."
-        ),
-        (
-            "Cung cấp phân bố xác suất Softmax đa nhiệm phục vụ trực tiếp quy trình xét duyệt: Đầu ra đồng thời dự đoán nhãn Lĩnh vực (6 lớp) và Nhóm loại công trình (3 nhóm) "
-            "kèm độ tin cậy (%), liên kết chặt chẽ với Chức năng 6 (tính độ lệch nhãn trong phát hiện bất thường)."
-        ),
-        (
-            f"Đáp ứng tốt thời gian phản hồi thực tế trên phần cứng CPU phổ thông (Intel Core i5-12450HX, 16GB RAM): "
-            f"Thời gian suy luận thực tế trung bình đạt {winner['infer_time_ms']} ms/hồ sơ — nhanh gấp ~{manual_cmp['phobert_auto']['speedup_factor_vs_manual']} lần "
-            f"so với rà soát phân loại thủ công (~135 giây/hồ sơ) và tăng +{manual_cmp['phobert_auto']['delta_f1_vs_manual']}% F1-score so với phân loại thủ công trên tập liên ngành."
+            f"Phản hồi nhanh ({winner['infer_time_ms']} ms/hồ sơ, nhanh gấp ~{manual_cmp['phobert_auto']['speedup_factor_vs_manual']} lần rà soát thủ công) "
+            "và trả về độ tin cậy hỗ trợ cán bộ xét duyệt."
         ),
     ]
 

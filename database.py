@@ -399,7 +399,7 @@ def seed_initial_data(conn):
 
     # 1. Seed NguoiDung (Mật khẩu mặc định được hash bảo mật bằng Werkzeug)
     users = [
-        ("PGS.TS. Trần Quốc Bảo (Admin)", "admin@uni.edu.vn", generate_password_hash("Admin@123"), "Admin", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
+        ("PGS.TS. Trần Quốc Bảo (Quản trị viên)", "admin@uni.edu.vn", generate_password_hash("Admin@123"), "Admin", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
         ("TS. Nguyễn Minh Tâm (Cán bộ duyệt)", "canbo@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Hội đồng KH&CN Trường", "TS."),
         ("PGS.TS. Lê Hoàng Việt (Cán bộ duyệt)", "vietlh@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
         ("TS. Phạm Văn Khoa (Giảng viên CNTT)", "tacgia@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Công nghệ Thông tin", "TS."),
@@ -462,9 +462,9 @@ def seed_initial_data(conn):
         ("Journal of Asian Economics & Management", "1049-0078", "Scopus Q2 / HĐGSNN", 4, 1),
         ("Journal of Cleaner Production & Environmental Tech", "0959-6526", "ISI-Q1 / Scopus Q1", 5, 1),
         ("Tạp chí Khoa học Giáo dục Việt Nam", "2615-8957", "HĐGSNN (0.75 điểm)", 6, 1),
-        ("Hội đồng Nghiệm thu Đề tài KH&CN Cấp Trường / Cấp Bộ", "COUNCIL-VN", "Quyết định nghiệm thu", 1, 1),
-        ("Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)", "9999-001X", "Ngoài danh mục / Predatory", 1, 0),
-        ("Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)", "8888-404X", "Discontinued / Không uy tín", 4, 0),
+        ("Hội đồng Nghiệm thu Đề tài KH&CN Cấp Trường / Cấp Bộ", "HDNT-VN", "Quyết định nghiệm thu", 1, 1),
+        ("Tạp chí Đa ngành Quốc tế Chưa Kiểm Định (Cảnh báo)", "9999-001X", "Ngoài danh mục uy tín", 1, 0),
+        ("Tạp chí Công bố Nhanh Đã Ngừng Chỉ Mục", "8888-404X", "Ngừng chỉ mục / Không uy tín", 4, 0),
     ]
     cur.executemany("""
         INSERT INTO TapChiHopLe (tenTapChi, chiSoISSN, xepHang, maLinhVuc, uyTin)
@@ -634,17 +634,17 @@ def seed_sample_records_with_ai(conn):
         ))
 
     lich_su = [
-        ("HS-2026-0001", 4, "Khởi tạo", "Chờ xét duyệt", "Tác giả nộp hồ sơ KH&CN mới lên hệ thống kèm minh chứng toàn văn PDF."),
-        ("HS-2026-0001", 2, "Chờ xét duyệt", "Đang xét duyệt", "Cán bộ tiếp nhận thẩm định; kiểm tra nhãn AI PhoBERT gợi ý khớp 100% với chuyên ngành CNTT."),
-        ("HS-2026-0001", 2, "Đang xét duyệt", "Đã duyệt", "Hồ sơ hợp lệ, bài báo đăng trên tạp chí ISI/Scopus Q1 uy tín, đủ điều kiện công nhận giờ chuẩn NCKH."),
-        ("HS-2026-0004", 5, "Khởi tạo", "Chờ xét duyệt", "Tác giả nộp hồ sơ bài báo quốc tế Scopus Q2."),
-        ("HS-2026-0004", 3, "Chờ xét duyệt", "Đã duyệt", "Đã kiểm tra chỉ số ISSN và xác nhận nhãn lĩnh vực Kinh tế & Quản trị kinh doanh do AI đề xuất."),
+        ("HS-2026-0001", 4, "Khởi tạo", "Chờ xét duyệt", "Tác giả nộp hồ sơ mới lên hệ thống kèm tệp minh chứng toàn văn."),
+        ("HS-2026-0001", 2, "Chờ xét duyệt", "Đang xét duyệt", "Cán bộ tiếp nhận thẩm định; nhãn gợi ý tự động khớp 100% với chuyên ngành CNTT."),
+        ("HS-2026-0001", 2, "Đang xét duyệt", "Đã duyệt", "Hồ sơ hợp lệ, công bố trên tạp chí quốc tế uy tín, đủ điều kiện công nhận giờ chuẩn NCKH."),
+        ("HS-2026-0004", 5, "Khởi tạo", "Chờ xét duyệt", "Tác giả nộp hồ sơ bài báo khoa học quốc tế."),
+        ("HS-2026-0004", 3, "Chờ xét duyệt", "Đã duyệt", "Đã đối chiếu mã chuẩn ấn phẩm và xác nhận lĩnh vực Kinh tế, Quản trị kinh doanh và Tài chính."),
         ("HS-2026-0005", 5, "Khởi tạo", "Chờ xét duyệt", "Nộp hồ sơ bài báo nghiên cứu nhận diện khuôn mặt."),
-        ("HS-2026-0005", 2, "Chờ xét duyệt", "Đang xét duyệt", "Hệ thống AI cảnh báo tạp chí thuộc danh sách Predatory (9999-001X) và lệch lịch sử lĩnh vực của tác giả trên đồ thị NetworkX. Đang yêu cầu giải trình."),
+        ("HS-2026-0005", 2, "Chờ xét duyệt", "Đang xét duyệt", "Hệ thống cảnh báo tạp chí thuộc diện ngừng chỉ mục (9999-001X) và khác biệt hướng nghiên cứu trước đây của tác giả. Đang yêu cầu giải trình."),
         ("HS-2026-0006", 8, "Khởi tạo", "Chờ xét duyệt", "Khai báo bài báo quốc tế chuyên ngành Cơ khí chế tạo máy."),
-        ("HS-2026-0006", 3, "Chờ xét duyệt", "Đang xét duyệt", "Đã xác nhận nhãn AI (Kỹ thuật Cơ khí). Đang chờ Hội đồng khoa xác minh minh chứng bản in."),
+        ("HS-2026-0006", 3, "Chờ xét duyệt", "Đang xét duyệt", "Đã xác nhận nhãn lĩnh vực Kỹ thuật Cơ khí. Đang chờ Hội đồng khoa xác minh minh chứng."),
         ("HS-2026-0008", 4, "Khởi tạo", "Chờ xét duyệt", "Khai báo đề tài cấp Trường."),
-        ("HS-2026-0008", 2, "Chờ xét duyệt", "Từ chối", "Từ chối phê duyệt: Mô-đun Isolation Forest & Cosine Similarity phát hiện nội dung tóm tắt trùng lặp trên 80% với công trình HS-2026-0001."),
+        ("HS-2026-0008", 2, "Chờ xét duyệt", "Từ chối", "Từ chối phê duyệt: Phát hiện nội dung tóm tắt trùng lặp mức cao với hồ sơ HS-2026-0001."),
         ("HS-2026-0009", 4, "Khởi tạo", "Chờ xét duyệt", "Khai báo bài báo Tạp chí Khoa học Giáo dục Việt Nam."),
         ("HS-2026-0009", 3, "Chờ xét duyệt", "Đã duyệt", "Hồ sơ đầy đủ minh chứng, thuộc danh mục HĐGSNN 0.75 điểm, phê duyệt."),
     ]
@@ -657,7 +657,7 @@ def seed_sample_records_with_ai(conn):
     for r in cur.fetchall():
         cur.execute("""
             INSERT INTO PhanHoiAI (maHoSo, maCanBo, maLinhVucAI, maLinhVucThucTe, doTinCayLucDo, ketQuaKhop, vanBanHuanLuyen, ghiChuPhanHoi)
-            VALUES (?, 2, ?, ?, ?, 1, ?, 'Cán bộ xác nhận nhãn do PhoBERT dự đoán hoàn toàn chính xác.')
+            VALUES (?, 2, ?, ?, ?, 1, ?, 'Cán bộ xác nhận nhãn lĩnh vực dự đoán tự động là chính xác.')
         """, (r["maHoSo"], r["maLinhVucAI"], r["maLinhVuc"], r["doTinCayAI"], r["vanBanDaTachTu"]))
 
     conn.commit()

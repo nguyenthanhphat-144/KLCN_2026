@@ -48,9 +48,16 @@ def login_required(f):
     return decorated_function
 
 
+ROLE_DISPLAY_VN = {
+    "Admin": "Quản trị viên",
+    "CanBo": "Cán bộ xét duyệt",
+    "TacGia": "Tác giả",
+}
+
+
 def role_required(*allowed_roles):
     """
-    Decorator kiểm tra vai trò người dùng (RBAC - Tuần 4 Mục 1b):
+    Decorator kiểm tra vai trò người dùng:
     Ngăn chặn Cán bộ xét duyệt hoặc Tác giả truy cập các phân hệ quản trị nhạy cảm
     hoặc thao tác xóa vĩnh viễn dữ liệu.
     """
@@ -62,9 +69,10 @@ def role_required(*allowed_roles):
                 return redirect(url_for("login"))
             user_role = session.get("vai_tro")
             if user_role not in allowed_roles:
+                role_vn = ROLE_DISPLAY_VN.get(user_role, user_role or "")
+                req_vn = ", ".join(ROLE_DISPLAY_VN.get(r, r) for r in allowed_roles)
                 flash(
-                    f"Từ chối truy cập (RBAC): Vai trò '{user_role}' không có quyền thực hiện thao tác này. "
-                    f"Yêu cầu quyền: {', '.join(allowed_roles)}.",
+                    f"Từ chối truy cập: Vai trò '{role_vn}' không có quyền thực hiện thao tác này (yêu cầu quyền: {req_vn}).",
                     "danger"
                 )
                 return redirect(url_for("dashboard"))
@@ -133,7 +141,7 @@ def login():
         conn.close()
 
         if user is None:
-            flash("Email không tồn tại trong hệ thống.", "danger")
+            flash("Địa chỉ thư điện tử không tồn tại trong hệ thống.", "danger")
         elif user["trangThai"] == 0:
             flash("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Quản trị viên.", "danger")
         else:
@@ -166,7 +174,8 @@ def login():
                 session["vai_tro"] = user["vaiTro"]
                 session["don_vi"] = user["donViCongTac"]
                 session["hoc_vi"] = user["hocHamHocVi"]
-                flash(f"Chào mừng {user['hoTen']} ({user['vaiTro']}) đã đăng nhập thành công!", "success")
+                role_vn = ROLE_DISPLAY_VN.get(user["vaiTro"], user["vaiTro"])
+                flash(f"Đăng nhập thành công ({role_vn}).", "success")
                 return redirect(url_for("dashboard"))
 
     return render_template("login.html")
@@ -636,7 +645,7 @@ def hoso_create():
 
         flash(
             f"Đã thêm mới hồ sơ {ma_ho_so} (Trạng thái: Chờ xét duyệt). "
-            f"Mô-đun AI PhoBERT gợi ý phân loại với độ tin cậy {pred['phobert_confidence']}%.",
+            f"Độ tin cậy gợi ý phân loại tự động: {pred['phobert_confidence']}%.",
             "success"
         )
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
@@ -756,9 +765,9 @@ def hoso_edit(ma_ho_so):
         ai_engine.build_networkx_graph_and_detect_anomalies(conn)
         conn.close()
         if hoso["trangThai"] == "Yêu cầu bổ sung":
-            flash(f"Đã cập nhật hồ sơ {ma_ho_so} và chuyển trạng thái về 'Chờ xét duyệt' để Cán bộ thẩm định lại.", "success")
+            flash(f"Đã cập nhật hồ sơ {ma_ho_so} và chuyển trạng thái về 'Chờ xét duyệt' để thẩm định lại.", "success")
         else:
-            flash(f"Đã cập nhật thông tin hồ sơ {ma_ho_so} và phân tích lại bằng AI.", "success")
+            flash(f"Đã cập nhật thông tin hồ sơ {ma_ho_so} và phân tích lại tự động.", "success")
         return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
     cur.execute("SELECT * FROM LinhVuc WHERE trangThai = 1 ORDER BY maLinhVuc")
@@ -785,7 +794,7 @@ def hoso_edit(ma_ho_so):
 @app.route("/hoso/<ma_ho_so>/soft-delete", methods=["POST"])
 @login_required
 def hoso_soft_delete(ma_ho_so):
-    """Tuần 4 - Mục 2c: Xóa mềm (Soft Delete) hồ sơ khi ở trạng thái chờ duyệt."""
+    """Chuyển hồ sơ vào thùng rác khi ở trạng thái chờ duyệt."""
     conn = get_db_connection()
     hoso = conn.execute("SELECT * FROM HoSoKHCN WHERE maHoSo = ?", (ma_ho_so,)).fetchone()
     if not hoso:
@@ -796,28 +805,25 @@ def hoso_soft_delete(ma_ho_so):
     if session.get("vai_tro") != "Admin":
         if hoso["trangThai"] != "Chờ xét duyệt" or hoso["maNguoiNop"] != session.get("user_id"):
             conn.close()
-            flash("Bạn chỉ được phép xóa mềm hồ sơ của mình khi đang ở trạng thái 'Chờ xét duyệt'.", "danger")
+            flash("Bạn chỉ được phép xóa tạm thời hồ sơ của mình khi đang ở trạng thái 'Chờ xét duyệt'.", "danger")
             return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
     conn.execute("UPDATE HoSoKHCN SET isDeleted = 1 WHERE maHoSo = ?", (ma_ho_so,))
     conn.commit()
     conn.close()
-    flash(f"Đã chuyển hồ sơ {ma_ho_so} vào thùng rác (Xóa mềm).", "info")
+    flash(f"Đã chuyển hồ sơ {ma_ho_so} vào thùng rác.", "info")
     return redirect(url_for("hoso_list"))
 
 
 @app.route("/hoso/<ma_ho_so>/hard-delete", methods=["POST"])
 @role_required("Admin")
 def hoso_hard_delete(ma_ho_so):
-    """
-    Tuần 4 - Mục 1b & 2c: Xóa cứng (Hard Delete) vĩnh viễn dữ liệu.
-    Được bảo vệ bởi Decorator @role_required('Admin') ngăn chặn Cán bộ xét duyệt và Tác giả.
-    """
+    """Xóa vĩnh viễn dữ liệu hồ sơ (chỉ dành cho Quản trị viên)."""
     conn = get_db_connection()
     conn.execute("DELETE FROM HoSoKHCN WHERE maHoSo = ?", (ma_ho_so,))
     conn.commit()
     conn.close()
-    flash(f"Quản trị viên đã xóa vĩnh viễn (Hard Delete) hồ sơ {ma_ho_so} khỏi CSDL.", "warning")
+    flash(f"Đã xóa vĩnh viễn hồ sơ {ma_ho_so} khỏi hệ thống.", "warning")
     return redirect(url_for("hoso_list"))
 
 
@@ -976,7 +982,7 @@ def hoso_review_action(ma_ho_so):
     conn.close()
 
     flash(
-        f"Đã cập nhật trạng thái hồ sơ {ma_ho_so} từ '{trang_thai_cu}' sang '{trang_thai_moi}' và ghi nhận vào LichSuXetDuyet.",
+        f"Đã cập nhật trạng thái hồ sơ {ma_ho_so} từ '{trang_thai_cu}' sang '{trang_thai_moi}'.",
         "success"
     )
     return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
@@ -985,11 +991,8 @@ def hoso_review_action(ma_ho_so):
 @app.route("/hoso/<ma_ho_so>/dismiss-warning", methods=["POST"])
 @role_required("Admin", "CanBo")
 def hoso_dismiss_warning(ma_ho_so):
-    """
-    Nghiệp vụ 6 - Bước 5b: Bỏ qua cảnh báo bất thường (Xử lý Báo động giả - False Alarm).
-    Cán bộ xét duyệt xác định hồ sơ hợp lệ, giải trừ cờ coCanhBao = 0 và ghi nhận vào Lịch sử xét duyệt.
-    """
-    ly_do = request.form.get("lyDoBoQua", "Cán bộ xét duyệt đã thẩm định hồ sơ thực tế và xác định cảnh báo của AI là báo động giả (False Alarm).").strip()
+    """Bỏ qua cảnh báo bất thường sau khi cán bộ thẩm định thực tế."""
+    ly_do = request.form.get("lyDoBoQua", "Cán bộ xét duyệt đã thẩm định thực tế và xác nhận hồ sơ hợp lệ.").strip()
     conn = get_db_connection()
     cur = conn.cursor()
     hoso = cur.execute("SELECT coCanhBao, diemBatThuong FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0", (ma_ho_so,)).fetchone()
@@ -1007,7 +1010,7 @@ def hoso_dismiss_warning(ma_ho_so):
     cur.execute("""
         INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
         VALUES (?, ?, ?, ?, ?)
-    """, (ma_ho_so, session["user_id"], "Cảnh báo bất thường", "Đã giải trừ cảnh báo", f"Bỏ qua cảnh báo AI: {ly_do}"))
+    """, (ma_ho_so, session["user_id"], "Cảnh báo bất thường", "Đã giải trừ cảnh báo", f"Bỏ qua cảnh báo: {ly_do}"))
 
     conn.commit()
     conn.close()
@@ -1018,13 +1021,7 @@ def hoso_dismiss_warning(ma_ho_so):
 @app.route("/hoso/<ma_ho_so>/ai-feedback", methods=["POST"])
 @role_required("Admin", "CanBo")
 def hoso_ai_feedback(ma_ho_so):
-    """
-    Tuần 6 - Mục 2d: Cơ chế phản hồi nhãn phân loại AI (Feedback Loop).
-    - Cán bộ nhấn nút 'Xác nhận nhãn AI' nếu dự đoán chính xác
-    - Hoặc chọn 'Điều chỉnh' và chọn lại nhãn đúng từ danh sách danh mục chuẩn của hệ thống
-    - Lưu cặp đối sánh (nhãn AI đề xuất vs nhãn thực tế cán bộ chỉnh sửa) vào bảng PhanHoiAI
-      để tiếp tục cập nhật và fine-tuning lại mô hình.
-    """
+    """Cơ chế xác nhận hoặc điều chỉnh lại nhãn phân loại tự động từ cán bộ xét duyệt."""
     action_type = request.form.get("actionType", "confirm")
     ghi_chu = request.form.get("ghiChuPhanHoi", "").strip()
 
@@ -1046,12 +1043,12 @@ def hoso_ai_feedback(ma_ho_so):
         ma_lv_thuc_te = ma_lv_ai
         ket_qua_khop = 1
         if not ghi_chu:
-            ghi_chu = "Cán bộ xét duyệt xác nhận nhãn lĩnh vực do AI (PhoBERT) đề xuất là chính xác."
+            ghi_chu = "Cán bộ xét duyệt xác nhận nhãn lĩnh vực dự đoán tự động là chính xác."
     else:
         ma_lv_thuc_te = int(request.form.get("maLinhVucThucTe", ma_lv_ai))
         ket_qua_khop = 1 if ma_lv_thuc_te == ma_lv_ai else 0
         if not ghi_chu:
-            ghi_chu = "Cán bộ xét duyệt điều chỉnh lại nhãn lĩnh vực chuẩn cho hồ sơ phục vụ tái huấn luyện (Fine-tuning)."
+            ghi_chu = "Cán bộ xét duyệt điều chỉnh lại nhãn lĩnh vực chuẩn phục vụ huấn luyện bổ sung."
 
     # Lưu vào bảng PhanHoiAI
     cur.execute("""
@@ -1063,7 +1060,7 @@ def hoso_ai_feedback(ma_ho_so):
         do_tin_cay, ket_qua_khop, van_ban_tach_tu, ghi_chu
     ))
 
-    # Cập nhật lĩnh vực (và loại công trình nếu cán bộ điều chỉnh) của hồ sơ, đánh dấu đã xác nhận AI
+    # Cập nhật lĩnh vực (và loại công trình nếu cán bộ điều chỉnh) của hồ sơ
     ma_loai_moi = request.form.get("maLoaiThucTe", "").strip()
     if ma_loai_moi:
         cur.execute("""
@@ -1079,15 +1076,14 @@ def hoso_ai_feedback(ma_ho_so):
         """, (ma_lv_thuc_te, ma_ho_so))
 
     conn.commit()
-    # Cập nhật lại mô hình và đồ thị bất thường với dữ liệu phản hồi mới
     ai_engine.train_and_evaluate(conn)
     ai_engine.build_networkx_graph_and_detect_anomalies(conn)
     conn.close()
 
     if ket_qua_khop == 1:
-        flash("Đã xác nhận kết quả phân loại AI! Dữ liệu đã được ghi nhận vào kho Feedback Loop.", "success")
+        flash("Đã xác nhận nhãn phân loại gợi ý và lưu phản hồi.", "success")
     else:
-        flash("Đã điều chỉnh nhãn phân loại thực tế và cập nhật vào kho dữ liệu học tăng cường của mô hình AI!", "info")
+        flash("Đã cập nhật nhãn phân loại thực tế và lưu dữ liệu học bổ sung.", "info")
 
     return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
@@ -1367,7 +1363,7 @@ def catalog_toggle_status(cat_type, item_id):
     conn.execute(f"UPDATE {tbl} SET trangThai = CASE WHEN trangThai = 1 THEN 0 ELSE 1 END WHERE {pk} = ?", (item_id,))
     conn.commit()
     conn.close()
-    flash("Đã cập nhật trạng thái hiển thị của danh mục (Bảo toàn toàn vẹn tham chiếu hồ sơ cũ).", "info")
+    flash("Đã cập nhật trạng thái hiển thị của danh mục.", "info")
     return redirect(url_for("catalog_management"))
 
 
@@ -1542,22 +1538,22 @@ def ai_retrain():
     if mode == "svm":
         svm_m = bench["svm_metrics"]
         flash(
-            f"Đã chạy riêng mô hình TF-IDF + LinearSVC trên bộ dữ liệu chuẩn 13 trường (180 Train / 60 Test): "
-            f"Precision = {svm_m['precision']}%, Recall = {svm_m['recall']}%, F1-score = {svm_m['f1_score']}% (Thời gian: {svm_m['infer_time_ms']} ms).",
+            f"Đã chạy mô hình TF-IDF + SVM (180 mẫu huấn luyện / 60 mẫu kiểm thử): "
+            f"Độ chuẩn xác = {svm_m['precision']}%, Độ phủ = {svm_m['recall']}%, Điểm F1 = {svm_m['f1_score']}% ({svm_m['infer_time_ms']} ms).",
             "info"
         )
     elif mode == "phobert":
         pho_m = bench["phobert_metrics"]
         flash(
-            f"Đã chạy riêng mô hình Fine-tuning PhoBERT (PyTorch) trên bộ dữ liệu chuẩn 13 trường (180 Train / 60 Test): "
-            f"Precision = {pho_m['precision']}%, Recall = {pho_m['recall']}%, F1-score = {pho_m['f1_score']}% (Thời gian: {pho_m['infer_time_ms']} ms).",
+            f"Đã chạy mô hình Tinh chỉnh PhoBERT (180 mẫu huấn luyện / 60 mẫu kiểm thử): "
+            f"Độ chuẩn xác = {pho_m['precision']}%, Độ phủ = {pho_m['recall']}%, Điểm F1 = {pho_m['f1_score']}% ({pho_m['infer_time_ms']} ms).",
             "success"
         )
     else:
         win = bench["selected_model"]
         flash(
-            f"Đã đối sánh công bằng 2 mô hình trên cùng bộ dữ liệu chuẩn 13 trường (240 mẫu). "
-            f"Mô hình tối ưu được chọn làm Mô hình chính của dự án: {win['model_name']} (F1-score đạt {win['f1_score']}%, chênh lệch {win['delta_f1']:+.2f}% so với TF-IDF + SVM).",
+            f"Đã so sánh hai mô hình trên 240 mẫu chuẩn. "
+            f"Mô hình chính được chọn: {win['short_name']} (Điểm F1 đạt {win['f1_score']}%, cao hơn {win['delta_f1']:+.2f}%).",
             "success"
         )
     return redirect(url_for("ai_center"))
@@ -1578,7 +1574,7 @@ def download_training_dataset():
 
 
 # =============================================================================
-# QUẢN TRỊ NGƯỜI DÙNG & PHÂN QUYỀN RBAC (CHỈ ADMIN)
+# QUẢN TRỊ NGƯỜI DÙNG & PHÂN QUYỀN (CHỈ QUẢN TRỊ VIÊN)
 # =============================================================================
 @app.route("/quan-tri/nguoi-dung", methods=["GET", "POST"])
 @role_required("Admin")
@@ -1601,15 +1597,16 @@ def user_management():
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, (ho_ten, email, generate_password_hash(mat_khau), vai_tro, don_vi, hoc_vi))
                 conn.commit()
-                flash(f"Đã tạo tài khoản '{ho_ten}' với vai trò '{vai_tro}'.", "success")
+                role_vn = ROLE_DISPLAY_VN.get(vai_tro, vai_tro)
+                flash(f"Đã tạo tài khoản '{ho_ten}' với vai trò '{role_vn}'.", "success")
             except Exception as e:
-                flash(f"Lỗi tạo tài khoản (Email có thể đã tồn tại): {e}", "danger")
+                flash(f"Không thể tạo tài khoản (thư điện tử có thể đã tồn tại): {e}", "danger")
         elif action == "update_role":
             ma_nd = int(request.form.get("maNguoiDung"))
             vai_tro_moi = request.form.get("vaiTroMoi")
             cur.execute("UPDATE NguoiDung SET vaiTro = ? WHERE maNguoiDung = ?", (vai_tro_moi, ma_nd))
             conn.commit()
-            flash("Đã cập nhật phân quyền RBAC cho tài khoản.", "info")
+            flash("Đã cập nhật phân quyền cho tài khoản.", "info")
 
     cur.execute("SELECT * FROM NguoiDung ORDER BY maNguoiDung ASC")
     users = [dict(r) for r in cur.fetchall()]

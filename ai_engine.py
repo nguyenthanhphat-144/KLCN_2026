@@ -163,7 +163,7 @@ class KHCNAIEngine:
         self.metrics_comparison = []
         self.benchmark_summary = None
         self.last_experiment_mode = "both"
-        self.selected_primary_model = "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt (vinai/phobert-base)"
+        self.selected_primary_model = "Mô hình học sâu: Tinh chỉnh PhoBERT tiếng Việt"
         self.is_trained = False
 
     # =========================================================================
@@ -254,14 +254,13 @@ class KHCNAIEngine:
         sel_b = self.benchmark_summary["selected_model"]
 
         svm_role = (
-            "MÔ HÌNH CHÍNH (Primary Model)" if sel_b["model_key"] == "tfidf_svm"
-            else "Mô hình cơ sở (Baseline): Biểu diễn túi từ TF-IDF (ngram 1..2) + LinearSVC; dùng để đối sánh thực nghiệm."
+            "Mô hình chính của hệ thống" if sel_b["model_key"] == "tfidf_svm"
+            else "Mô hình cơ sở dùng để đối sánh thực nghiệm."
         )
         pho_role = (
-            f"MÔ HÌNH CHÍNH CỦA DỰ ÁN (Primary Model - PyTorch vinai/phobert-base): "
-            f"Đạt F1-score lĩnh vực {pho_b['f1_score']}% ({sel_b['delta_f1']:+.2f}% so với SVM) và F1 loại công trình {pho_b.get('work_type_f1', 0.0)}%."
+            f"Mô hình chính của hệ thống: Điểm F1 lĩnh vực đạt {pho_b['f1_score']}% (cao hơn +{sel_b['delta_f1']}% so với mô hình cơ sở)."
             if sel_b["model_key"] == "phobert"
-            else "Mô hình học sâu đối sánh (PyTorch vinai/phobert-base)."
+            else "Mô hình học sâu đối sánh."
         )
 
         self.metrics_comparison = [
@@ -551,19 +550,19 @@ class KHCNAIEngine:
         for r in rows:
             work_node = f"HS:{r['maHoSo']}"
             field_node = f"LV:{r['maLinhVuc']}"
-            G.add_node(work_node, type="HoSo", title=r["tieuDe"], field=r["maLinhVuc"])
-            G.add_node(field_node, type="LinhVuc", name=r.get("tenLinhVucKhaiBao", ""))
+            G.add_node(work_node, type="Hồ sơ", title=r["tieuDe"], field=r["maLinhVuc"])
+            G.add_node(field_node, type="Lĩnh vực", name=r.get("tenLinhVucKhaiBao", ""))
             G.add_edge(work_node, field_node, relation="thuoc_linh_vuc")
 
             if r.get("maTapChi"):
                 journal_node = f"TC:{r['maTapChi']}"
-                G.add_node(journal_node, type="TapChi", name=r.get("tenTapChi", ""), uyTin=r.get("tapChiUyTin", 1))
+                G.add_node(journal_node, type="Tạp chí", name=r.get("tenTapChi", ""), uyTin=r.get("tapChiUyTin", 1))
                 G.add_edge(work_node, journal_node, relation="cong_bo_tai")
 
             authors = [a.strip() for a in re.split(r"[,;-]", str(r.get("thongTinTacGia", ""))) if a.strip()]
-            main_author = authors[0] if authors else f"User_{r['maNguoiNop']}"
+            main_author = authors[0] if authors else f"Người nộp #{r['maNguoiNop']}"
             author_node = f"TG:{main_author}"
-            G.add_node(author_node, type="TacGia", name=main_author)
+            G.add_node(author_node, type="Tác giả", name=main_author)
             G.add_edge(author_node, work_node, relation="la_tac_gia")
             G.add_edge(author_node, field_node, relation="nghien_cuu_linh_vuc")
 
@@ -572,8 +571,8 @@ class KHCNAIEngine:
                     for idx_b in range(idx_a + 1, len(authors)):
                         node_a = f"TG:{authors[idx_a]}"
                         node_b = f"TG:{authors[idx_b]}"
-                        G.add_node(node_a, type="TacGia", name=authors[idx_a])
-                        G.add_node(node_b, type="TacGia", name=authors[idx_b])
+                        G.add_node(node_a, type="Tác giả", name=authors[idx_a])
+                        G.add_node(node_b, type="Tác giả", name=authors[idx_b])
                         G.add_edge(node_a, node_b, relation="dong_tac_gia")
 
             author_field_counts.setdefault(main_author, {})
@@ -615,7 +614,7 @@ class KHCNAIEngine:
             journal_risk = 1.0 if (r.get("tapChiUyTin") is not None and int(r.get("tapChiUyTin")) == 0) else 0.0
 
             authors = [a.strip() for a in re.split(r"[,;-]", str(r.get("thongTinTacGia", ""))) if a.strip()]
-            main_author = authors[0] if authors else f"User_{r['maNguoiNop']}"
+            main_author = authors[0] if authors else f"Người nộp #{r['maNguoiNop']}"
             af_map = author_field_counts.get(main_author, {})
             total_author_works = sum(af_map.values())
             author_field_ratio = af_map.get(r["maLinhVuc"], 0) / max(total_author_works, 1)
@@ -691,26 +690,23 @@ class KHCNAIEngine:
 
             if meta["label_mismatch"] > 0:
                 reasons.append(
-                    f"[Nghi vấn] Khai sai lĩnh vực chuyên ngành: Tác giả khai '{r.get('tenLinhVucKhaiBao')}' "
-                    f"nhưng AI (PhoBERT) phân tích nội dung thuộc '{r.get('tenLinhVucAI')}' ({float(r.get('doTinCayAI') or 0):.1f}%)."
+                    f"Lệch lĩnh vực đăng ký: Khai báo '{r.get('tenLinhVucKhaiBao')}' "
+                    f"nhưng nội dung thuộc '{r.get('tenLinhVucAI')}' ({float(r.get('doTinCayAI') or 0):.1f}%)."
                 )
 
             if meta["journal_risk"] > 0:
                 reasons.append(
-                    f"[Cảnh báo] Tạp chí không hợp lệ / ngoài danh mục: Công trình đăng tại '{r.get('tenTapChi')}' "
-                    f"thuộc danh sách cảnh báo Không uy tín / Ngừng chỉ mục."
+                    f"Tạp chí cần lưu ý: '{r.get('tenTapChi')}' thuộc danh sách ngừng chỉ mục hoặc không uy tín."
                 )
 
             if meta["max_sim"] >= 62.0:
                 reasons.append(
-                    f"[Nghi vấn] Trùng lặp nội dung nghiên cứu: Độ tương đồng văn bản Cosine đạt {meta['max_sim']}% "
-                    f"(ngưỡng >= 62.0%) so với hồ sơ {meta['most_sim_id']}."
+                    f"Nghi vấn trùng lặp nội dung: Mức tương đồng {meta['max_sim']}% với hồ sơ {meta['most_sim_id']}."
                 )
 
             if meta["graph_anomaly_feat"] >= 0.55:
                 reasons.append(
-                    f"[Cảnh báo] Dị biệt cấu trúc đồ thị NetworkX: Tác giả chuyển hướng sang chuyên ngành mới "
-                    f"không có liên kết đồng tác giả bổ trợ (Độ lệch đồ thị: {int(meta['graph_anomaly_feat'] * 100)}%)."
+                    "Khác biệt hướng nghiên cứu: Tác giả đăng ký lĩnh vực mới chưa có công trình hoặc đồng tác giả liên quan."
                 )
 
             rule_severity = min(
@@ -721,7 +717,7 @@ class KHCNAIEngine:
                 + (0.30 if meta["graph_anomaly_feat"] >= 0.55 else 0.0),
             )
 
-            # Tổ hợp tuyến tính minh bạch giữa Isolation Forest (35%), PyTorch Autoencoder (35%) và Chỉ báo Đồ thị/Quy tắc (30%)
+            # Tổ hợp tuyến tính minh bạch giữa Rừng cô lập (35%), Mạng tự mã hóa (35%) và Chỉ báo đồ thị/quy tắc (30%)
             composite_score = round(
                 min(0.99, 0.35 * float(norm_if[idx]) + 0.35 * float(norm_ae[idx]) + 0.30 * rule_severity),
                 2,
@@ -763,28 +759,28 @@ class KHCNAIEngine:
 
         self.anomaly_models_metrics = [
             {
-                "name": "Isolation Forest (scikit-learn Ensemble iTrees)",
-                "type": "Học máy không giám sát (Rừng cây cô lập)",
+                "name": "Mô hình Rừng cô lập",
+                "type": "Học máy không giám sát",
                 "mechanism": "Phân hoạch không gian đặc trưng 6 chiều bằng cây nhị phân ngẫu nhiên",
-                "criterion": "Độ sâu đường đi cô lập trung bình E(h(x))",
-                "hyperparams": "n_estimators=100, contamination=0.25, random_state=42",
+                "criterion": "Độ sâu đường đi cô lập trung bình",
+                "hyperparams": "100 cây cô lập, tỷ lệ nhiễu 25%",
                 "outlier_rate": f"{round((anomaly_count / max(len(rows), 1)) * 100, 1)}%",
                 "avg_score": round(float(np.mean(norm_if)), 3),
                 "time_ms": if_time_ms,
-                "status": "Thực thi thực tế (Active)",
-                "advantage": "Độ phức tạp O(n log n), phát hiện nhanh các điểm ngoại lai tách biệt trong không gian đặc trưng.",
+                "status": "Đang hoạt động",
+                "advantage": "Phát hiện nhanh các điểm dị biệt tách rời trong không gian đặc trưng.",
             },
             {
-                "name": "PyTorch Autoencoder (torch.nn.Module Bottleneck)",
-                "type": "Học sâu Tự giám sát (PyTorch Neural Autoencoder)",
-                "mechanism": "Nén phi tuyến qua tầng Bottleneck 4 chiều rồi giải mã tái tạo vector 6 chiều",
-                "criterion": "Sai số tái tạo MSELoss = (1/d) sum((x - x_hat)^2)",
-                "hyperparams": "PyTorch Layers: [6 -> 16 -> 4 -> 16 -> 6], ReLU/Sigmoid, Adam(lr=0.015), 250 epochs",
+                "name": "Mạng nơ-ron Tự mã hóa",
+                "type": "Học sâu tự giám sát",
+                "mechanism": "Nén phi tuyến qua tầng thắt cổ chai 4 chiều rồi tái tạo đặc trưng 6 chiều",
+                "criterion": "Sai số bình phương trung bình tái tạo",
+                "hyperparams": "Cấu trúc tầng [6 -> 16 -> 4 -> 16 -> 6], 250 vòng huấn luyện",
                 "outlier_rate": f"{round((anomaly_count / max(len(rows), 1)) * 100, 1)}%",
                 "avg_score": round(float(np.mean(ae_mse_errors)), 4),
                 "time_ms": ae_time_ms,
-                "status": "Thực thi thực tế (Active)",
-                "advantage": "Học được tương quan phi tuyến giữa độ lệch nhãn AI, uy tín tạp chí và cấu trúc đồ thị đồng tác giả.",
+                "status": "Đang hoạt động",
+                "advantage": "Nắm bắt tương quan phi tuyến giữa độ lệch lĩnh vực, tạp chí và mạng đồng tác giả.",
             },
         ]
 

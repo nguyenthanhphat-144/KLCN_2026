@@ -9,7 +9,7 @@ Dự án Khóa luận Tốt nghiệp triển khai đầy đủ theo đề cươn
 1. **Báo cáo Khóa luận Tốt nghiệp & Bộ dữ liệu chuẩn 13 trường**:
    - [`Bao_Cao_Khoa_Luan.docx`](Bao_Cao_Khoa_Luan.docx): Báo cáo Khóa luận Tốt nghiệp hoàn chỉnh được định dạng chuẩn theo mẫu `Mau bao cao_Do an_Khoa luan_2025.docx`.
    - [`docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx`](docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx): Bộ dữ liệu thực nghiệm chuẩn hóa dùng chung gồm 240 mẫu (180 Train / 60 Test độc lập theo chủ đề) với đầy đủ 13 trường dữ liệu đầu vào (gồm 3 sheet: Tập dữ liệu 240 mẫu, Thống kê phân bố dữ liệu, Bảng đối sánh thực nghiệm 2 mô hình & so sánh với phân loại thủ công).
-   - [`docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json`](docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json): Kết quả thống kê thực nghiệm đo thực tế giữa `TF-IDF + LinearSVC` (`F1 = 82.26%`), `Fine-tuning PhoBERT` (`F1 = 89.92%`) và phân loại thủ công (`F1 = 73.94%`).
+   - [`docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json`](docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json): Kết quả thống kê thực nghiệm đo thực tế giữa `TF-IDF + LinearSVC` (`F1 = 82.26%`), `Fine-tuning PhoBERT` (`F1 = 88.39%`) và phân loại thủ công (`F1 = 73.94%`).
 
 2. **Hệ thống Sơ đồ Vẽ Trực Tiếp cho Extension Draw.io trên VS Code — `diagrams/`**:
    *(Mở trực tiếp các tệp `.drawio` trong VS Code bằng extension **Draw.io Integration** - `hediet.vscode-drawio`)*
@@ -25,7 +25,7 @@ Dự án Khóa luận Tốt nghiệp triển khai đầy đủ theo đề cươn
    - [`database.py`](database.py): Thiết kế CSDL `SQLite 3` (`khcn_system.db`) gồm 9 bảng chuẩn 3NF: `NguoiDung`, `LinhVuc`, `LoaiCongTrinh`, `TapChiHopLe`, `DanhMucTacGia`, `HoSoKHCN`, `LichSuXetDuyet`, `PhanHoiAI`, `ThucNghiemMoHinhAI`.
    - [`model_benchmark.py`](model_benchmark.py): Phân hệ chạy độc lập và đối sánh công bằng 100% giữa `TF-IDF + LinearSVC` và `Fine-tuning PhoBERT` trên bộ dữ liệu 240 mẫu, kèm đối sánh với phân loại thủ công.
    - [`ai_engine.py`](ai_engine.py): Pipeline tiền xử lý tiếng Việt (`PyVi`), suy luận phân loại đa mục tiêu (Lĩnh vực & Loại công trình) bằng `PyTorch vinai/phobert-base`, và phát hiện bất thường bằng `NetworkX + Isolation Forest + PyTorch Autoencoder (nn.Module)`.
-   - [`phobert_finetune.py`](phobert_finetune.py): Kiến trúc `PyTorch` Fine-tuning thực tế `vinai/phobert-base` (mở khóa 4 tầng Transformer trên cùng `layer 8..11` kết hợp 2 đầu phân loại `field_head` & `work_type_head`, tối ưu bằng `AdamW`, `epochs=8`, `batch_size=8`, lưu trọng số tại `models/phobert_khcn/phobert_classifier.pt`).
+   - [`phobert_finetune.py`](phobert_finetune.py): Kiến trúc `PyTorch` Fine-tuning thực tế `vinai/phobert-base` (mở khóa 2 tầng Transformer trên cùng `layer 10..11` kết hợp 2 đầu phân loại `field_head` & `work_type_head`, tối ưu bằng `AdamW`, `epochs=8`, `batch_size=16`, lưu trọng số tại `models/phobert_khcn/phobert_classifier.pt`).
    - [`reporting_service.py`](reporting_service.py): Xuất báo cáo thống kê ra định dạng Excel (`.xlsx` với `openpyxl`) và PDF hành chính (`.pdf` hỗ trợ Unicode tiếng Việt với `reportlab`).
 
 ---
