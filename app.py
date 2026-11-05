@@ -1445,6 +1445,9 @@ def export_pdf():
 @app.route("/ai-center")
 @login_required
 def ai_center():
+    req_mode = request.args.get("mode", "").strip()
+    if req_mode in ("svm", "phobert", "both"):
+        ai_engine.last_experiment_mode = req_mode
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -1531,28 +1534,37 @@ def ai_center():
 def ai_retrain():
     mode = request.form.get("mode", "both").strip()
     conn = get_db_connection()
+    t0 = datetime.now()
     bench = ai_engine.run_standalone_experiment(mode=mode, db_conn=conn)
-    ai_engine.build_networkx_graph_and_detect_anomalies(conn)
+    if ai_engine.knowledge_graph.number_of_nodes() == 0 or mode == "retrain_full":
+        ai_engine.build_networkx_graph_and_detect_anomalies(conn)
     conn.close()
+    elapsed_sec = round((datetime.now() - t0).total_seconds(), 2)
 
     if mode == "svm":
         svm_m = bench["svm_metrics"]
         flash(
-            f"Đã chạy mô hình TF-IDF + SVM (180 mẫu huấn luyện / 60 mẫu kiểm thử): "
-            f"Độ chuẩn xác = {svm_m['precision']}%, Độ phủ = {svm_m['recall']}%, Điểm F1 = {svm_m['f1_score']}% ({svm_m['infer_time_ms']} ms).",
+            f"Đã chạy riêng mô hình TF-IDF + SVM trong {elapsed_sec} giây: "
+            f"Độ chuẩn xác = {svm_m['precision']}%, Độ phủ = {svm_m['recall']}%, Điểm F1 = {svm_m['f1_score']}% ({svm_m['infer_time_ms']} ms/hồ sơ).",
             "info"
         )
     elif mode == "phobert":
         pho_m = bench["phobert_metrics"]
         flash(
-            f"Đã chạy mô hình Tinh chỉnh PhoBERT (180 mẫu huấn luyện / 60 mẫu kiểm thử): "
-            f"Độ chuẩn xác = {pho_m['precision']}%, Độ phủ = {pho_m['recall']}%, Điểm F1 = {pho_m['f1_score']}% ({pho_m['infer_time_ms']} ms).",
+            f"Đã chạy riêng mô hình Tinh chỉnh PhoBERT trong {elapsed_sec} giây: "
+            f"Độ chuẩn xác = {pho_m['precision']}%, Độ phủ = {pho_m['recall']}%, Điểm F1 = {pho_m['f1_score']}% ({pho_m['infer_time_ms']} ms/hồ sơ).",
+            "success"
+        )
+    elif mode == "retrain_full":
+        win = bench["selected_model"]
+        flash(
+            f"Đã huấn luyện lại toàn bộ hai mô hình từ đầu và cập nhật mô hình chính: {win['short_name']} (Điểm F1 đạt {win['f1_score']}%).",
             "success"
         )
     else:
         win = bench["selected_model"]
         flash(
-            f"Đã so sánh hai mô hình trên 240 mẫu chuẩn. "
+            f"Đã chạy so sánh cả hai mô hình trong {elapsed_sec} giây. "
             f"Mô hình chính được chọn: {win['short_name']} (Điểm F1 đạt {win['f1_score']}%, cao hơn {win['delta_f1']:+.2f}%).",
             "success"
         )
@@ -1562,9 +1574,10 @@ def ai_retrain():
 @app.route("/ai-center/download-dataset")
 @login_required
 def download_training_dataset():
-    from model_benchmark import DATASET_XLSX_PATH, save_standardized_dataset
-    if not os.path.exists(DATASET_XLSX_PATH):
-        save_standardized_dataset()
+    from model_benchmark import DATASET_XLSX_PATH, get_shared_train_test_split, _append_comparison_sheets_to_excel
+    all_records, _, _ = get_shared_train_test_split()
+    summary = ai_engine.get_benchmark_summary()
+    _append_comparison_sheets_to_excel(all_records, summary)
     return send_file(
         DATASET_XLSX_PATH,
         as_attachment=True,

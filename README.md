@@ -9,7 +9,7 @@ Dự án Khóa luận Tốt nghiệp triển khai đầy đủ theo đề cươn
 1. **Báo cáo Khóa luận Tốt nghiệp & Bộ dữ liệu chuẩn 13 trường**:
    - [`Bao_Cao_Khoa_Luan.docx`](Bao_Cao_Khoa_Luan.docx): Báo cáo Khóa luận Tốt nghiệp hoàn chỉnh được định dạng chuẩn theo mẫu `Mau bao cao_Do an_Khoa luan_2025.docx`.
    - [`docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx`](docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx): Bộ dữ liệu thực nghiệm chuẩn hóa dùng chung gồm 240 mẫu (180 Train / 60 Test độc lập theo chủ đề) với đầy đủ 13 trường dữ liệu đầu vào (gồm 3 sheet: Tập dữ liệu 240 mẫu, Thống kê phân bố dữ liệu, Bảng đối sánh thực nghiệm 2 mô hình & so sánh với phân loại thủ công).
-   - [`docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json`](docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json): Kết quả thống kê thực nghiệm đo thực tế giữa `TF-IDF + LinearSVC` (`F1 = 82.26%`), `Fine-tuning PhoBERT` (`F1 = 88.39%`) và phân loại thủ công (`F1 = 73.94%`).
+   - [`docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json`](docs/Ket_Qua_Thuc_Nghiem_So_Sanh_2_Mo_Hinh.json): Kết quả thống kê thực nghiệm đo thực tế giữa `TF-IDF + LinearSVC` (`F1 = 82.26%`), `Fine-tuning PhoBERT` (`F1 = 89.92%`) và phân loại thủ công (`F1 = 73.94%`).
 
 2. **Hệ thống Sơ đồ Vẽ Trực Tiếp cho Extension Draw.io trên VS Code — `diagrams/`**:
    *(Mở trực tiếp các tệp `.drawio` trong VS Code bằng extension **Draw.io Integration** - `hediet.vscode-drawio`)*

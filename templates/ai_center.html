@@ -20,36 +20,45 @@
 
 <!-- PHẦN RIÊNG: CHẠY ĐỘC LẬP & SO SÁNH 2 MÔ HÌNH -->
 {% if benchmark %}
-<div class="card card-academic mb-3">
+{% set cur_mode = active_mode if active_mode in ['svm', 'phobert', 'both'] else 'both' %}
+<div class="card card-academic mb-3" id="benchmarkCard" data-current-mode="{{ cur_mode }}">
     <div class="card-header card-header-academic d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
             <span>So Sánh Thực Nghiệm: Mô Hình TF-IDF + SVM và Tinh Chỉnh PhoBERT</span>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 fw-normal">
-                {{ benchmark.dataset_stats.total_samples }} mẫu ({{ benchmark.dataset_stats.train_samples }} huấn luyện / {{ benchmark.dataset_stats.test_samples }} kiểm thử)
+            <span id="modeStatusBadge" class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 fw-normal">
+                {% if cur_mode == 'svm' %}
+                    Đang xem riêng: TF-IDF + SVM
+                {% elif cur_mode == 'phobert' %}
+                    Đang xem riêng: Tinh chỉnh PhoBERT
+                {% else %}
+                    Đang so sánh đối chứng cả hai mô hình
+                {% endif %}
             </span>
         </div>
-        {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
-        <div class="d-flex flex-wrap gap-1">
-            <form method="POST" action="{{ url_for('ai_retrain') }}" class="d-inline">
-                <input type="hidden" name="mode" value="svm">
-                <button type="submit" class="btn btn-sm {% if active_mode == 'svm' %}btn-primary{% else %}btn-outline-secondary{% endif %} py-1 px-2">
-                    Chạy riêng TF-IDF + SVM
+        <div class="d-flex flex-wrap align-items-center gap-1">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị mô hình">
+                <button type="button" data-target-mode="svm"
+                        class="btn mode-switch-btn {% if cur_mode == 'svm' %}btn-primary{% else %}btn-outline-secondary{% endif %} py-1 px-2">
+                    Xem riêng TF-IDF + SVM
+                </button>
+                <button type="button" data-target-mode="phobert"
+                        class="btn mode-switch-btn {% if cur_mode == 'phobert' %}btn-primary{% else %}btn-outline-secondary{% endif %} py-1 px-2">
+                    Xem riêng Tinh chỉnh PhoBERT
+                </button>
+                <button type="button" data-target-mode="both"
+                        class="btn mode-switch-btn {% if cur_mode == 'both' %}btn-primary{% else %}btn-outline-secondary{% endif %} py-1 px-2">
+                    So sánh cả hai &amp; chọn mô hình chính
+                </button>
+            </div>
+            {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
+            <form method="POST" action="{{ url_for('ai_retrain') }}" class="d-inline benchmark-mode-form ms-1">
+                <input type="hidden" name="mode" id="retrainModeInput" value="{{ cur_mode }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2" title="Chạy đo kiểm thử thực tế lại mô hình đang chọn trên 60 mẫu kiểm thử">
+                    <i class="bi bi-play-fill me-1"></i>Chạy đo lại
                 </button>
             </form>
-            <form method="POST" action="{{ url_for('ai_retrain') }}" class="d-inline">
-                <input type="hidden" name="mode" value="phobert">
-                <button type="submit" class="btn btn-sm {% if active_mode == 'phobert' %}btn-primary{% else %}btn-outline-secondary{% endif %} py-1 px-2">
-                    Chạy riêng Tinh chỉnh PhoBERT
-                </button>
-            </form>
-            <form method="POST" action="{{ url_for('ai_retrain') }}" class="d-inline">
-                <input type="hidden" name="mode" value="both">
-                <button type="submit" class="btn btn-sm {% if active_mode == 'both' or not active_mode %}btn-primary{% else %}btn-outline-primary{% endif %} py-1 px-2">
-                    <i class="bi bi-arrow-repeat me-1"></i>Chạy so sánh cả hai & chọn mô hình chính
-                </button>
-            </form>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <div class="card-body">
@@ -120,12 +129,20 @@
                 </div>
             </div>
 
-            <!-- Bảng 2: So sánh tổng thể 2 mô hình và Quyết định chọn mô hình chính -->
+            <!-- Bảng 2: Kết quả tổng thể theo chế độ đang chọn (chuyển đổi tức thì 0ms) -->
             <div class="col-lg-6">
                 <div class="border rounded h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
-                            <span>Bảng 2: Kết quả đánh giá trên {{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử độc lập</span>
+                            <span id="table2Title">
+                                {% if cur_mode == 'svm' %}
+                                    Bảng 2: Kết quả riêng TF-IDF + SVM ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
+                                {% elif cur_mode == 'phobert' %}
+                                    Bảng 2: Kết quả riêng Tinh chỉnh PhoBERT ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
+                                {% else %}
+                                    Bảng 2: Kết quả đánh giá trên {{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử độc lập
+                                {% endif %}
+                            </span>
                             <span class="text-muted fw-normal">Đo thời gian thực tế</span>
                         </div>
                         <div class="table-responsive">
@@ -142,21 +159,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="{% if active_mode == 'svm' %}table-active{% endif %}">
+                                    <tr data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">
                                         <td class="ps-3">
                                             <div class="fw-semibold">TF-IDF + SVM</div>
                                             <div class="text-muted" style="font-size: 0.75rem;">Học máy truyền thống</div>
                                         </td>
                                         <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.precision) }}%</td>
                                         <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.recall) }}%</td>
-                                        <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%</td>
+                                        <td class="text-end fw-bold">{{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%</td>
                                         <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.work_type_f1 or 0) }}%</td>
                                         <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms</td>
                                         <td class="text-center pe-3">
                                             <span class="badge bg-secondary-subtle text-secondary border fw-normal">Đối chứng</span>
                                         </td>
                                     </tr>
-                                    <tr class="{% if active_mode == 'phobert' or active_mode == 'both' %}table-light{% endif %}">
+                                    <tr data-show-modes="phobert,both" class="table-light {% if cur_mode == 'svm' %}d-none{% endif %}">
                                         <td class="ps-3">
                                             <div class="fw-bold text-primary">Tinh chỉnh PhoBERT</div>
                                             <div class="text-muted" style="font-size: 0.75rem;">Học sâu ngữ cảnh tiếng Việt</div>
@@ -170,7 +187,7 @@
                                             <span class="badge bg-success-subtle text-success border border-success-subtle">Mô hình chính</span>
                                         </td>
                                     </tr>
-                                    <tr class="bg-light small">
+                                    <tr data-show-modes="both" class="bg-light small {% if cur_mode != 'both' %}d-none{% endif %}">
                                         <td class="ps-3 fw-semibold text-secondary">Mức chênh lệch</td>
                                         <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_precision >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_precision) }}%</td>
                                         <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_recall >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_recall) }}%</td>
@@ -183,43 +200,73 @@
                     </div>
 
                     <div class="p-3 border-top bg-light small">
-                        <div class="fw-bold text-dark mb-1">
-                            Mô hình chính được chọn:
-                            <span class="text-primary">{{ benchmark.selected_model.short_name }}</span>
+                        <div data-show-modes="svm" class="{% if cur_mode != 'svm' %}d-none{% endif %}">
+                            <div class="fw-bold text-dark mb-1">
+                                Kết quả riêng: <span class="text-primary">Mô hình TF-IDF + SVM</span>
+                            </div>
+                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
+                                <li class="mb-1">Tốc độ phản hồi cực nhanh ({{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms/hồ sơ; huấn luyện 180 mẫu mất {{ "%.2f"|format(benchmark.svm_metrics.train_time_ms) }} ms).</li>
+                                <li class="mb-1">Đạt điểm F1 trung bình {{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%, phù hợp làm mô hình cơ sở đối chứng.</li>
+                                <li class="mb-0">Hạn chế ở các hồ sơ liên ngành có nhiều từ khóa giao thoa do chỉ dựa trên tần suất từ ghép.</li>
+                            </ul>
                         </div>
-                        <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
-                            {% for reason in benchmark.selected_model.reasons[:3] %}
-                            <li class="mb-1">{{ reason }}</li>
-                            {% endfor %}
-                        </ul>
+                        <div data-show-modes="phobert" class="{% if cur_mode != 'phobert' %}d-none{% endif %}">
+                            <div class="fw-bold text-dark mb-1">
+                                Kết quả riêng: <span class="text-primary">Mô hình Tinh chỉnh PhoBERT</span>
+                            </div>
+                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
+                                <li class="mb-1">Đạt điểm F1 lĩnh vực {{ "%.2f"|format(benchmark.phobert_metrics.f1_score) }}% và điểm F1 nhóm loại hình {{ "%.2f"|format(benchmark.phobert_metrics.work_type_f1) }}% trên 60 mẫu kiểm thử.</li>
+                                <li class="mb-1">Nắm bắt ngữ cảnh hai chiều tiếng Việt, nhận diện chính xác chuyên ngành cốt lõi của hồ sơ liên ngành.</li>
+                                <li class="mb-0">Thời gian suy luận trung bình {{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms/hồ sơ từ trọng số nạp sẵn trên bộ nhớ.</li>
+                            </ul>
+                        </div>
+                        <div data-show-modes="both" class="{% if cur_mode != 'both' %}d-none{% endif %}">
+                            <div class="fw-bold text-dark mb-1">
+                                Mô hình chính được chọn:
+                                <span class="text-primary">{{ benchmark.selected_model.short_name }}</span>
+                            </div>
+                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
+                                {% for reason in benchmark.selected_model.reasons[:3] %}
+                                <li class="mb-1">{{ reason }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bảng 3: So sánh chi tiết theo từng lĩnh vực -->
+        <!-- Bảng 3: Chi tiết theo từng lĩnh vực (chuyển đổi cột tức thì 0ms) -->
         <div class="border rounded mb-3">
             <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
-                <span>Bảng 3: Kết quả chi tiết của hai mô hình theo từng lĩnh vực</span>
+                <span id="table3Title">
+                    {% if cur_mode == 'svm' %}
+                        Bảng 3: Kết quả chi tiết của riêng mô hình TF-IDF + SVM theo từng lĩnh vực
+                    {% elif cur_mode == 'phobert' %}
+                        Bảng 3: Kết quả chi tiết của riêng mô hình Tinh chỉnh PhoBERT theo từng lĩnh vực
+                    {% else %}
+                        Bảng 3: Kết quả chi tiết của hai mô hình theo từng lĩnh vực
+                    {% endif %}
+                </span>
                 <span class="text-muted fw-normal">10 mẫu kiểm thử mỗi lĩnh vực</span>
             </div>
             <div class="table-responsive">
                 <table class="table table-sm table-bordered align-middle mb-0 small">
                     <thead>
                         <tr class="text-center">
-                            <th rowspan="2" class="text-start ps-3 align-middle">Mã & Tên lĩnh vực đăng ký</th>
+                            <th rowspan="2" class="text-start ps-3 align-middle">Mã &amp; Tên lĩnh vực đăng ký</th>
                             <th rowspan="2" class="align-middle">Số mẫu</th>
-                            <th colspan="3">Mô hình 1: TF-IDF + SVM (Cơ sở)</th>
-                            <th colspan="3">Mô hình 2: Tinh chỉnh PhoBERT (Mô hình chính)</th>
-                            <th rowspan="2" class="align-middle pe-3">Chênh lệch F1</th>
+                            <th colspan="3" data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">Mô hình 1: TF-IDF + SVM (Cơ sở)</th>
+                            <th colspan="3" data-show-modes="phobert,both" class="{% if cur_mode == 'svm' %}d-none{% endif %}">Mô hình 2: Tinh chỉnh PhoBERT (Mô hình chính)</th>
+                            <th rowspan="2" data-show-modes="both" class="align-middle pe-3 {% if cur_mode != 'both' %}d-none{% endif %}">Chênh lệch F1</th>
                         </tr>
                         <tr class="text-end">
-                            <th>Độ chuẩn xác</th>
-                            <th>Độ phủ</th>
-                            <th>Điểm F1</th>
-                            <th>Độ chuẩn xác</th>
-                            <th>Độ phủ</th>
-                            <th>Điểm F1</th>
+                            <th data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">Độ chuẩn xác</th>
+                            <th data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">Độ phủ</th>
+                            <th data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">Điểm F1</th>
+                            <th data-show-modes="phobert,both" class="{% if cur_mode == 'svm' %}d-none{% endif %}">Độ chuẩn xác</th>
+                            <th data-show-modes="phobert,both" class="{% if cur_mode == 'svm' %}d-none{% endif %}">Độ phủ</th>
+                            <th data-show-modes="phobert,both" class="{% if cur_mode == 'svm' %}d-none{% endif %}">Điểm F1</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -229,13 +276,13 @@
                                 <span class="fw-semibold">[{{ row.code }}]</span> {{ row.name }}
                             </td>
                             <td class="text-center">{{ row.support }}</td>
-                            <td class="text-end">{{ "%.2f"|format(row.svm_precision) }}%</td>
-                            <td class="text-end">{{ "%.2f"|format(row.svm_recall) }}%</td>
-                            <td class="text-end fw-semibold">{{ "%.2f"|format(row.svm_f1) }}%</td>
-                            <td class="text-end">{{ "%.2f"|format(row.phobert_precision) }}%</td>
-                            <td class="text-end">{{ "%.2f"|format(row.phobert_recall) }}%</td>
-                            <td class="text-end fw-bold text-primary">{{ "%.2f"|format(row.phobert_f1) }}%</td>
-                            <td class="text-end pe-3 fw-semibold {% if row.delta_f1 > 0 %}text-success{% elif row.delta_f1 < 0 %}text-danger{% else %}text-muted{% endif %}">
+                            <td data-show-modes="svm,both" class="text-end {% if cur_mode == 'phobert' %}d-none{% endif %}">{{ "%.2f"|format(row.svm_precision) }}%</td>
+                            <td data-show-modes="svm,both" class="text-end {% if cur_mode == 'phobert' %}d-none{% endif %}">{{ "%.2f"|format(row.svm_recall) }}%</td>
+                            <td data-show-modes="svm,both" class="text-end fw-semibold {% if cur_mode == 'phobert' %}d-none{% endif %}">{{ "%.2f"|format(row.svm_f1) }}%</td>
+                            <td data-show-modes="phobert,both" class="text-end {% if cur_mode == 'svm' %}d-none{% endif %}">{{ "%.2f"|format(row.phobert_precision) }}%</td>
+                            <td data-show-modes="phobert,both" class="text-end {% if cur_mode == 'svm' %}d-none{% endif %}">{{ "%.2f"|format(row.phobert_recall) }}%</td>
+                            <td data-show-modes="phobert,both" class="text-end fw-bold text-primary {% if cur_mode == 'svm' %}d-none{% endif %}">{{ "%.2f"|format(row.phobert_f1) }}%</td>
+                            <td data-show-modes="both" class="text-end pe-3 fw-semibold {% if cur_mode != 'both' %}d-none{% endif %} {% if row.delta_f1 > 0 %}text-success{% elif row.delta_f1 < 0 %}text-danger{% else %}text-muted{% endif %}">
                                 {% if row.delta_f1 > 0 %}+{% endif %}{{ "%.2f"|format(row.delta_f1) }}%
                             </td>
                         </tr>
@@ -280,7 +327,7 @@
                             <td class="text-end text-muted">~{{ "%.1f"|format(m_base.batch_60_time_min) }} phút</td>
                             <td class="pe-3 text-muted">{{ m_base.consistency_note }}</td>
                         </tr>
-                        <tr>
+                        <tr data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">
                             <td class="ps-3 fw-semibold">{{ m_svm.method_name }}</td>
                             <td class="text-end">{{ "%.2f"|format(m_svm.precision) }}%</td>
                             <td class="text-end">{{ "%.2f"|format(m_svm.recall) }}%</td>
@@ -290,7 +337,7 @@
                             <td class="text-end text-muted">{{ "%.3f"|format(m_svm.batch_60_time_sec) }} giây</td>
                             <td class="pe-3 text-muted">{{ m_svm.consistency_note }}</td>
                         </tr>
-                        <tr class="table-light">
+                        <tr data-show-modes="phobert,both" class="table-light {% if cur_mode == 'svm' %}d-none{% endif %}">
                             <td class="ps-3 fw-bold text-primary">{{ m_pho.method_name }}</td>
                             <td class="text-end fw-semibold">{{ "%.2f"|format(m_pho.precision) }}%</td>
                             <td class="text-end fw-semibold">{{ "%.2f"|format(m_pho.recall) }}%</td>
@@ -499,4 +546,76 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var testCount = "{{ benchmark.dataset_stats.test_samples if benchmark else 60 }}";
+    var badgeLabels = {
+        svm: "Đang xem riêng: TF-IDF + SVM",
+        phobert: "Đang xem riêng: Tinh chỉnh PhoBERT",
+        both: "Đang so sánh đối chứng cả hai mô hình"
+    };
+    var table2Titles = {
+        svm: "Bảng 2: Kết quả riêng TF-IDF + SVM (" + testCount + " mẫu kiểm thử)",
+        phobert: "Bảng 2: Kết quả riêng Tinh chỉnh PhoBERT (" + testCount + " mẫu kiểm thử)",
+        both: "Bảng 2: Kết quả đánh giá trên " + testCount + " mẫu kiểm thử độc lập"
+    };
+    var table3Titles = {
+        svm: "Bảng 3: Kết quả chi tiết của riêng mô hình TF-IDF + SVM theo từng lĩnh vực",
+        phobert: "Bảng 3: Kết quả chi tiết của riêng mô hình Tinh chỉnh PhoBERT theo từng lĩnh vực",
+        both: "Bảng 3: Kết quả chi tiết của hai mô hình theo từng lĩnh vực"
+    };
+
+    function applyBenchmarkMode(mode) {
+        document.querySelectorAll('.mode-switch-btn').forEach(function (btn) {
+            var isTarget = btn.getAttribute('data-target-mode') === mode;
+            btn.classList.toggle('btn-primary', isTarget);
+            btn.classList.toggle('btn-outline-secondary', !isTarget);
+        });
+
+        document.querySelectorAll('[data-show-modes]').forEach(function (el) {
+            var allowed = (el.getAttribute('data-show-modes') || '').split(',');
+            el.classList.toggle('d-none', allowed.indexOf(mode) === -1);
+        });
+
+        var badge = document.getElementById('modeStatusBadge');
+        if (badge && badgeLabels[mode]) badge.textContent = badgeLabels[mode];
+
+        var t2 = document.getElementById('table2Title');
+        if (t2 && table2Titles[mode]) t2.textContent = table2Titles[mode];
+
+        var t3 = document.getElementById('table3Title');
+        if (t3 && table3Titles[mode]) t3.textContent = table3Titles[mode];
+
+        var retrainInput = document.getElementById('retrainModeInput');
+        if (retrainInput) retrainInput.value = mode;
+
+        if (window.history && window.history.replaceState) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('mode', mode);
+            window.history.replaceState({}, '', url.toString());
+        }
+    }
+
+    document.querySelectorAll('.mode-switch-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            applyBenchmarkMode(btn.getAttribute('data-target-mode'));
+        });
+    });
+
+    document.querySelectorAll('.benchmark-mode-form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                setTimeout(function () {
+                    document.querySelectorAll('.benchmark-mode-form button, .mode-switch-btn').forEach(function (b) { b.disabled = true; });
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Đang đo lại...';
+                }, 10);
+            }
+        });
+    });
+})();
+</script>
 {% endblock %}

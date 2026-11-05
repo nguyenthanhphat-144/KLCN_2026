@@ -50,6 +50,8 @@ from model_benchmark import (
     run_full_comparison_and_select_winner,
     run_tfidf_svm_standalone,
     run_phobert_standalone,
+    compose_summary_dict,
+    compute_dataset_statistics,
     get_shared_train_test_split,
     combine_fair_input_text,
     DATASET_XLSX_PATH,
@@ -291,13 +293,14 @@ class KHCNAIEngine:
 
     def train_and_evaluate(self, db_conn=None, mode: str = "load_or_init"):
         """
-        Khởi tạo hoặc huấn luyện lại mô hình thực tế:
-        - Nếu đã có checkpoint PyTorch PhoBERT & SVM trên đĩa và mode='load_or_init':
-          Tải trực tiếp trọng số thực tế để khởi động Web tức thì (< 1s).
-        - Nếu chưa có checkpoint hoặc người dùng yêu cầu chạy lại ('svm', 'phobert', 'both'):
-          Thực thi huấn luyện thực tế và cập nhật bảng kết quả.
+        Khởi tạo, đánh giá nhanh hoặc huấn luyện lại mô hình thực tế:
+        - mode='load_or_init': Tải trực tiếp trọng số thực tế từ đĩa lên RAM (< 1s).
+        - mode='svm': Chỉ huấn luyện & đo đạc riêng TF-IDF + SVM (~0.2s), không gọi PhoBERT.
+        - mode='phobert': Chỉ chạy đánh giá riêng PhoBERT đã nạp sẵn trên RAM (~1.5s), không huấn luyện lại 8 vòng từ đầu.
+        - mode='both': Chạy đánh giá đối sánh cả hai mô hình trên RAM (~1.7s) và chọn mô hình chính.
+        - mode='retrain_full': Huấn luyện lại từ đầu toàn bộ 8 vòng mạng nơ-ron PhoBERT và SVM.
         """
-        self.last_experiment_mode = mode if mode != "load_or_init" else "both"
+        self.last_experiment_mode = "both" if mode in ("load_or_init", "retrain_full") else mode
 
         has_saved_all = (
             os.path.exists(BENCHMARK_JSON_PATH)
@@ -305,33 +308,86 @@ class KHCNAIEngine:
             and os.path.exists(os.path.join(PHOBERT_MODEL_DIR, "phobert_classifier.pt"))
         )
 
-        if mode == "load_or_init" and has_saved_all:
+        # Đảm bảo đã có dữ liệu nền và trọng số gốc trên RAM nếu đã lưu trên đĩa
+        if has_saved_all and self.benchmark_summary is None:
             with open(BENCHMARK_JSON_PATH, "r", encoding="utf-8") as f:
                 self.benchmark_summary = json.load(f)
+        if has_saved_all and self.tfidf_vectorizer is None:
             svm_pack = joblib.load(SVM_PIPELINE_PATH)
             self.tfidf_vectorizer = svm_pack["vectorizer"]
             self.svm_classifier = svm_pack["field_classifier"]
             self.svm_work_type_classifier = svm_pack["work_type_classifier"]
+        if has_saved_all and self.phobert_model is None:
             self.phobert_model, self.phobert_tokenizer = load_trained_phobert(PHOBERT_MODEL_DIR)
+            if self.phobert_model is not None:
+                self._clean_field_head_sd = {
+                    k: v.detach().clone() for k, v in self.phobert_model.field_head.state_dict().items()
+                }
+
+        # Khôi phục trọng số chuẩn của nhánh phân loại trước khi đo kiểm thử độc lập 60 mẫu
+        if getattr(self, "_clean_field_head_sd", None) is not None and self.phobert_model is not None:
+            self.phobert_model.field_head.load_state_dict(self._clean_field_head_sd)
+            self.phobert_model.eval()
+
+        if mode == "load_or_init" and has_saved_all:
+            pass
         elif mode == "svm" and has_saved_all:
-            _, train_records, test_records = get_shared_train_test_split()
+            all_records, train_records, test_records = get_shared_train_test_split()
+            ds_stats = self.benchmark_summary.get("dataset_stats") or compute_dataset_statistics(
+                all_records, train_records, test_records
+            )
             svm_res = run_tfidf_svm_standalone(train_records, test_records)
             self.tfidf_vectorizer = svm_res["vectorizer"]
             self.svm_classifier = svm_res["classifier"]
             self.svm_work_type_classifier = svm_res["work_type_classifier"]
-            if self.phobert_model is None:
-                self.phobert_model, self.phobert_tokenizer = load_trained_phobert(PHOBERT_MODEL_DIR)
-            bench_res = run_full_comparison_and_select_winner(force_retrain_phobert=False)
-            self.benchmark_summary = bench_res["summary"]
-        else:
-            force_pho = (mode in ("phobert", "both")) or not has_saved_all
-            bench_res = run_full_comparison_and_select_winner(force_retrain_phobert=force_pho)
+            self.benchmark_summary = compose_summary_dict(
+                ds_stats, test_records, svm_res, self.benchmark_summary["phobert_metrics"]
+            )
+        elif mode == "phobert" and has_saved_all:
+            all_records, train_records, test_records = get_shared_train_test_split()
+            ds_stats = self.benchmark_summary.get("dataset_stats") or compute_dataset_statistics(
+                all_records, train_records, test_records
+            )
+            pho_res = run_phobert_standalone(
+                train_records,
+                test_records,
+                force_retrain=False,
+                preloaded_model=self.phobert_model,
+                preloaded_tokenizer=self.phobert_tokenizer,
+            )
+            self.phobert_model = pho_res["model"]
+            self.phobert_tokenizer = pho_res["tokenizer"]
+            self.benchmark_summary = compose_summary_dict(
+                ds_stats, test_records, self.benchmark_summary["svm_metrics"], pho_res
+            )
+        elif mode == "both" and has_saved_all:
+            bench_res = run_full_comparison_and_select_winner(
+                force_retrain_phobert=False,
+                preloaded_model=self.phobert_model,
+                preloaded_tokenizer=self.phobert_tokenizer,
+                update_excel=False,
+            )
             self.benchmark_summary = bench_res["summary"]
             self.tfidf_vectorizer = bench_res["svm_artifacts"]["vectorizer"]
             self.svm_classifier = bench_res["svm_artifacts"]["classifier"]
             self.svm_work_type_classifier = bench_res["svm_artifacts"]["work_type_classifier"]
             self.phobert_model = bench_res["phobert_artifacts"]["model"]
             self.phobert_tokenizer = bench_res["phobert_artifacts"]["tokenizer"]
+        else:
+            bench_res = run_full_comparison_and_select_winner(
+                force_retrain_phobert=True,
+                update_excel=True,
+            )
+            self.benchmark_summary = bench_res["summary"]
+            self.tfidf_vectorizer = bench_res["svm_artifacts"]["vectorizer"]
+            self.svm_classifier = bench_res["svm_artifacts"]["classifier"]
+            self.svm_work_type_classifier = bench_res["svm_artifacts"]["work_type_classifier"]
+            self.phobert_model = bench_res["phobert_artifacts"]["model"]
+            self.phobert_tokenizer = bench_res["phobert_artifacts"]["tokenizer"]
+            if self.phobert_model is not None:
+                self._clean_field_head_sd = {
+                    k: v.detach().clone() for k, v in self.phobert_model.field_head.state_dict().items()
+                }
 
         # Tích hợp Feedback Loop từ bảng PhanHoiAI (nếu có dữ liệu cán bộ hiệu chỉnh)
         if db_conn is not None:

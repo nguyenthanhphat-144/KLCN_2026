@@ -845,10 +845,17 @@ def run_tfidf_svm_standalone(train_records=None, test_records=None) -> dict:
     }
 
 
-def run_phobert_standalone(train_records=None, test_records=None, force_retrain: bool = True) -> dict:
+def run_phobert_standalone(
+    train_records=None,
+    test_records=None,
+    force_retrain: bool = False,
+    preloaded_model=None,
+    preloaded_tokenizer=None,
+) -> dict:
     """
     Chạy độc lập Mô hình 2: Fine-tuning PhoBERT thực tế (vinai/phobert-base trên PyTorch)
     trên CÙNG chuỗi văn bản đầu vào với TF-IDF + SVM và đo thời gian thực 100%.
+    Khi đã có mô hình nạp sẵn trên RAM và force_retrain=False, tái sử dụng ngay để không phải nạp lại từ đĩa.
     """
     from phobert_finetune import (
         train_phobert_multitask,
@@ -860,10 +867,6 @@ def run_phobert_standalone(train_records=None, test_records=None, force_retrain:
     if train_records is None or test_records is None:
         _, train_records, test_records = get_shared_train_test_split()
 
-    X_train_text = [combine_fair_input_text(r) for r in train_records]
-    y_train_field = np.array([int(r["label_id"]) for r in train_records])
-    y_train_wt = np.array([int(r["work_type_id"]) for r in train_records])
-
     X_test_text = [combine_fair_input_text(r) for r in test_records]
     y_test_field = np.array([int(r["label_id"]) for r in test_records])
     y_test_wt = np.array([int(r["work_type_id"]) for r in test_records])
@@ -873,7 +876,10 @@ def run_phobert_standalone(train_records=None, test_records=None, force_retrain:
     epoch_losses = []
 
     if not force_retrain:
-        model, tokenizer = load_trained_phobert(PHOBERT_MODEL_DIR)
+        if preloaded_model is not None and preloaded_tokenizer is not None:
+            model, tokenizer = preloaded_model, preloaded_tokenizer
+        else:
+            model, tokenizer = load_trained_phobert(PHOBERT_MODEL_DIR)
         hp_path = os.path.join(PHOBERT_MODEL_DIR, "hyperparameters.json")
         if os.path.exists(hp_path):
             with open(hp_path, "r", encoding="utf-8") as f:
@@ -882,6 +888,9 @@ def run_phobert_standalone(train_records=None, test_records=None, force_retrain:
                 epoch_losses = hp_saved.get("epoch_losses", [])
 
     if model is None:
+        X_train_text = [combine_fair_input_text(r) for r in train_records]
+        y_train_field = np.array([int(r["label_id"]) for r in train_records])
+        y_train_wt = np.array([int(r["work_type_id"]) for r in train_records])
         model, tokenizer, train_time_ms, epoch_losses = train_phobert_multitask(
             X_train_text,
             y_train_field,
@@ -1024,18 +1033,8 @@ def evaluate_manual_vs_automated_classification(test_records, svm_res: dict, pho
     }
 
 
-def run_full_comparison_and_select_winner(force_retrain_phobert: bool = True) -> dict:
-    """
-    Chạy thực nghiệm đối sánh triệt để cả 2 mô hình trên cùng bộ dữ liệu chuẩn (240 mẫu, 180 Train / 60 Test),
-    xuất bảng thống kê dữ liệu, bảng so sánh theo từng lĩnh vực, so sánh với phân loại thủ công,
-    và tự động lựa chọn mô hình đạt F1-score cao nhất làm Mô hình chính cho dự án.
-    """
-    all_records, train_records, test_records = get_shared_train_test_split()
-    dataset_stats = compute_dataset_statistics(all_records, train_records, test_records)
-
-    svm_res = run_tfidf_svm_standalone(train_records, test_records)
-    phobert_res = run_phobert_standalone(train_records, test_records, force_retrain=force_retrain_phobert)
-
+def compose_summary_dict(dataset_stats: dict, test_records: list, svm_res: dict, phobert_res: dict) -> dict:
+    """Tổng hợp đối sánh từ kết quả của hai mô hình và lưu tệp JSON."""
     per_field_comparison = []
     for s_cls, p_cls in zip(svm_res["per_class"], phobert_res["per_class"]):
         per_field_comparison.append({
@@ -1111,8 +1110,35 @@ def run_full_comparison_and_select_winner(force_retrain_phobert: bool = True) ->
     os.makedirs(DOCS_DIR, exist_ok=True)
     with open(BENCHMARK_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
+    return summary
 
-    _append_comparison_sheets_to_excel(all_records, summary)
+
+def run_full_comparison_and_select_winner(
+    force_retrain_phobert: bool = False,
+    preloaded_model=None,
+    preloaded_tokenizer=None,
+    update_excel: bool = True,
+) -> dict:
+    """
+    Chạy thực nghiệm đối sánh triệt để cả 2 mô hình trên cùng bộ dữ liệu chuẩn (240 mẫu, 180 Train / 60 Test),
+    xuất bảng thống kê dữ liệu, bảng so sánh theo từng lĩnh vực, so sánh với phân loại thủ công,
+    và tự động lựa chọn mô hình đạt F1-score cao nhất làm Mô hình chính cho dự án.
+    """
+    all_records, train_records, test_records = get_shared_train_test_split()
+    dataset_stats = compute_dataset_statistics(all_records, train_records, test_records)
+
+    svm_res = run_tfidf_svm_standalone(train_records, test_records)
+    phobert_res = run_phobert_standalone(
+        train_records,
+        test_records,
+        force_retrain=force_retrain_phobert,
+        preloaded_model=preloaded_model,
+        preloaded_tokenizer=preloaded_tokenizer,
+    )
+
+    summary = compose_summary_dict(dataset_stats, test_records, svm_res, phobert_res)
+    if update_excel:
+        _append_comparison_sheets_to_excel(all_records, summary)
 
     return {
         "summary": summary,
