@@ -8,8 +8,9 @@ import os
 import socket
 import pyodbc
 
-# Chế độ sử dụng 100% Microsoft SQL Server (SSMS)
-USE_SQL_SERVER = True
+# Chế độ cơ sở dữ liệu: Mặc định sử dụng SQLite (khcn_system.db) theo đúng đề cương CNTT-KLCN001;
+# có thể bật KHCN_USE_SQL_SERVER=1 nếu triển khai trên máy chủ MS SQL Server.
+USE_SQL_SERVER = os.environ.get("KHCN_USE_SQL_SERVER", "0") == "1"
 
 # Tên máy chủ (Hostname) hiện tại
 HOSTNAME = socket.gethostname()

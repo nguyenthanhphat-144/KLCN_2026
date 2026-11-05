@@ -105,11 +105,15 @@ class SQLServerConnectionWrapper:
         self._conn.close()
 
 
+_MIGRATED_ONCE = False
+
+
 def get_db_connection():
     """
-    Kết nối tới Microsoft SQL Server (SSMS) nếu USE_SQL_SERVER = True trong db_config.py,
-    hoặc tự động dùng SQLite (khcn_system.db) nếu chưa bật SQL Server.
+    Kết nối tới SQLite (khcn_system.db) theo đề cương CNTT-KLCN001,
+    hoặc Microsoft SQL Server (SSMS) nếu bật USE_SQL_SERVER = True trong db_config.py.
     """
+    global _MIGRATED_ONCE
     try:
         import db_config
         if getattr(db_config, "USE_SQL_SERVER", False):
@@ -123,6 +127,15 @@ def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
+    if not _MIGRATED_ONCE and os.path.exists(DB_PATH):
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='HoSoKHCN'")
+            if cur.fetchone():
+                ensure_schema_migrations(conn)
+                _MIGRATED_ONCE = True
+        except Exception:
+            pass
     return conn
 
 
@@ -185,6 +198,22 @@ def init_db():
     );
     """)
 
+    # 4b. Bảng danh mục Tác giả - DanhMucTacGia (Chức năng 2 theo Đề cương CNTT-KLCN001)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS DanhMucTacGia (
+        maTacGia INTEGER PRIMARY KEY AUTOINCREMENT,
+        maCodeTG TEXT NOT NULL UNIQUE,
+        hoTen TEXT NOT NULL,
+        hocHamHocVi TEXT DEFAULT 'TS.',
+        email TEXT,
+        donViCongTac TEXT NOT NULL,
+        maLinhVucChinh INTEGER,
+        orcid TEXT DEFAULT '',
+        trangThai INTEGER DEFAULT 1,
+        FOREIGN KEY (maLinhVucChinh) REFERENCES LinhVuc(maLinhVuc)
+    );
+    """)
+
     # 5. Bảng HoSoKHCN (Tuần 3 - 1a, 1b & Tuần 4 - 2a, 2b, 2c & Tuần 6 - 2d)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS HoSoKHCN (
@@ -217,12 +246,16 @@ def init_db():
         kinhPhi REAL DEFAULT 0.0,
         sanPhamDuKien TEXT,
         ketQuaNghiemThu TEXT DEFAULT 'Đang thực hiện',
-        -- Các trường tích hợp AI Phân loại (Chức năng 5) & Phát hiện bất thường
+        -- Các trường tích hợp AI Phân loại (Chức năng 5: Lĩnh vực & Loại công trình) & Phát hiện bất thường (Chức năng 6)
         vanBanDaTachTu TEXT,
         maLinhVucAI INTEGER,
         doTinCayAI REAL DEFAULT 0.0,
         maLinhVucSVM INTEGER,
         doTinCaySVM REAL DEFAULT 0.0,
+        nhomCongTrinhAI TEXT DEFAULT '',
+        doTinCayLoaiAI REAL DEFAULT 0.0,
+        nhomCongTrinhSVM TEXT DEFAULT '',
+        doTinCayLoaiSVM REAL DEFAULT 0.0,
         moHinhChinh TEXT DEFAULT 'PhoBERT (vinai/phobert-base)',
         daXacNhanAI INTEGER DEFAULT 0,
         diemBatThuong REAL DEFAULT 0.0,
@@ -294,8 +327,67 @@ def init_db():
     """)
 
     conn.commit()
+    ensure_schema_columns_and_tables(conn)
     seed_initial_data(conn)
+    seed_author_catalog_if_empty(conn)
     conn.close()
+
+
+def ensure_schema_columns_and_tables(conn):
+    """Đảm bảo CSDL hiện hữu tự động được bổ sung đầy đủ cột & bảng DanhMucTacGia mà không mất dữ liệu."""
+    cur = conn.cursor()
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS DanhMucTacGia (
+        maTacGia INTEGER PRIMARY KEY AUTOINCREMENT,
+        maCodeTG TEXT NOT NULL UNIQUE,
+        hoTen TEXT NOT NULL,
+        hocHamHocVi TEXT DEFAULT 'TS.',
+        email TEXT,
+        donViCongTac TEXT NOT NULL,
+        maLinhVucChinh INTEGER,
+        orcid TEXT DEFAULT '',
+        trangThai INTEGER DEFAULT 1,
+        FOREIGN KEY (maLinhVucChinh) REFERENCES LinhVuc(maLinhVuc)
+    );
+    """)
+    cur.execute("PRAGMA table_info(HoSoKHCN)")
+    existing_cols = {r[1] for r in cur.fetchall()}
+    alter_columns = [
+        ("nhomCongTrinhAI", "TEXT DEFAULT ''"),
+        ("doTinCayLoaiAI", "REAL DEFAULT 0.0"),
+        ("nhomCongTrinhSVM", "TEXT DEFAULT ''"),
+        ("doTinCayLoaiSVM", "REAL DEFAULT 0.0"),
+    ]
+    for col_name, col_def in alter_columns:
+        if col_name not in existing_cols:
+            cur.execute(f"ALTER TABLE HoSoKHCN ADD COLUMN {col_name} {col_def}")
+    conn.commit()
+
+
+def seed_author_catalog_if_empty(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM LinhVuc")
+    if cur.fetchone()[0] == 0:
+        return
+    cur.execute("SELECT COUNT(*) FROM DanhMucTacGia")
+    if cur.fetchone()[0] == 0:
+        tac_gias = [
+            ("TG-001", "Phạm Văn Khoa", "TS.", "khoapv@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0002-1452-8801"),
+            ("TG-002", "Trần Quốc Bảo", "PGS.TS.", "baotq@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0001-9834-2104"),
+            ("TG-003", "Vũ Đình Trọng", "TS.", "trongvd@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0003-4120-5567"),
+            ("TG-004", "Lê Hoàng Việt", "PGS.TS.", "vietlh@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0002-7719-3390"),
+            ("TG-005", "Hoàng Gia Huy", "TS.", "huyhg@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0001-6650-7812"),
+            ("TG-006", "Nguyễn Đức Mạnh", "TS.", "manhnd@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0002-8941-1029"),
+            ("TG-007", "Đặng Thị Mai Hương", "ThS.", "huongdtm@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0003-1198-4502"),
+            ("TG-008", "Lê Thu Trang", "TS.", "tranglt@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0002-5401-6789"),
+            ("TG-009", "Ngô Thanh Hà", "PGS.TS.", "hant@uni.edu.vn", "Khoa Kỹ thuật Hóa học & Môi trường", 5, "0000-0001-3349-9012"),
+            ("TG-010", "Đỗ Văn Kiên", "TS.", "kiendv@uni.edu.vn", "Khoa Khoa học Xã hội & Nhân văn", 6, "0000-0003-8821-3456"),
+        ]
+        cur.executemany("""
+            INSERT INTO DanhMucTacGia (maCodeTG, hoTen, hocHamHocVi, email, donViCongTac, maLinhVucChinh, orcid)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, tac_gias)
+        conn.commit()
 
 
 def seed_initial_data(conn):
@@ -390,6 +482,36 @@ def seed_sample_records_with_ai(conn):
     cur.execute("SELECT COUNT(*) FROM HoSoKHCN")
     if cur.fetchone()[0] > 0:
         ai_engine.train_and_evaluate(conn)
+        cur.execute("SELECT maHoSo, tieuDe, tomTat, tuKhoa, thongTinTacGia, donViChuTri FROM HoSoKHCN WHERE isDeleted = 0")
+        for r in cur.fetchall():
+            pred = ai_engine.predict_record_field(
+                r["tieuDe"], r["tomTat"], r["tuKhoa"], r["thongTinTacGia"], r["donViChuTri"]
+            )
+            cur.execute("""
+                UPDATE HoSoKHCN
+                SET vanBanDaTachTu = ?,
+                    maLinhVucAI = ?,
+                    doTinCayAI = ?,
+                    maLinhVucSVM = ?,
+                    doTinCaySVM = ?,
+                    nhomCongTrinhAI = ?,
+                    doTinCayLoaiAI = ?,
+                    nhomCongTrinhSVM = ?,
+                    doTinCayLoaiSVM = ?
+                WHERE maHoSo = ?
+            """, (
+                pred["segmented_text"],
+                pred["phobert_label_id"],
+                pred["phobert_confidence"],
+                pred["svm_label_id"],
+                pred["svm_confidence"],
+                pred["work_type_phobert"],
+                pred["work_type_phobert_conf"],
+                pred["work_type_svm"],
+                pred["work_type_svm_conf"],
+                r["maHoSo"],
+            ))
+        conn.commit()
         ai_engine.build_networkx_graph_and_detect_anomalies(conn)
         return
 
@@ -450,11 +572,11 @@ def seed_sample_records_with_ai(conn):
          "Khoa Cơ khí Động lực", 2026, "Đợt 1 - Năm học 2025-2026",
          8, 3, 1, 4, "Đang xét duyệt", "MinhChung_HS20260006_CNC_FEM.pdf", 1),
 
-        # 7. Hồ sơ Liên ngành (Độ tin cậy trung bình Vàng 50-80% hoặc cần rà soát kỹ)
+        # 7. Hồ sơ Đề tài NCKH Liên ngành (Chờ xét duyệt)
         ("HS-2026-0007",
-         "Thiết kế hệ thống cảm biến đeo tay IoT kết hợp thuật toán phân tích tín hiệu sinh học theo dõi nhịp tim cho người cao tuổi",
-         "Đề tài kết hợp thiết kế mạch thu nhận tín hiệu điện tâm đồ ECG trên vi điều khiển công suất thấp với phần mềm cảnh báo sớm rối loạn nhịp tim qua thiết bị di động.",
-         "mạng cảm biến không dây, hệ thống nhúng, y sinh học, xử lý tín hiệu",
+         "Đề tài nghiên cứu xây dựng và triển khai hệ thống cảm biến đeo tay IoT phân tích tín hiệu sinh học theo dõi nhịp tim cho người cao tuổi",
+         "Đề tài nghiên cứu khoa học cấp Trường thực hiện khảo sát thực tiễn, xây dựng thuyết minh, thiết kế mạch thu nhận tín hiệu điện tâm đồ ECG trên vi điều khiển công suất thấp và tổ chức nghiệm thu sản phẩm thiết bị cảnh báo sớm rối loạn nhịp tim.",
+         "mạng cảm biến không dây, hệ thống nhúng, y sinh học, xử lý tín hiệu, đề tài nghiên cứu",
          "TS. Vũ Đình Trọng, TS. Phạm Văn Khoa",
          "Khoa Điện - Điện tử", 2026, "Đợt 1 - Năm học 2025-2026",
          6, 2, 4, 8, "Chờ xét duyệt", "MinhChung_HS20260007_IoT_Bio.pdf", 0),
@@ -477,11 +599,11 @@ def seed_sample_records_with_ai(conn):
          "Khoa Sư phạm & Khoa học Xã hội Nhân văn", 2026, "Đợt 1 - Năm học 2025-2026",
          4, 6, 3, 7, "Đã duyệt", "MinhChung_HS20260009_GiaoDuc_CDIO.pdf", 1),
 
-        # 10. Hồ sơ Sáng chế Hóa - Môi trường (Chờ xét duyệt)
+        # 10. Hồ sơ Sáng chế & Giải pháp hữu ích Hóa - Môi trường (Chờ xét duyệt)
         ("HS-2026-0010",
-         "Quy trình sản xuất chế phẩm sinh học giàu enzyme cellulase và than sinh học biến tính xử lý kim loại nặng trong nước thải công nghiệp",
-         "Giải pháp hữu ích đề xuất quy trình lên men chủng xạ khuẩn bản địa kết hợp vật liệu hấp phụ sinh học giúp loại bỏ hiệu quả chì Pb(II) và cadimi Cd(II) bảo vệ môi trường bền vững.",
-         "công nghệ sinh học, enzyme sinh học, kim loại nặng, xử lý nước thải, ô nhiễm môi trường",
+         "Giải pháp hữu ích đề xuất quy trình độc quyền sản xuất chế phẩm sinh học giàu enzyme cellulase và than sinh học biến tính xử lý kim loại nặng",
+         "Giải pháp hữu ích mô tả chi tiết các bước quy trình kỹ thuật lên men chủng xạ khuẩn bản địa kết hợp vật liệu hấp phụ sinh học loại bỏ chì Pb(II) và cadimi Cd(II); hồ sơ đăng ký bảo hộ sở hữu trí tuệ xác lập tính mới, tính sáng tạo và khả năng áp dụng công nghiệp.",
+         "giải pháp hữu ích, sở hữu trí tuệ, công nghệ sinh học, enzyme sinh học, xử lý nước thải",
          "PGS.TS. Ngô Thanh Hà",
          "Khoa Kỹ thuật Hóa học & Môi trường", 2026, "Đợt 1 - Năm học 2025-2026",
          7, 5, 6, 6, "Chờ xét duyệt", "MinhChung_HS20260010_SangChe_Bio.pdf", 0),
@@ -491,26 +613,24 @@ def seed_sample_records_with_ai(conn):
         (ma_hs, tieu_de, tom_tat, tu_khoa, tac_gia, don_vi, nam, ky,
          ma_nguoi_nop, ma_lv, ma_loai, ma_tc, trang_thai, file_dk, da_xac_nhan) = item
 
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, tac_gia)
-        pho_conf = pred["phobert_confidence"]
-        if ma_hs == "HS-2026-0007":
-            pho_conf = 68.5
-        elif ma_hs == "HS-2026-0003":
-            pho_conf = 91.4
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, tac_gia, don_vi)
 
         cur.execute("""
             INSERT INTO HoSoKHCN (
                 maHoSo, tieuDe, tomTat, tuKhoa, thongTinTacGia, donViChuTri,
                 namCongBo, kyBaoCao, maNguoiNop, maLinhVuc, maLoai, maTapChi,
                 trangThai, fileDinhKem, vanBanDaTachTu, maLinhVucAI, doTinCayAI,
-                maLinhVucSVM, doTinCaySVM, daXacNhanAI
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                maLinhVucSVM, doTinCaySVM, nhomCongTrinhAI, doTinCayLoaiAI,
+                nhomCongTrinhSVM, doTinCayLoaiSVM, daXacNhanAI
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             ma_hs, tieu_de, tom_tat, tu_khoa, tac_gia, don_vi,
             nam, ky, ma_nguoi_nop, ma_lv, ma_loai, ma_tc,
             trang_thai, file_dk, pred["segmented_text"],
-            pred["phobert_label_id"], pho_conf,
-            pred["svm_label_id"], pred["svm_confidence"], da_xac_nhan
+            pred["phobert_label_id"], pred["phobert_confidence"],
+            pred["svm_label_id"], pred["svm_confidence"],
+            pred["work_type_phobert"], pred["work_type_phobert_conf"],
+            pred["work_type_svm"], pred["work_type_svm_conf"], da_xac_nhan
         ))
 
     lich_su = [

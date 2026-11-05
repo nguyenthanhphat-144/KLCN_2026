@@ -8,12 +8,12 @@
             Thực Nghiệm Đối Sánh Mô Hình Phân Loại & Kiểm Định Hồ Sơ KH&CN
         </h5>
         <p class="text-muted small mb-0">
-            Thực nghiệm độc lập TF-IDF + SVM và Fine-tuning PhoBERT trên cùng bộ dữ liệu chuẩn 12 trường; lựa chọn mô hình chính thức và xếp hạng ưu tiên rủi ro
+            Thực nghiệm công bằng TF-IDF + LinearSVC và Fine-tuning PhoBERT (PyTorch vinai/phobert-base) trên cùng bộ dữ liệu chuẩn hóa; so sánh với phân loại thủ công và phát hiện bất thường
         </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
         <a href="{{ url_for('download_training_dataset') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-file-earmark-excel me-1"></i>Tải bộ dữ liệu 12 trường (.xlsx)
+            <i class="bi bi-file-earmark-excel me-1"></i>Tải bộ dữ liệu & Bảng đối sánh (.xlsx)
         </a>
     </div>
 </div>
@@ -23,9 +23,9 @@
 <div class="card card-academic mb-3">
     <div class="card-header card-header-academic d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
-            <span>Thực Nghiệm Độc Lập & Đối Sánh Triệt Để: TF-IDF + SVM vs Fine-tuning PhoBERT</span>
+            <span>Thực Nghiệm Độc Lập & Đối Sánh Công Bằng: TF-IDF + LinearSVC vs Fine-tuning PhoBERT (PyTorch)</span>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2 fw-normal">
-                Bộ dữ liệu chuẩn 12 trường ({{ benchmark.dataset_stats.total_samples }} mẫu: {{ benchmark.dataset_stats.train_samples }} Train / {{ benchmark.dataset_stats.test_samples }} Test)
+                Bộ dữ liệu chuẩn {{ benchmark.dataset_stats.input_columns|length }} trường ({{ benchmark.dataset_stats.total_samples }} mẫu: {{ benchmark.dataset_stats.train_samples }} Train / {{ benchmark.dataset_stats.test_samples }} Test)
             </span>
         </div>
         {% if current_user.vai_tro in ['Admin', 'CanBo'] %}
@@ -53,15 +53,15 @@
     </div>
 
     <div class="card-body">
-        <!-- 12 trường dữ liệu đầu vào dùng chung -->
+        <!-- Cấu trúc trường dữ liệu đầu vào dùng chung -->
         <div class="mb-3 p-2 rounded bg-light border small">
             <div class="fw-semibold text-secondary mb-1">
-                Cấu trúc 12 trường đầu vào dùng chung cho cả 2 mô hình (File: <code>docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx</code>):
+                Cấu trúc {{ benchmark.dataset_stats.input_columns|length }} trường chuẩn hóa dùng chung cho cả 2 mô hình (cùng hàm <code>combine_fair_input_text</code>; File: <code>docs/Tap_Du_Lieu_Huan_Luyen_Chuan_12Truong.xlsx</code>):
             </div>
             <div class="d-flex flex-wrap gap-1">
                 {% for col_name in benchmark.dataset_stats.input_columns %}
                 <span class="badge bg-white text-dark border fw-normal px-2 py-1">
-                    {{ loop.index }}. {{ col_name }}{% if col_name == 'Lĩnh vực đăng ký' %} (Nhãn mục tiêu){% endif %}
+                    {{ loop.index }}. {{ col_name }}{% if col_name in ['Lĩnh vực đăng ký', 'Loại hình'] %} (Nhãn mục tiêu){% endif %}
                 </span>
                 {% endfor %}
             </div>
@@ -73,7 +73,7 @@
                 <div class="border rounded h-100">
                     <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
                         <span>Bảng 1: Thống kê bộ dữ liệu huấn luyện & kiểm thử dùng chung</span>
-                        <span class="text-muted fw-normal">Tỷ lệ Stratified 75% Train : 25% Test</span>
+                        <span class="text-muted fw-normal">Stratified 75% Train : 25% Test</span>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm align-middle mb-0 small">
@@ -85,6 +85,7 @@
                                     <th class="text-end">Test</th>
                                     <th class="text-end">Bài báo</th>
                                     <th class="text-end">Đề tài</th>
+                                    <th class="text-end">Sáng chế</th>
                                     <th class="text-end pe-3">Liên ngành</th>
                                 </tr>
                             </thead>
@@ -99,6 +100,7 @@
                                     <td class="text-end">{{ f.test }}</td>
                                     <td class="text-end text-muted">{{ f.bai_bao }}</td>
                                     <td class="text-end text-muted">{{ f.de_tai }}</td>
+                                    <td class="text-end text-muted">{{ f.sang_che or 0 }}</td>
                                     <td class="text-end pe-3 text-muted">{{ f.interdisciplinary }}</td>
                                 </tr>
                                 {% endfor %}
@@ -109,6 +111,7 @@
                                     <td class="text-end">{{ benchmark.dataset_stats.test_samples }}</td>
                                     <td class="text-end">{{ benchmark.dataset_stats.total_bai_bao }}</td>
                                     <td class="text-end">{{ benchmark.dataset_stats.total_de_tai }}</td>
+                                    <td class="text-end">{{ benchmark.dataset_stats.total_sang_che or 0 }}</td>
                                     <td class="text-end pe-3">{{ benchmark.dataset_stats.total_interdisciplinary }}</td>
                                 </tr>
                             </tbody>
@@ -122,8 +125,8 @@
                 <div class="border rounded h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
-                            <span>Bảng 2: Đánh giá mô hình phân loại văn bản (NLP) trên tập Test (60 mẫu)</span>
-                            <span class="text-muted fw-normal">Đo độc lập từng mô hình</span>
+                            <span>Bảng 2: Đánh giá đa nhiệm trên tập Test độc lập ({{ benchmark.dataset_stats.test_samples }} mẫu)</span>
+                            <span class="text-muted fw-normal">Đo thực tế bằng time.perf_counter()</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle mb-0 small">
@@ -132,8 +135,9 @@
                                         <th class="ps-3">Mô hình thực nghiệm</th>
                                         <th class="text-end">Precision</th>
                                         <th class="text-end">Recall</th>
-                                        <th class="text-end">F1-Score</th>
-                                        <th class="text-end">Phản hồi</th>
+                                        <th class="text-end">F1 Lĩnh vực</th>
+                                        <th class="text-end">F1 Loại CT</th>
+                                        <th class="text-end">Suy luận</th>
                                         <th class="text-center pe-3">Vai trò</th>
                                     </tr>
                                 </thead>
@@ -141,11 +145,12 @@
                                     <tr class="{% if active_mode == 'svm' %}table-active{% endif %}">
                                         <td class="ps-3">
                                             <div class="fw-semibold">TF-IDF + LinearSVC</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">Mô hình học máy cơ sở (Baseline)</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Baseline học máy truyền thống</div>
                                         </td>
                                         <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.precision) }}%</td>
                                         <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.recall) }}%</td>
                                         <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%</td>
+                                        <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.work_type_f1 or 0) }}%</td>
                                         <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms</td>
                                         <td class="text-center pe-3">
                                             <span class="badge bg-secondary-subtle text-secondary border fw-normal">Đối chứng</span>
@@ -153,23 +158,24 @@
                                     </tr>
                                     <tr class="{% if active_mode == 'phobert' or active_mode == 'both' %}table-light{% endif %}">
                                         <td class="ps-3">
-                                            <div class="fw-bold text-primary">Fine-tuning PhoBERT Tiếng Việt</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">vinai/phobert-base (Freeze Layers 0..7)</div>
+                                            <div class="fw-bold text-primary">Fine-tuning PhoBERT (PyTorch)</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">vinai/phobert-base (Freeze L0..L9, Train L10..L11)</div>
                                         </td>
                                         <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.precision) }}%</td>
                                         <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.recall) }}%</td>
                                         <td class="text-end fw-bold text-primary">{{ "%.2f"|format(benchmark.phobert_metrics.f1_score) }}%</td>
+                                        <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.work_type_f1 or 0) }}%</td>
                                         <td class="text-end text-muted">{{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms</td>
                                         <td class="text-center pe-3">
                                             <span class="badge bg-success-subtle text-success border border-success-subtle">Mô hình chính</span>
                                         </td>
                                     </tr>
                                     <tr class="bg-light small">
-                                        <td class="ps-3 fw-semibold text-secondary">Mức cải thiện của PhoBERT so với TF-IDF + SVM</td>
-                                        <td class="text-end text-success fw-semibold">+{{ "%.2f"|format(benchmark.selected_model.delta_precision) }}%</td>
-                                        <td class="text-end text-success fw-semibold">+{{ "%.2f"|format(benchmark.selected_model.delta_recall) }}%</td>
-                                        <td class="text-end text-success fw-bold">+{{ "%.2f"|format(benchmark.selected_model.delta_f1) }}%</td>
-                                        <td class="text-end text-muted" colspan="2">Đạt chuẩn thời gian thực (&lt; 50 ms)</td>
+                                        <td class="ps-3 fw-semibold text-secondary">Chênh lệch (PhoBERT vs TF-IDF + SVM)</td>
+                                        <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_precision >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_precision) }}%</td>
+                                        <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_recall >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_recall) }}%</td>
+                                        <td class="text-end text-success fw-bold">{% if benchmark.selected_model.delta_f1 >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_f1) }}%</td>
+                                        <td class="text-end text-muted" colspan="3">Đo thực tế trên CPU ({{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms/hồ sơ)</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -192,9 +198,9 @@
         </div>
 
         <!-- Bảng 3: So sánh chi tiết Precision, Recall, F1-score theo từng lĩnh vực -->
-        <div class="border rounded">
+        <div class="border rounded mb-3">
             <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
-                <span>Bảng 3: So sánh chi tiết Precision, Recall, F1-score của 2 mô hình theo từng lĩnh vực (Tập kiểm thử 60 mẫu)</span>
+                <span>Bảng 3: So sánh chi tiết Precision, Recall, F1-score của 2 mô hình theo từng lĩnh vực (Tập kiểm thử {{ benchmark.dataset_stats.test_samples }} mẫu)</span>
                 <span class="text-muted fw-normal">10 mẫu kiểm thử độc lập / lĩnh vực</span>
             </div>
             <div class="table-responsive">
@@ -203,8 +209,8 @@
                         <tr class="text-center">
                             <th rowspan="2" class="text-start ps-3 align-middle">Mã & Tên lĩnh vực đăng ký</th>
                             <th rowspan="2" class="align-middle">Số mẫu Test</th>
-                            <th colspan="3">Mô hình 1: TF-IDF + SVM (Baseline)</th>
-                            <th colspan="3">Mô hình 2: Fine-tuning PhoBERT (Mô hình chính)</th>
+                            <th colspan="3">Mô hình 1: TF-IDF + LinearSVC (Baseline)</th>
+                            <th colspan="3">Mô hình 2: Fine-tuning PhoBERT (PyTorch - Mô hình chính)</th>
                             <th rowspan="2" class="align-middle pe-3">Chênh lệch Δ F1</th>
                         </tr>
                         <tr class="text-end">
@@ -229,7 +235,7 @@
                             <td class="text-end">{{ "%.2f"|format(row.phobert_precision) }}%</td>
                             <td class="text-end">{{ "%.2f"|format(row.phobert_recall) }}%</td>
                             <td class="text-end fw-bold text-primary">{{ "%.2f"|format(row.phobert_f1) }}%</td>
-                            <td class="text-end pe-3 fw-semibold {% if row.delta_f1 > 0 %}text-success{% else %}text-muted{% endif %}">
+                            <td class="text-end pe-3 fw-semibold {% if row.delta_f1 > 0 %}text-success{% elif row.delta_f1 < 0 %}text-danger{% else %}text-muted{% endif %}">
                                 {% if row.delta_f1 > 0 %}+{% endif %}{{ "%.2f"|format(row.delta_f1) }}%
                             </td>
                         </tr>
@@ -238,6 +244,67 @@
                 </table>
             </div>
         </div>
+
+        <!-- Bảng 4: So sánh Phân loại Tự động (AI) và Phương pháp Phân loại Thủ công (Tuần 9 & Mục 5 Đề cương) -->
+        {% if benchmark.manual_vs_automated %}
+        {% set m_base = benchmark.manual_vs_automated.manual_baseline %}
+        {% set m_svm = benchmark.manual_vs_automated.tfidf_svm_auto %}
+        {% set m_pho = benchmark.manual_vs_automated.phobert_auto %}
+        <div class="border rounded">
+            <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
+                <span>Bảng 4: Đối sánh hiệu quả Phân loại Tự động (AI) với Phương pháp Phân loại Thủ công truyền thống</span>
+                <span class="text-muted fw-normal">Đánh giá trên cùng lô {{ benchmark.dataset_stats.test_samples }} hồ sơ kiểm thử</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0 small">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Phương pháp thực hiện</th>
+                            <th class="text-end">Precision</th>
+                            <th class="text-end">Recall</th>
+                            <th class="text-end">F1 Lĩnh vực</th>
+                            <th class="text-end">F1 Loại CT</th>
+                            <th class="text-end">Thời gian / 1 hồ sơ</th>
+                            <th class="text-end">Lô 60 hồ sơ</th>
+                            <th class="pe-3">Tính nhất quán & Đánh giá nghiệp vụ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ m_base.method_name }}</td>
+                            <td class="text-end">{{ "%.2f"|format(m_base.precision) }}%</td>
+                            <td class="text-end">{{ "%.2f"|format(m_base.recall) }}%</td>
+                            <td class="text-end fw-semibold">{{ "%.2f"|format(m_base.f1_score) }}%</td>
+                            <td class="text-end">{{ "%.2f"|format(m_base.work_type_f1) }}%</td>
+                            <td class="text-end text-muted">~{{ "%.0f"|format(m_base.avg_time_sec) }} giây</td>
+                            <td class="text-end text-muted">~{{ "%.1f"|format(m_base.batch_60_time_min) }} phút</td>
+                            <td class="pe-3 text-muted">{{ m_base.consistency_note }}</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ m_svm.method_name }}</td>
+                            <td class="text-end">{{ "%.2f"|format(m_svm.precision) }}%</td>
+                            <td class="text-end">{{ "%.2f"|format(m_svm.recall) }}%</td>
+                            <td class="text-end fw-semibold">{{ "%.2f"|format(m_svm.f1_score) }}%</td>
+                            <td class="text-end">{{ "%.2f"|format(m_svm.work_type_f1) }}%</td>
+                            <td class="text-end text-muted">{{ "%.2f"|format(m_svm.avg_time_ms) }} ms</td>
+                            <td class="text-end text-muted">{{ "%.3f"|format(m_svm.batch_60_time_sec) }} giây</td>
+                            <td class="pe-3 text-muted">{{ m_svm.consistency_note }}</td>
+                        </tr>
+                        <tr class="table-light">
+                            <td class="ps-3 fw-bold text-primary">{{ m_pho.method_name }}</td>
+                            <td class="text-end fw-semibold">{{ "%.2f"|format(m_pho.precision) }}%</td>
+                            <td class="text-end fw-semibold">{{ "%.2f"|format(m_pho.recall) }}%</td>
+                            <td class="text-end fw-bold text-primary">{{ "%.2f"|format(m_pho.f1_score) }}% (+{{ "%.2f"|format(m_pho.delta_f1_vs_manual) }}%)</td>
+                            <td class="text-end fw-semibold">{{ "%.2f"|format(m_pho.work_type_f1) }}%</td>
+                            <td class="text-end fw-semibold text-success">{{ "%.2f"|format(m_pho.avg_time_ms) }} ms</td>
+                            <td class="text-end fw-semibold text-success">{{ "%.2f"|format(m_pho.batch_60_time_sec) }} giây (nhanh gấp ~{{ m_pho.speedup_factor_vs_manual }}x)</td>
+                            <td class="pe-3 text-dark">{{ m_pho.consistency_note }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endif %}
@@ -245,8 +312,8 @@
 <!-- 1. Hàng đợi xét duyệt ưu tiên rủi ro -->
 <div class="card card-academic mb-3">
     <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
-        <span>Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro</span>
-        <span class="text-muted small fw-normal">Sắp xếp theo điểm rủi ro giảm dần</span>
+        <span>Hàng Đợi Xét Duyệt Ưu Tiên Rủi Ro (Isolation Forest + PyTorch Autoencoder + Luật Đồ Thị)</span>
+        <span class="text-muted small fw-normal">Sắp xếp theo điểm rủi ro liên tục giảm dần</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -258,7 +325,7 @@
                         <th style="width: 34%;">Tiêu đề công trình & Đơn vị chủ trì</th>
                         <th class="text-end" style="width: 11%;">Điểm rủi ro</th>
                         <th class="text-end" style="width: 10%;">IF Score</th>
-                        <th class="text-end" style="width: 10%;">AE (MSE)</th>
+                        <th class="text-end" style="width: 10%;">PyTorch AE (MSE)</th>
                         <th class="text-center" style="width: 10%;">Trạng thái</th>
                         <th class="text-end pe-3"></th>
                     </tr>
@@ -279,16 +346,14 @@
                             {% if pq.reasons %}
                             <div class="mt-1">
                                 {% for r in pq.reasons %}
-                                <div class="text-danger" style="font-size: 0.78rem;">
-                                    • {{ r | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}
-                                </div>
+                                <div class="text-danger" style="font-size: 0.78rem;">• {{ r }}</div>
                                 {% endfor %}
                             </div>
                             {% endif %}
                         </td>
                         <td class="text-end">
                             <span class="fw-bold {% if pq.diemBatThuong >= 0.50 %}text-danger{% else %}text-success{% endif %}">
-                                {{ "%.2f"|format(pq.diemBatThuong) }}
+                                {{ "%.3f"|format(pq.diemBatThuong) }}
                             </span>
                         </td>
                         <td class="text-end text-muted">{{ "%.3f"|format(pq.if_score or 0.0) }}</td>
@@ -342,11 +407,11 @@
                             <div class="fw-semibold text-dark">{{ a.tieuDe }}</div>
                             <div class="text-muted">{{ a.donViChuTri }}</div>
                         </td>
-                        <td class="text-end fw-bold text-danger">{{ "%.2f"|format(a.diemBatThuong) }}</td>
+                        <td class="text-end fw-bold text-danger">{{ "%.3f"|format(a.diemBatThuong) }}</td>
                         <td>
                             <ul class="mb-0 ps-3 text-danger">
                                 {% for r in a.reasons %}
-                                <li>{{ r | replace('Predatory', 'Không uy tín') | replace('Discontinued', 'Ngừng chỉ mục') }}</li>
+                                <li>{{ r }}</li>
                                 {% endfor %}
                             </ul>
                         </td>
@@ -369,7 +434,7 @@
     <div class="col-lg-6">
         <div class="card card-academic h-100">
             <div class="card-header card-header-academic">
-                Nghiệp Vụ Phức Tạp 2: So Sánh 2 Mô Hình Phát Hiện Bất Thường
+                Chức Năng 6: So Sánh 2 Mô Hình Phát Hiện Bất Thường Không Giám Sát
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -379,7 +444,7 @@
                                 <th class="ps-3">Mô hình</th>
                                 <th>Hàm tiêu chuẩn</th>
                                 <th class="text-end">Ngoại lai</th>
-                                <th class="text-end pe-3">Thời gian</th>
+                                <th class="text-end pe-3">Thời gian thực</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -391,7 +456,7 @@
                                 </td>
                                 <td><code class="small">{{ am.criterion }}</code></td>
                                 <td class="text-end fw-semibold text-danger">{{ am.outlier_rate }}</td>
-                                <td class="text-end pe-3 text-muted">{{ "%.1f"|format(am.time_ms) }} ms</td>
+                                <td class="text-end pe-3 text-muted">{{ "%.2f"|format(am.time_ms) }} ms</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -420,15 +485,8 @@
                         </thead>
                         <tbody>
                             {% for n in graph_summary.top_nodes %}
-                            {% set vn_lbl = n.label
-                                | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
-                                | replace('PGS.TS. Trần Quốc Bảo', 'Nguyễn Thành Phát')
-                                | replace('TS. Nguyễn Minh Tâm (Cán bộ duyệt)', 'Lê Thanh Phong')
-                                | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
-                                | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
-                                | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
                             <tr>
-                                <td class="ps-3 fw-semibold">{{ vn_lbl }}</td>
+                                <td class="ps-3 fw-semibold">{{ n.label }}</td>
                                 <td class="text-muted">{{ n.type }}</td>
                                 <td class="text-end">{{ n.degree }}</td>
                                 <td class="text-end pe-3 text-muted">{{ "%.3f"|format(n.centrality) }}</td>

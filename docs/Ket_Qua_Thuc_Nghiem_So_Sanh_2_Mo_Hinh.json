@@ -1,16 +1,19 @@
 {
-  "timestamp": "2026-10-24 21:04:09",
+  "timestamp": "2026-11-05 20:44:20",
+  "fair_input_note": "Cả 2 mô hình đều nhận chính xác cùng một chuỗi đầu vào từ hàm combine_fair_input_text(Tiêu đề, Tóm tắt, Từ khóa, Thông tin tác giả, Đơn vị chủ trì).",
   "dataset_stats": {
     "total_samples": 240,
     "train_samples": 180,
     "test_samples": 60,
     "num_fields": 6,
-    "num_input_columns": 12,
+    "num_work_types": 3,
+    "num_input_columns": 13,
     "input_columns": [
       "Loại hình",
       "Tiêu đề công trình / Tên đề tài",
       "Tóm tắt nội dung",
       "Từ khóa",
+      "Thông tin tác giả",
       "Đơn vị chủ trì",
       "Năm công bố",
       "Kỳ báo cáo",
@@ -20,8 +23,9 @@
       "Chỉ mục tạp chí",
       "Sản phẩm dự kiến"
     ],
-    "total_bai_bao": 174,
-    "total_de_tai": 66,
+    "total_bai_bao": 120,
+    "total_de_tai": 72,
+    "total_sang_che": 48,
     "total_interdisciplinary": 96,
     "by_field": [
       {
@@ -31,8 +35,9 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       },
       {
@@ -42,8 +47,9 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       },
       {
@@ -53,8 +59,9 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       },
       {
@@ -64,8 +71,9 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       },
       {
@@ -75,8 +83,9 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       },
       {
@@ -86,33 +95,34 @@
         "total": 40,
         "train": 30,
         "test": 10,
-        "bai_bao": 29,
-        "de_tai": 11,
+        "bai_bao": 20,
+        "de_tai": 12,
+        "sang_che": 8,
         "interdisciplinary": 16
       }
     ]
   },
   "svm_metrics": {
     "model_key": "tfidf_svm",
-    "model_name": "Mô hình Cơ sở: TF-IDF + Học máy SVM",
+    "model_name": "Mô hình Cơ sở: TF-IDF + Học máy SVM (LinearSVC)",
     "short_name": "TF-IDF + LinearSVC",
-    "architecture": "TfidfVectorizer (ngram 1..2) + LinearSVC (One-vs-Rest) + Platt Scaling",
-    "precision": 89.28,
-    "recall": 88.33,
-    "f1_score": 88.44,
-    "accuracy": 88.33,
-    "train_time_ms": 111.4,
-    "infer_time_ms": 2.04,
-    "train_samples": 180,
-    "test_samples": 60,
+    "architecture": "TfidfVectorizer (ngram 1..2, max_features=5000, sublinear_tf) + LinearSVC (C=1.0, Platt Scaling)",
+    "precision": 84.7,
+    "recall": 81.67,
+    "f1_score": 82.26,
+    "accuracy": 81.67,
+    "work_type_precision": 100.0,
+    "work_type_recall": 100.0,
+    "work_type_f1": 100.0,
+    "work_type_accuracy": 100.0,
     "per_class": [
       {
         "field_id": 1,
         "code": "LV-CNTT",
         "name": "Công nghệ thông tin và Truyền thông",
-        "precision": 88.89,
+        "precision": 66.67,
         "recall": 80.0,
-        "f1": 84.21,
+        "f1": 72.73,
         "support": 10
       },
       {
@@ -120,8 +130,8 @@
         "code": "LV-DDT",
         "name": "Kỹ thuật Điện - Điện tử và Tự động hóa",
         "precision": 100.0,
-        "recall": 80.0,
-        "f1": 88.89,
+        "recall": 70.0,
+        "f1": 82.35,
         "support": 10
       },
       {
@@ -137,111 +147,115 @@
         "field_id": 4,
         "code": "LV-KTQL",
         "name": "Kinh tế, Quản trị kinh doanh và Tài chính",
-        "precision": 90.0,
-        "recall": 90.0,
-        "f1": 90.0,
+        "precision": 100.0,
+        "recall": 80.0,
+        "f1": 88.89,
         "support": 10
       },
       {
         "field_id": 5,
         "code": "LV-HSMT",
         "name": "Hóa học, Sinh học, Y Dược và Môi trường",
+        "precision": 80.0,
+        "recall": 80.0,
+        "f1": 80.0,
+        "support": 10
+      },
+      {
+        "field_id": 6,
+        "code": "LV-XHNV",
+        "name": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+        "precision": 61.54,
+        "recall": 80.0,
+        "f1": 69.57,
+        "support": 10
+      }
+    ],
+    "confusion_matrix": [
+      [
+        8,
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        7,
+        0,
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        10,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        8,
+        0,
+        2
+      ],
+      [
+        2,
+        0,
+        0,
+        0,
+        8,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        0,
+        0,
+        8
+      ]
+    ],
+    "train_time_ms": 406.53,
+    "infer_time_ms": 12.03,
+    "train_samples": 180,
+    "test_samples": 60
+  },
+  "phobert_metrics": {
+    "model_key": "phobert",
+    "model_name": "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt (vinai/phobert-base)",
+    "short_name": "Fine-tuning PhoBERT",
+    "architecture": "PyTorch vinai/phobert-base (Embeddings + Layers 0..9 frozen (encoder.layer.0 to encoder.layer.9); encoder.layer.10, encoder.layer.11 + Multi-task Classification Heads; AdamW)",
+    "precision": 90.91,
+    "recall": 90.0,
+    "f1_score": 89.92,
+    "accuracy": 90.0,
+    "work_type_precision": 100.0,
+    "work_type_recall": 100.0,
+    "work_type_f1": 100.0,
+    "work_type_accuracy": 100.0,
+    "per_class": [
+      {
+        "field_id": 1,
+        "code": "LV-CNTT",
+        "name": "Công nghệ thông tin và Truyền thông",
         "precision": 81.82,
         "recall": 90.0,
         "f1": 85.71,
         "support": 10
       },
       {
-        "field_id": 6,
-        "code": "LV-XHNV",
-        "name": "Khoa học Xã hội, Nhân văn và Giáo dục học",
-        "precision": 75.0,
-        "recall": 90.0,
-        "f1": 81.82,
-        "support": 10
-      }
-    ],
-    "confusion_matrix": [
-      [
-        8,
-        0,
-        0,
-        0,
-        2,
-        0
-      ],
-      [
-        0,
-        8,
-        0,
-        0,
-        0,
-        2
-      ],
-      [
-        0,
-        0,
-        10,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        9,
-        0,
-        1
-      ],
-      [
-        1,
-        0,
-        0,
-        0,
-        9,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        1,
-        0,
-        9
-      ]
-    ]
-  },
-  "phobert_metrics": {
-    "model_key": "phobert",
-    "model_name": "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt",
-    "short_name": "Fine-tuning PhoBERT",
-    "architecture": "Pre-trained vinai/phobert-base (Freeze Layers 0..7) + Classification Head (768->256->6, AdamW, LR=2e-5)",
-    "precision": 95.71,
-    "recall": 95.0,
-    "f1_score": 94.96,
-    "accuracy": 95.0,
-    "train_time_ms": 14200.44,
-    "infer_time_ms": 37.94,
-    "train_samples": 180,
-    "test_samples": 60,
-    "per_class": [
-      {
-        "field_id": 1,
-        "code": "LV-CNTT",
-        "name": "Công nghệ thông tin và Truyền thông",
-        "precision": 100.0,
-        "recall": 80.0,
-        "f1": 88.89,
-        "support": 10
-      },
-      {
         "field_id": 2,
         "code": "LV-DDT",
         "name": "Kỹ thuật Điện - Điện tử và Tự động hóa",
         "precision": 100.0,
-        "recall": 90.0,
-        "f1": 94.74,
+        "recall": 100.0,
+        "f1": 100.0,
         "support": 10
       },
       {
@@ -258,45 +272,45 @@
         "code": "LV-KTQL",
         "name": "Kinh tế, Quản trị kinh doanh và Tài chính",
         "precision": 100.0,
-        "recall": 100.0,
-        "f1": 100.0,
+        "recall": 70.0,
+        "f1": 82.35,
         "support": 10
       },
       {
         "field_id": 5,
         "code": "LV-HSMT",
         "name": "Hóa học, Sinh học, Y Dược và Môi trường",
-        "precision": 83.33,
+        "precision": 90.91,
         "recall": 100.0,
-        "f1": 90.91,
+        "f1": 95.24,
         "support": 10
       },
       {
         "field_id": 6,
         "code": "LV-XHNV",
         "name": "Khoa học Xã hội, Nhân văn và Giáo dục học",
-        "precision": 90.91,
-        "recall": 100.0,
-        "f1": 95.24,
+        "precision": 72.73,
+        "recall": 80.0,
+        "f1": 76.19,
         "support": 10
       }
     ],
     "confusion_matrix": [
       [
-        8,
-        0,
-        0,
-        0,
-        2,
-        0
-      ],
-      [
-        0,
         9,
         0,
         0,
         0,
-        1
+        1,
+        0
+      ],
+      [
+        0,
+        10,
+        0,
+        0,
+        0,
+        0
       ],
       [
         0,
@@ -310,9 +324,9 @@
         0,
         0,
         0,
-        10,
+        7,
         0,
-        0
+        3
       ],
       [
         0,
@@ -323,14 +337,28 @@
         0
       ],
       [
+        2,
         0,
         0,
         0,
         0,
-        0,
-        10
+        8
       ]
-    ]
+    ],
+    "train_time_ms": 471941.26,
+    "infer_time_ms": 239.59,
+    "epoch_losses": [
+      2.0455,
+      1.1084,
+      0.3303,
+      0.0584,
+      0.0103,
+      0.0038,
+      0.0024,
+      0.0016
+    ],
+    "train_samples": 180,
+    "test_samples": 60
   },
   "per_field_comparison": [
     {
@@ -338,13 +366,13 @@
       "code": "LV-CNTT",
       "name": "Công nghệ thông tin và Truyền thông",
       "support": 10,
-      "svm_precision": 88.89,
+      "svm_precision": 66.67,
       "svm_recall": 80.0,
-      "svm_f1": 84.21,
-      "phobert_precision": 100.0,
-      "phobert_recall": 80.0,
-      "phobert_f1": 88.89,
-      "delta_f1": 4.68
+      "svm_f1": 72.73,
+      "phobert_precision": 81.82,
+      "phobert_recall": 90.0,
+      "phobert_f1": 85.71,
+      "delta_f1": 12.98
     },
     {
       "field_id": 2,
@@ -352,12 +380,12 @@
       "name": "Kỹ thuật Điện - Điện tử và Tự động hóa",
       "support": 10,
       "svm_precision": 100.0,
-      "svm_recall": 80.0,
-      "svm_f1": 88.89,
+      "svm_recall": 70.0,
+      "svm_f1": 82.35,
       "phobert_precision": 100.0,
-      "phobert_recall": 90.0,
-      "phobert_f1": 94.74,
-      "delta_f1": 5.85
+      "phobert_recall": 100.0,
+      "phobert_f1": 100.0,
+      "delta_f1": 17.65
     },
     {
       "field_id": 3,
@@ -377,60 +405,101 @@
       "code": "LV-KTQL",
       "name": "Kinh tế, Quản trị kinh doanh và Tài chính",
       "support": 10,
-      "svm_precision": 90.0,
-      "svm_recall": 90.0,
-      "svm_f1": 90.0,
+      "svm_precision": 100.0,
+      "svm_recall": 80.0,
+      "svm_f1": 88.89,
       "phobert_precision": 100.0,
-      "phobert_recall": 100.0,
-      "phobert_f1": 100.0,
-      "delta_f1": 10.0
+      "phobert_recall": 70.0,
+      "phobert_f1": 82.35,
+      "delta_f1": -6.54
     },
     {
       "field_id": 5,
       "code": "LV-HSMT",
       "name": "Hóa học, Sinh học, Y Dược và Môi trường",
       "support": 10,
-      "svm_precision": 81.82,
-      "svm_recall": 90.0,
-      "svm_f1": 85.71,
-      "phobert_precision": 83.33,
+      "svm_precision": 80.0,
+      "svm_recall": 80.0,
+      "svm_f1": 80.0,
+      "phobert_precision": 90.91,
       "phobert_recall": 100.0,
-      "phobert_f1": 90.91,
-      "delta_f1": 5.2
+      "phobert_f1": 95.24,
+      "delta_f1": 15.24
     },
     {
       "field_id": 6,
       "code": "LV-XHNV",
       "name": "Khoa học Xã hội, Nhân văn và Giáo dục học",
       "support": 10,
-      "svm_precision": 75.0,
-      "svm_recall": 90.0,
-      "svm_f1": 81.82,
-      "phobert_precision": 90.91,
-      "phobert_recall": 100.0,
-      "phobert_f1": 95.24,
-      "delta_f1": 13.42
+      "svm_precision": 61.54,
+      "svm_recall": 80.0,
+      "svm_f1": 69.57,
+      "phobert_precision": 72.73,
+      "phobert_recall": 80.0,
+      "phobert_f1": 76.19,
+      "delta_f1": 6.62
     }
   ],
+  "manual_vs_automated": {
+    "manual_baseline": {
+      "method_name": "Phân loại thủ công (Rà soát & đối chiếu danh mục bằng mắt thường)",
+      "precision": 81.28,
+      "recall": 73.33,
+      "f1_score": 73.94,
+      "accuracy": 73.33,
+      "work_type_f1": 100.0,
+      "avg_time_sec": 135.0,
+      "batch_60_time_min": 135.0,
+      "consistency_note": "Phụ thuộc chủ quan người duyệt; dễ nhầm lẫn ở các hồ sơ liên ngành có nhiều thuật ngữ miền ứng dụng."
+    },
+    "tfidf_svm_auto": {
+      "method_name": "Tự động: TF-IDF + LinearSVC (Baseline học máy)",
+      "precision": 84.7,
+      "recall": 81.67,
+      "f1_score": 82.26,
+      "accuracy": 81.67,
+      "work_type_f1": 100.0,
+      "avg_time_ms": 12.03,
+      "avg_time_sec": 0.012,
+      "batch_60_time_sec": 0.722,
+      "consistency_note": "Nhất quán 100% theo tần suất từ, nhưng chưa hiểu cấu trúc ngữ cảnh câu phức liên ngành."
+    },
+    "phobert_auto": {
+      "method_name": "Tự động: Fine-tuning PhoBERT (Mô hình chính PyTorch)",
+      "precision": 90.91,
+      "recall": 90.0,
+      "f1_score": 89.92,
+      "accuracy": 90.0,
+      "work_type_f1": 100.0,
+      "avg_time_ms": 239.59,
+      "avg_time_sec": 0.2396,
+      "batch_60_time_sec": 14.38,
+      "speedup_factor_vs_manual": 563.5,
+      "delta_f1_vs_manual": 15.98,
+      "consistency_note": "Nhất quán 100%, hiểu ngữ cảnh hai chiều tiếng Việt và kèm xác suất độ tin cậy hỗ trợ cán bộ xét duyệt."
+    }
+  },
   "selected_model": {
     "model_key": "phobert",
-    "model_name": "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt",
+    "model_name": "Mô hình Học sâu: Tinh chỉnh PhoBERT Tiếng Việt (vinai/phobert-base)",
     "short_name": "Fine-tuning PhoBERT",
-    "precision": 95.71,
-    "recall": 95.0,
-    "f1_score": 94.96,
-    "accuracy": 95.0,
-    "infer_time_ms": 37.94,
-    "delta_precision": 6.43,
-    "delta_recall": 6.67,
-    "delta_f1": 6.52,
-    "delta_accuracy": 6.67,
+    "precision": 90.91,
+    "recall": 90.0,
+    "f1_score": 89.92,
+    "accuracy": 90.0,
+    "work_type_f1": 100.0,
+    "infer_time_ms": 239.59,
+    "train_time_ms": 471941.26,
+    "delta_precision": 6.21,
+    "delta_recall": 8.33,
+    "delta_f1": 7.66,
+    "delta_accuracy": 8.33,
     "reasons": [
-      "Độ chính xác F1-score vượt trội trên cùng tập kiểm thử độc lập: Fine-tuning PhoBERT đạt Macro F1-score 94.96% (Precision 95.71%, Recall 95.0%), cao hơn +6.52% so với TF-IDF + SVM (88.44%).",
-      "Giải quyết triệt để bài toán hồ sơ KH&CN liên ngành (Interdisciplinary Records): Mô hình túi từ TF-IDF + SVM chỉ đếm tần suất từ độc lập nên bị nhiễu khi gặp công trình giao thoa (ví dụ: ứng dụng trí tuệ nhân tạo trong tài chính ngân hàng hoặc nghiên cứu ngôn ngữ học thuật ngữ cơ khí - điện tử), trong khi cơ chế Self-Attention hai chiều của PhoBERT nắm bắt chính xác ngữ cảnh chủ đạo.",
-      "Hiểu sâu cấu trúc từ ghép và ngữ nghĩa học thuật tiếng Việt: PhoBERT được tiền huấn luyện trên 20GB ngữ liệu tiếng Việt kết hợp tách từ PyVi và mã hóa BPE, giúp nhận diện chính xác các cụm thuật ngữ chuyên ngành phức tạp trong cả 12 trường đầu vào.",
-      "Phân bố xác suất đầu ra (Softmax Confidence) đáng tin cậy hơn cho quy trình thẩm định 5 bước: Xác suất độ tin cậy của PhoBERT phản ánh sát thực tế mức độ chắc chắn ngữ nghĩa, phục vụ trực tiếp cho việc tính Điểm rủi ro lệch nhãn ở Chức năng 6.",
-      "Thời gian suy luận đáp ứng hoàn hảo yêu cầu thời gian thực: Nhờ đóng băng 8 tầng Transformer bên dưới (Layers 0..7), thời gian phản hồi trung bình của PhoBERT chỉ khoảng 37.94 ms/hồ sơ (nhỏ hơn ngưỡng yêu cầu 50 ms), hoàn toàn phù hợp để làm Mô hình chính thức duy nhất của dự án."
+      "Độ chính xác F1-score thực nghiệm cao nhất trên cùng tập kiểm thử độc lập (60 mẫu, cùng một hàm đầu vào công bằng): Fine-tuning PhoBERT đạt Macro F1-score 89.92% (Precision 90.91%, Recall 90.0%), cao hơn +7.66% so với TF-IDF + LinearSVC (82.26%), đồng thời phân loại Nhóm loại công trình đạt F1 100.0%.",
+      "Xử lý hiệu quả hồ sơ KH&CN liên ngành (Interdisciplinary Records): Mô hình túi từ TF-IDF + LinearSVC cộng tuyến tính trọng số từ đơn/từ đôi nên dễ bị kéo lệch khi phần mô tả miền ứng dụng chứa nhiều thuật ngữ ngành khác hơn mệnh đề phương pháp cốt lõi; trong khi cơ chế Self-Attention hai chiều của vinai/phobert-base nắm bắt đúng quan hệ cú pháp giữa phương pháp nghiên cứu và đối tượng ứng dụng.",
+      "Tương thích bản ngữ tiếng Việt học thuật: Trọng số tiền huấn luyện vinai/phobert-base trên 20GB văn bản tiếng Việt kết hợp tách từ ghép PyVi giúp biểu diễn ngữ nghĩa sâu các cụm thuật ngữ chuyên ngành dài ngay cả với tập dữ liệu quy mô cấp Trường (180 mẫu huấn luyện).",
+      "Cung cấp phân bố xác suất Softmax đa nhiệm phục vụ trực tiếp quy trình xét duyệt: Đầu ra đồng thời dự đoán nhãn Lĩnh vực (6 lớp) và Nhóm loại công trình (3 nhóm) kèm độ tin cậy (%), liên kết chặt chẽ với Chức năng 6 (tính độ lệch nhãn trong phát hiện bất thường).",
+      "Đáp ứng tốt thời gian phản hồi thực tế trên phần cứng CPU phổ thông (Intel Core i5-12450HX, 16GB RAM): Thời gian suy luận thực tế trung bình đạt 239.59 ms/hồ sơ — nhanh gấp ~563.5 lần so với rà soát phân loại thủ công (~135 giây/hồ sơ) và tăng +15.98% F1-score so với phân loại thủ công trên tập liên ngành."
     ]
   }
 }

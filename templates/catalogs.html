@@ -4,15 +4,15 @@
 {% block content %}
 <div class="mb-3">
     <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
-        Quản Lý Danh Mục Hệ Thống
+        Quản Lý Danh Mục Hệ Thống (4 Danh Mục Chuẩn Hóa)
     </h5>
     <p class="text-muted small mb-0">
-        Danh mục lĩnh vực nghiên cứu, loại công trình, tạp chí/hội thảo và quy chuẩn nhập liệu
+        Quản trị đầy đủ (Thêm mới, Cập nhật, Vô hiệu hóa/Kích hoạt) cho Danh mục Lĩnh vực, Loại công trình, Tạp chí/Hội thảo và Danh mục Tác giả
     </p>
 </div>
 
 <div class="row g-3">
-    <!-- 1. Danh mục Lĩnh vực -->
+    <!-- 1. Danh mục Lĩnh vực nghiên cứu -->
     <div class="col-12">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
@@ -32,7 +32,9 @@
                         <input type="text" name="moTa" class="form-control form-control-sm" placeholder="Mô tả phạm vi chuyên ngành...">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Thêm lĩnh vực</button>
+                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+                            + Thêm lĩnh vực
+                        </button>
                     </div>
                 </form>
                 {% endif %}
@@ -47,7 +49,7 @@
                                 <th>Mô tả phạm vi</th>
                                 <th class="text-center">Số hồ sơ</th>
                                 <th class="text-center">Trạng thái</th>
-                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end">Thao tác</th>{% endif %}
+                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 130px;">Thao tác</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -66,8 +68,12 @@
                                     {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
-                                <td class="text-end">
-                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='linhvuc', item_id=lv.maLinhVuc) }}">
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                            data-bs-toggle="collapse" data-bs-target="#edit-lv-{{ lv.maLinhVuc }}">
+                                        Sửa
+                                    </button>
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='linhvuc', item_id=lv.maLinhVuc) }}" class="d-inline">
                                         <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
                                             {% if lv.trangThai == 1 %}Ẩn{% else %}Hiện{% endif %}
                                         </button>
@@ -75,6 +81,26 @@
                                 </td>
                                 {% endif %}
                             </tr>
+                            {% if current_user.vai_tro == 'Admin' %}
+                            <tr class="collapse bg-light" id="edit-lv-{{ lv.maLinhVuc }}">
+                                <td colspan="7" class="p-2">
+                                    <form method="POST" action="{{ url_for('catalog_edit_item', cat_type='linhvuc', item_id=lv.maLinhVuc) }}" class="row g-2 align-items-center">
+                                        <div class="col-md-2">
+                                            <input type="text" name="maCode" class="form-control form-control-sm" value="{{ lv.maCode }}" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" name="tenLinhVuc" class="form-control form-control-sm" value="{{ lv.tenLinhVuc }}" required>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input type="text" name="moTa" class="form-control form-control-sm" value="{{ lv.moTa or '' }}">
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button type="submit" class="btn btn-sm btn-success py-0 px-3">Lưu cập nhật</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -86,8 +112,9 @@
     <!-- 2. Danh mục Loại công trình -->
     <div class="col-lg-6">
         <div class="card card-academic h-100">
-            <div class="card-header card-header-academic">
-                2. Danh mục Loại công trình
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>2. Danh mục Loại công trình KH&CN</span>
+                <span class="text-muted small fw-normal">{{ loai_cts|length }} phân loại</span>
             </div>
             <div class="card-body">
                 {% if current_user.vai_tro == 'Admin' %}
@@ -95,8 +122,16 @@
                     <div class="col-md-3">
                         <input type="text" name="maCodeLoai" class="form-control form-control-sm" placeholder="Mã loại" required>
                     </div>
-                    <div class="col-md-7">
+                    <div class="col-md-4">
                         <input type="text" name="tenLoai" class="form-control form-control-sm" placeholder="Tên loại công trình" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="nhomCongTrinh" class="form-select form-select-sm">
+                            <option value="Bài báo quốc tế">Bài báo quốc tế</option>
+                            <option value="Bài báo trong nước">Bài báo trong nước</option>
+                            <option value="Đề tài NCKH">Đề tài NCKH</option>
+                            <option value="Sáng chế & Giải pháp hữu ích">Sáng chế & GPHI</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">Thêm</button>
@@ -110,19 +145,19 @@
                             <tr>
                                 <th>Mã</th>
                                 <th>Tên loại công trình</th>
+                                <th>Nhóm</th>
+                                <th class="text-end">Giờ chuẩn</th>
                                 <th class="text-center">Trạng thái</th>
-                                {% if current_user.vai_tro == 'Admin' %}<th></th>{% endif %}
+                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 110px;">Thao tác</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% for lct in loai_cts %}
                             <tr>
                                 <td><code>{{ lct.maCodeLoai }}</code></td>
-                                <td>
-                                    {{ lct.tenLoai
-                                       | replace('Web of Science / Scopus (Q1/Q2)', 'Uy tín (Hạng 1 / Hạng 2)')
-                                       | replace('Scopus (Q3/Q4)', '(Hạng 3 / Hạng 4)') }}
-                                </td>
+                                <td>{{ lct.tenLoai }}</td>
+                                <td class="text-muted">{{ lct.nhomCongTrinh }}</td>
+                                <td class="text-end">{{ "%.0f"|format(lct.gioChuanQuyDoi or 0) }}</td>
                                 <td class="text-center">
                                     {% if lct.trangThai == 1 %}
                                     <span class="text-success">Hoạt động</span>
@@ -131,13 +166,42 @@
                                     {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
-                                <td class="text-end">
-                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='loai', item_id=lct.maLoai) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">Đổi</button>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                            data-bs-toggle="collapse" data-bs-target="#edit-lct-{{ lct.maLoai }}">
+                                        Sửa
+                                    </button>
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='loai', item_id=lct.maLoai) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                            {% if lct.trangThai == 1 %}Ẩn{% else %}Hiện{% endif %}
+                                        </button>
                                     </form>
                                 </td>
                                 {% endif %}
                             </tr>
+                            {% if current_user.vai_tro == 'Admin' %}
+                            <tr class="collapse bg-light" id="edit-lct-{{ lct.maLoai }}">
+                                <td colspan="6" class="p-2">
+                                    <form method="POST" action="{{ url_for('catalog_edit_item', cat_type='loai', item_id=lct.maLoai) }}" class="row g-1 align-items-center">
+                                        <div class="col-md-2">
+                                            <input type="text" name="maCodeLoai" class="form-control form-control-sm" value="{{ lct.maCodeLoai }}" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" name="tenLoai" class="form-control form-control-sm" value="{{ lct.tenLoai }}" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" name="nhomCongTrinh" class="form-control form-control-sm" value="{{ lct.nhomCongTrinh }}" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input type="number" step="1" name="gioChuanQuyDoi" class="form-control form-control-sm" value="{{ lct.gioChuanQuyDoi }}">
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button type="submit" class="btn btn-sm btn-success py-0 px-2">Lưu</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -149,19 +213,23 @@
     <!-- 3. Danh mục Tạp chí / Hội thảo -->
     <div class="col-lg-6">
         <div class="card card-academic h-100">
-            <div class="card-header card-header-academic">
-                3. Danh mục Tạp chí / Hội thảo
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>3. Danh mục Tạp chí / Hội thảo tham chiếu</span>
+                <span class="text-muted small fw-normal">{{ tap_chis|length }} ấn phẩm</span>
             </div>
             <div class="card-body">
                 {% if current_user.vai_tro == 'Admin' %}
                 <form method="POST" action="{{ url_for('catalog_add_tapchi') }}" class="row g-2 mb-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <input type="text" name="tenTapChi" class="form-control form-control-sm" placeholder="Tên tạp chí..." required>
                     </div>
                     <div class="col-md-2">
                         <input type="text" name="chiSoISSN" class="form-control form-control-sm" placeholder="ISSN" required>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <input type="text" name="xepHang" class="form-control form-control-sm" placeholder="Xếp hạng" value="HĐGSNN">
+                    </div>
+                    <div class="col-md-2">
                         <select name="uyTin" class="form-select form-select-sm">
                             <option value="1">Hợp lệ / Uy tín</option>
                             <option value="0">Cảnh báo</option>
@@ -180,45 +248,69 @@
                                 <th>Tên tạp chí / Hội thảo</th>
                                 <th>ISSN</th>
                                 <th>Xếp hạng</th>
-                                {% if current_user.vai_tro == 'Admin' %}<th></th>{% endif %}
+                                <th class="text-center">Trạng thái</th>
+                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 110px;">Thao tác</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% for tc in tap_chis %}
-                            {% set vn_xh = tc.xepHang
-                                | replace('ISI-Q1 / Scopus Q1', 'Tạp chí Quốc tế Hạng 1')
-                                | replace('Scopus Q2 / HĐGSNN', 'Tạp chí Quốc tế Hạng 2 / HĐGSNN')
-                                | replace('HĐGSNN (1.0 điểm)', 'Hội đồng GSNN (1.0 điểm)')
-                                | replace('HĐGSNN (0.75 điểm)', 'Hội đồng GSNN (0.75 điểm)')
-                                | replace('Predatory', 'Không uy tín')
-                                | replace('Discontinued', 'Ngừng chỉ mục') %}
-                            {% set vn_tc = tc.tenTapChi
-                                | replace('Engineering Applications of Artificial Intelligence', 'Tạp chí Ứng dụng Kỹ thuật Trí tuệ Nhân tạo (Quốc tế)')
-                                | replace('Journal of Computer Science and Cybernetics (VAST)', 'Tạp chí Tin học và Điều khiển học (Viện Hàn lâm KH&CN VN)')
-                                | replace('IEEE Transactions on Industrial Electronics', 'Tạp chí Điện tử Công nghiệp IEEE (Quốc tế)')
-                                | replace('International Journal of Mechanical Sciences', 'Tạp chí Quốc tế Khoa học Cơ khí')
-                                | replace('Journal of Asian Economics & Management', 'Tạp chí Kinh tế và Quản trị Châu Á')
-                                | replace('Journal of Cleaner Production & Environmental Tech', 'Tạp chí Sản xuất Sạch hơn và Công nghệ Môi trường')
-                                | replace('Global Predatory Journal of Multidisciplinary Research (CẢNH BÁO)', 'Tạp chí Đa ngành Quốc tế Chưa Kiểm định (CẢNH BÁO)')
-                                | replace('Unverified Rapid Publication Review (Tạp chí ngừng chỉ mục Scopus)', 'Tạp chí Xuất bản Nhanh Chưa Xác thực (Ngừng chỉ mục)') %}
                             <tr>
-                                <td>{{ vn_tc }}</td>
-                                <td><code>{{ tc.chiSoISSN | replace('COUNCIL-VN', 'HĐ-VN') }}</code></td>
+                                <td>{{ tc.tenTapChi }}</td>
+                                <td><code>{{ tc.chiSoISSN }}</code></td>
                                 <td>
                                     {% if tc.uyTin == 1 %}
-                                    <span class="text-success">{{ vn_xh }}</span>
+                                    <span class="text-success">{{ tc.xepHang }}</span>
                                     {% else %}
-                                    <span class="text-danger fw-semibold">{{ vn_xh }}</span>
+                                    <span class="text-danger fw-semibold">{{ tc.xepHang }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if tc.trangThai == 1 %}
+                                    <span class="text-success">Hoạt động</span>
+                                    {% else %}
+                                    <span class="text-muted">Tạm ẩn</span>
                                     {% endif %}
                                 </td>
                                 {% if current_user.vai_tro == 'Admin' %}
-                                <td class="text-end">
-                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='tapchi', item_id=tc.maTapChi) }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">Đổi</button>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                            data-bs-toggle="collapse" data-bs-target="#edit-tc-{{ tc.maTapChi }}">
+                                        Sửa
+                                    </button>
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='tapchi', item_id=tc.maTapChi) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                            {% if tc.trangThai == 1 %}Ẩn{% else %}Hiện{% endif %}
+                                        </button>
                                     </form>
                                 </td>
                                 {% endif %}
                             </tr>
+                            {% if current_user.vai_tro == 'Admin' %}
+                            <tr class="collapse bg-light" id="edit-tc-{{ tc.maTapChi }}">
+                                <td colspan="5" class="p-2">
+                                    <form method="POST" action="{{ url_for('catalog_edit_item', cat_type='tapchi', item_id=tc.maTapChi) }}" class="row g-1 align-items-center">
+                                        <div class="col-md-4">
+                                            <input type="text" name="tenTapChi" class="form-control form-control-sm" value="{{ tc.tenTapChi }}" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="text" name="chiSoISSN" class="form-control form-control-sm" value="{{ tc.chiSoISSN }}" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" name="xepHang" class="form-control form-control-sm" value="{{ tc.xepHang }}">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <select name="uyTin" class="form-select form-select-sm">
+                                                <option value="1" {% if tc.uyTin == 1 %}selected{% endif %}>Uy tín</option>
+                                                <option value="0" {% if tc.uyTin == 0 %}selected{% endif %}>Cảnh báo</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button type="submit" class="btn btn-sm btn-success py-0 px-2">Lưu</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -227,44 +319,131 @@
         </div>
     </div>
 
-    <!-- 4. Quy chuẩn tham chiếu -->
+    <!-- 4. Danh mục Tác giả (Chức năng 2 theo Đề cương CNTT-KLCN001) -->
     <div class="col-12">
         <div class="card card-academic">
-            <div class="card-header card-header-academic">
-                4. Quy chuẩn phân loại tham chiếu (12 trường dữ liệu đầu vào)
+            <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
+                <span>4. Danh mục Tác giả & Giảng viên nghiên cứu</span>
+                <span class="text-muted small fw-normal">{{ tac_gias|length }} tác giả trong danh mục</span>
             </div>
             <div class="card-body">
-                <div class="row g-3 small">
-                    <div class="col-md-4">
-                        <div class="fw-semibold mb-2">Danh Mục Chỉ Mục Tạp Chí</div>
-                        <ul class="list-group list-group-flush border rounded">
-                            <li class="list-group-item py-1">Scopus Q1 / Web of Science (SCIE)</li>
-                            <li class="list-group-item py-1">Scopus Q2 / Web of Science</li>
-                            <li class="list-group-item py-1">Hội đồng GSNN (0.75 - 1.0 điểm)</li>
-                            <li class="list-group-item py-1">Hội thảo Quốc tế / IEEE Xplore</li>
-                            <li class="list-group-item py-1">Tạp chí Khoa học Quốc gia</li>
-                        </ul>
+                {% if current_user.vai_tro == 'Admin' %}
+                <form method="POST" action="{{ url_for('catalog_add_tacgia') }}" class="row g-2 mb-3">
+                    <div class="col-md-2">
+                        <input type="text" name="maCodeTG" class="form-control form-control-sm" placeholder="Mã TG (VD: TG-CNTT-03)" required>
                     </div>
+                    <div class="col-md-1">
+                        <select name="hocHamHocVi" class="form-select form-select-sm">
+                            <option value="PGS.TS.">PGS.TS.</option>
+                            <option value="TS." selected>TS.</option>
+                            <option value="ThS.">ThS.</option>
+                            <option value="GS.TS.">GS.TS.</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Họ và tên tác giả..." required>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="email" name="email" class="form-control form-control-sm" placeholder="Email học thuật...">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" name="donViCongTac" class="form-control form-control-sm" placeholder="Khoa / Viện công tác..." required>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="maLinhVucChinh" class="form-select form-select-sm">
+                            {% for lv in linh_vucs %}
+                            <option value="{{ lv.maLinhVuc }}">{{ lv.tenLinhVuc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-sm btn-primary w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">+ Thêm</button>
+                    </div>
+                </form>
+                {% endif %}
 
-                    <div class="col-md-4">
-                        <div class="fw-semibold mb-2">Danh Mục Sản Phẩm Dự Kiến</div>
-                        <ul class="list-group list-group-flush border rounded">
-                            <li class="list-group-item py-1">Bài báo khoa học Quốc tế / Quốc gia</li>
-                            <li class="list-group-item py-1">Phần mềm / Hệ thống ứng dụng</li>
-                            <li class="list-group-item py-1">Giải pháp hữu ích / Quy trình kỹ thuật</li>
-                            <li class="list-group-item py-1">Báo cáo tổng kết & Tài liệu chuyên khảo</li>
-                        </ul>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="fw-semibold mb-2">Danh Mục Kỳ Báo Cáo & Đơn Vị Chủ Trì</div>
-                        <ul class="list-group list-group-flush border rounded">
-                            <li class="list-group-item py-1">Đợt 1 - Năm học 2025-2026</li>
-                            <li class="list-group-item py-1">Đợt 2 - Năm học 2025-2026</li>
-                            <li class="list-group-item py-1">Đợt 2 - Năm học 2024-2025</li>
-                            <li class="list-group-item py-1">6 Khoa / Viện chuyên môn</li>
-                        </ul>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Mã TG</th>
+                                <th>Học hàm / Họ tên</th>
+                                <th>Email</th>
+                                <th>Đơn vị công tác</th>
+                                <th>Lĩnh vực chuyên môn chính</th>
+                                <th>ORCID</th>
+                                <th class="text-center">Số hồ sơ</th>
+                                <th class="text-center">Trạng thái</th>
+                                {% if current_user.vai_tro == 'Admin' %}<th class="text-end" style="width: 120px;">Thao tác</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tg in tac_gias %}
+                            <tr>
+                                <td><code>{{ tg.maCodeTG }}</code></td>
+                                <td class="fw-semibold">{{ tg.hocHamHocVi }} {{ tg.hoTen }}</td>
+                                <td class="text-muted">{{ tg.email or '-' }}</td>
+                                <td>{{ tg.donViCongTac }}</td>
+                                <td>{{ tg.tenLinhVuc or '-' }}</td>
+                                <td><code class="text-muted">{{ tg.orcid or '-' }}</code></td>
+                                <td class="text-center">{{ tg.soHoSoLienKet }}</td>
+                                <td class="text-center">
+                                    {% if tg.trangThai == 1 %}
+                                    <span class="text-success">Hoạt động</span>
+                                    {% else %}
+                                    <span class="text-muted">Tạm ẩn</span>
+                                    {% endif %}
+                                </td>
+                                {% if current_user.vai_tro == 'Admin' %}
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                            data-bs-toggle="collapse" data-bs-target="#edit-tg-{{ tg.maTacGia }}">
+                                        Sửa
+                                    </button>
+                                    <form method="POST" action="{{ url_for('catalog_toggle_status', cat_type='tacgia', item_id=tg.maTacGia) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                            {% if tg.trangThai == 1 %}Ẩn{% else %}Hiện{% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% if current_user.vai_tro == 'Admin' %}
+                            <tr class="collapse bg-light" id="edit-tg-{{ tg.maTacGia }}">
+                                <td colspan="9" class="p-2">
+                                    <form method="POST" action="{{ url_for('catalog_edit_item', cat_type='tacgia', item_id=tg.maTacGia) }}" class="row g-1 align-items-center">
+                                        <div class="col-md-2">
+                                            <input type="text" name="maCodeTG" class="form-control form-control-sm" value="{{ tg.maCodeTG }}" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input type="text" name="hocHamHocVi" class="form-control form-control-sm" value="{{ tg.hocHamHocVi }}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="text" name="hoTen" class="form-control form-control-sm" value="{{ tg.hoTen }}" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="email" name="email" class="form-control form-control-sm" value="{{ tg.email or '' }}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="text" name="donViCongTac" class="form-control form-control-sm" value="{{ tg.donViCongTac }}" required>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select name="maLinhVucChinh" class="form-select form-select-sm">
+                                                {% for lv in linh_vucs %}
+                                                <option value="{{ lv.maLinhVuc }}" {% if tg.maLinhVucChinh == lv.maLinhVuc %}selected{% endif %}>{{ lv.tenLinhVuc }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-1 text-end">
+                                            <button type="submit" class="btn btn-sm btn-success py-0 px-2">Lưu</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

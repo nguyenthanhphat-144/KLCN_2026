@@ -34,10 +34,11 @@ ENV/
 env.bak/
 venv.bak/
 
-# Logs and databases
+# Logs, models and databases
 *.log
 *.sqlite3
 *.db
+models/
 
 # IDE / Editor
 .vscode/

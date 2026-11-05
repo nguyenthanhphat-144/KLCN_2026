@@ -295,12 +295,12 @@ def dashboard():
     stats_baibao_nam = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT COALESCE(tc.xepHang, h.chiMucTapChi, N'Chưa phân hạng') AS chiMuc, COUNT(*) AS soLuong
+        SELECT COALESCE(tc.xepHang, h.chiMucTapChi, 'Chưa phân hạng') AS chiMuc, COUNT(*) AS soLuong
         FROM HoSoKHCN h
         JOIN LoaiCongTrinh lct ON h.maLoai = lct.maLoai
         LEFT JOIN TapChiHopLe tc ON h.maTapChi = tc.maTapChi
         WHERE h.isDeleted = 0 AND (lct.nhomCongTrinh LIKE '%Bài báo%' OR lct.tenLoai LIKE '%Bài báo%')
-        GROUP BY COALESCE(tc.xepHang, h.chiMucTapChi, N'Chưa phân hạng')
+        GROUP BY COALESCE(tc.xepHang, h.chiMucTapChi, 'Chưa phân hạng')
         ORDER BY soLuong DESC
     """)
     stats_baibao_chimuc = [dict(r) for r in cur.fetchall()]
@@ -396,11 +396,13 @@ def dashboard():
 @app.route("/hoso")
 @login_required
 def hoso_list():
-    """Tuần 4 - Mục 2b: Tra cứu, tìm kiếm từ khóa và lọc hồ sơ theo tiêu chí có phân trang."""
+    """Tuần 4 - Mục 2b: Tra cứu, tìm kiếm từ khóa và lọc hồ sơ theo Lĩnh vực, Loại, Tác giả, Đơn vị, Trạng thái có phân trang."""
     q = request.args.get("q", "").strip()
     nhom = request.args.get("nhom", "").strip()
     ma_linh_vuc = request.args.get("maLinhVuc", "").strip()
     ma_loai = request.args.get("maLoai", "").strip()
+    tac_gia = request.args.get("tacGia", "").strip()
+    don_vi = request.args.get("donVi", "").strip()
     trang_thai = request.args.get("trangThai", "").strip()
     canh_bao = request.args.get("coCanhBao", "").strip()
     sap_xep = request.args.get("sapXep", "priority").strip()
@@ -414,14 +416,16 @@ def hoso_list():
     params = []
 
     if q:
-        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.maHoSo LIKE ? OR h.donViChuTri LIKE ? OR h.sanPhamDuKien LIKE ?)")
+        where_clauses.append("(h.tieuDe LIKE ? OR h.tomTat LIKE ? OR h.tuKhoa LIKE ? OR h.thongTinTacGia LIKE ? OR h.maHoSo LIKE ? OR h.donViChuTri LIKE ? OR h.sanPhamDuKien LIKE ?)")
         like_q = f"%{q}%"
-        params.extend([like_q, like_q, like_q, like_q, like_q, like_q])
+        params.extend([like_q, like_q, like_q, like_q, like_q, like_q, like_q])
 
     if nhom == "baibao":
         where_clauses.append("(lct.nhomCongTrinh LIKE '%Bài báo%' OR lct.tenLoai LIKE '%Bài báo%')")
     elif nhom == "detai":
         where_clauses.append("(lct.nhomCongTrinh LIKE '%Đề tài%' OR lct.tenLoai LIKE '%Đề tài%')")
+    elif nhom == "sangche":
+        where_clauses.append("(lct.nhomCongTrinh LIKE '%Sở hữu%' OR lct.nhomCongTrinh LIKE '%Sáng chế%' OR lct.tenLoai LIKE '%Sáng chế%' OR lct.tenLoai LIKE '%Giải pháp%')")
 
     if ma_linh_vuc:
         where_clauses.append("h.maLinhVuc = ?")
@@ -430,6 +434,14 @@ def hoso_list():
     if ma_loai:
         where_clauses.append("h.maLoai = ?")
         params.append(int(ma_loai))
+
+    if tac_gia:
+        where_clauses.append("h.thongTinTacGia LIKE ?")
+        params.append(f"%{tac_gia}%")
+
+    if don_vi:
+        where_clauses.append("h.donViChuTri = ?")
+        params.append(don_vi)
 
     if trang_thai:
         where_clauses.append("h.trangThai = ?")
@@ -502,6 +514,12 @@ def hoso_list():
     cur.execute("SELECT * FROM LoaiCongTrinh WHERE trangThai = 1 ORDER BY maLoai")
     loai_cts = [dict(r) for r in cur.fetchall()]
 
+    cur.execute("SELECT * FROM DanhMucTacGia WHERE trangThai = 1 ORDER BY maTacGia")
+    tac_gias = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT donViChuTri FROM HoSoKHCN WHERE isDeleted = 0 AND donViChuTri IS NOT NULL ORDER BY donViChuTri")
+    don_vis = [r["donViChuTri"] for r in cur.fetchall()]
+
     conn.close()
 
     return render_template(
@@ -509,11 +527,15 @@ def hoso_list():
         records=records,
         linh_vucs=linh_vucs,
         loai_cts=loai_cts,
+        tac_gias=tac_gias,
+        don_vis=don_vis,
         filters={
             "q": q,
             "nhom": nhom,
             "maLinhVuc": ma_linh_vuc,
             "maLoai": ma_loai,
+            "tacGia": tac_gia,
+            "donVi": don_vi,
             "trangThai": trang_thai,
             "coCanhBao": canh_bao,
             "sapXep": sap_xep,
@@ -575,8 +597,8 @@ def hoso_create():
                 file_name_saved = f"{ma_ho_so}_{safe_name}"
                 uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], file_name_saved))
 
-        # Chạy mô-đun AI Tiền xử lý tiếng Việt + Phân loại tự động (Chức năng 5)
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi_chu_tri)
+        # Chạy mô-đun AI Tiền xử lý tiếng Việt + Phân loại tự động Lĩnh vực & Loại công trình (Chức năng 5)
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri)
 
         # Trạng thái ban đầu mặc định là 'Chờ xét duyệt' (Tuần 4 - Mục 2a)
         trang_thai_ban_dau = "Chờ xét duyệt"
@@ -587,14 +609,17 @@ def hoso_create():
                 namCongBo, kyBaoCao, maNguoiNop, maLinhVuc, maLoai, maTapChi,
                 trangThai, fileDinhKem, vanBanDaTachTu, maLinhVucAI, doTinCayAI,
                 maLinhVucSVM, doTinCaySVM,
+                nhomCongTrinhAI, doTinCayLoaiAI, nhomCongTrinhSVM, doTinCayLoaiSVM,
                 chiMucTapChi, sanPhamDuKien
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             ma_ho_so, tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri,
             nam_cong_bo, ky_bao_cao, session["user_id"], ma_linh_vuc, ma_loai, ma_tap_chi,
             trang_thai_ban_dau, file_name_saved, pred["segmented_text"],
             pred["phobert_label_id"], pred["phobert_confidence"],
             pred["svm_label_id"], pred["svm_confidence"],
+            pred["work_type_phobert"], pred["work_type_phobert_conf"],
+            pred["work_type_svm"], pred["work_type_svm_conf"],
             chi_muc_tap_chi, san_pham_du_kien
         ))
 
@@ -622,6 +647,8 @@ def hoso_create():
     loai_cts = [dict(r) for r in cur.fetchall()]
     cur.execute("SELECT * FROM TapChiHopLe WHERE trangThai = 1 ORDER BY maTapChi")
     tap_chis = [dict(r) for r in cur.fetchall()]
+    cur.execute("SELECT * FROM DanhMucTacGia WHERE trangThai = 1 ORDER BY maTacGia")
+    tac_gias = [dict(r) for r in cur.fetchall()]
     conn.close()
 
     return render_template(
@@ -631,6 +658,7 @@ def hoso_create():
         linh_vucs=linh_vucs,
         loai_cts=loai_cts,
         tap_chis=tap_chis,
+        tac_gias=tac_gias,
     )
 
 
@@ -688,8 +716,8 @@ def hoso_edit(ma_ho_so):
             file_name_saved = f"{ma_ho_so}_{safe_name}"
             uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], file_name_saved))
 
-        # Chạy lại AI phân loại & phát hiện bất thường sau khi cập nhật nội dung
-        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi_chu_tri)
+        # Chạy lại AI phân loại Lĩnh vực & Loại công trình + phát hiện bất thường sau khi cập nhật nội dung
+        pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, thong_tin_tac_gia, don_vi_chu_tri)
 
         # Nghiệp vụ 3 - Bước 5 & Nghiệp vụ 1: Vòng lặp phản hồi và chỉnh sửa (Resubmission loop)
         # Khi tác giả chỉnh sửa hồ sơ đang ở trạng thái 'Yêu cầu bổ sung', tự động chuyển lại 'Chờ xét duyệt'
@@ -708,6 +736,7 @@ def hoso_edit(ma_ho_so):
                 trangThai = ?,
                 fileDinhKem = ?, vanBanDaTachTu = ?, maLinhVucAI = ?, doTinCayAI = ?,
                 maLinhVucSVM = ?, doTinCaySVM = ?,
+                nhomCongTrinhAI = ?, doTinCayLoaiAI = ?, nhomCongTrinhSVM = ?, doTinCayLoaiSVM = ?,
                 chiMucTapChi = ?, sanPhamDuKien = ?,
                 ngayCapNhat = CURRENT_TIMESTAMP
             WHERE maHoSo = ?
@@ -717,6 +746,8 @@ def hoso_edit(ma_ho_so):
             trang_thai_moi,
             file_name_saved, pred["segmented_text"], pred["phobert_label_id"],
             pred["phobert_confidence"], pred["svm_label_id"], pred["svm_confidence"],
+            pred["work_type_phobert"], pred["work_type_phobert_conf"],
+            pred["work_type_svm"], pred["work_type_svm_conf"],
             chi_muc_tap_chi, san_pham_du_kien,
             ma_ho_so
         ))
@@ -736,6 +767,8 @@ def hoso_edit(ma_ho_so):
     loai_cts = [dict(r) for r in cur.fetchall()]
     cur.execute("SELECT * FROM TapChiHopLe WHERE trangThai = 1 ORDER BY maTapChi")
     tap_chis = [dict(r) for r in cur.fetchall()]
+    cur.execute("SELECT * FROM DanhMucTacGia WHERE trangThai = 1 ORDER BY maTacGia")
+    tac_gias = [dict(r) for r in cur.fetchall()]
     conn.close()
 
     return render_template(
@@ -745,6 +778,7 @@ def hoso_edit(ma_ho_so):
         linh_vucs=linh_vucs,
         loai_cts=loai_cts,
         tap_chis=tap_chis,
+        tac_gias=tac_gias,
     )
 
 
@@ -876,6 +910,8 @@ def hoso_detail(ma_ho_so):
 
     cur.execute("SELECT * FROM LinhVuc WHERE trangThai = 1 ORDER BY maLinhVuc")
     linh_vucs = [dict(r) for r in cur.fetchall()]
+    cur.execute("SELECT * FROM LoaiCongTrinh WHERE trangThai = 1 ORDER BY maLoai")
+    loai_cts = [dict(r) for r in cur.fetchall()]
 
     conn.close()
 
@@ -887,6 +923,7 @@ def hoso_detail(ma_ho_so):
         lich_su=lich_su,
         phan_hoi_ai=phan_hoi_ai,
         linh_vucs=linh_vucs,
+        loai_cts=loai_cts,
         badge_info=badge_info,
     )
 
@@ -1026,12 +1063,20 @@ def hoso_ai_feedback(ma_ho_so):
         do_tin_cay, ket_qua_khop, van_ban_tach_tu, ghi_chu
     ))
 
-    # Cập nhật lĩnh vực chuẩn của hồ sơ và đánh dấu đã xác nhận AI
-    cur.execute("""
-        UPDATE HoSoKHCN
-        SET maLinhVuc = ?, daXacNhanAI = 1, ngayCapNhat = CURRENT_TIMESTAMP
-        WHERE maHoSo = ?
-    """, (ma_lv_thuc_te, ma_ho_so))
+    # Cập nhật lĩnh vực (và loại công trình nếu cán bộ điều chỉnh) của hồ sơ, đánh dấu đã xác nhận AI
+    ma_loai_moi = request.form.get("maLoaiThucTe", "").strip()
+    if ma_loai_moi:
+        cur.execute("""
+            UPDATE HoSoKHCN
+            SET maLinhVuc = ?, maLoai = ?, daXacNhanAI = 1, ngayCapNhat = CURRENT_TIMESTAMP
+            WHERE maHoSo = ?
+        """, (ma_lv_thuc_te, int(ma_loai_moi), ma_ho_so))
+    else:
+        cur.execute("""
+            UPDATE HoSoKHCN
+            SET maLinhVuc = ?, daXacNhanAI = 1, ngayCapNhat = CURRENT_TIMESTAMP
+            WHERE maHoSo = ?
+        """, (ma_lv_thuc_te, ma_ho_so))
 
     conn.commit()
     # Cập nhật lại mô hình và đồ thị bất thường với dữ liệu phản hồi mới
@@ -1040,15 +1085,15 @@ def hoso_ai_feedback(ma_ho_so):
     conn.close()
 
     if ket_qua_khop == 1:
-        flash("Đã xác nhận nhãn gợi ý từ AI! Dữ liệu đã được ghi nhận vào kho Feedback Loop.", "success")
+        flash("Đã xác nhận kết quả phân loại AI! Dữ liệu đã được ghi nhận vào kho Feedback Loop.", "success")
     else:
-        flash("Đã điều chỉnh nhãn lĩnh vực thực tế và cập nhật vào kho dữ liệu Fine-tuning của mô hình AI!", "info")
+        flash("Đã điều chỉnh nhãn phân loại thực tế và cập nhật vào kho dữ liệu học tăng cường của mô hình AI!", "info")
 
     return redirect(url_for("hoso_detail", ma_ho_so=ma_ho_so))
 
 
 # =============================================================================
-# API GỢI Ý NHANH AI TRỰC TIẾP TRÊN FORM KHAI BÁO
+# API GỢI Ý NHANH AI TRỰC TIẾP TRÊN FORM KHAI BÁO (LĨNH VỰC & LOẠI CÔNG TRÌNH)
 # =============================================================================
 @app.route("/api/ai-preview", methods=["POST"])
 @login_required
@@ -1057,9 +1102,10 @@ def api_ai_preview():
     tieu_de = data.get("tieuDe", "")
     tom_tat = data.get("tomTat", "")
     tu_khoa = data.get("tuKhoa", "")
-    don_vi = data.get("donViChuTri", "") or data.get("thongTinTacGia", "")
+    tac_gia = data.get("thongTinTacGia", "")
+    don_vi = data.get("donViChuTri", "")
 
-    pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, don_vi)
+    pred = ai_engine.predict_record_field(tieu_de, tom_tat, tu_khoa, tac_gia, don_vi)
 
     conn = get_db_connection()
     lv_pho = conn.execute("SELECT tenLinhVuc FROM LinhVuc WHERE maLinhVuc = ?", (pred["phobert_label_id"],)).fetchone()
@@ -1074,12 +1120,18 @@ def api_ai_preview():
         "svm_label_id": pred["svm_label_id"],
         "svm_label_name": lv_svm["tenLinhVuc"] if lv_svm else "",
         "svm_confidence": pred["svm_confidence"],
+        "work_type_phobert_id": pred["work_type_phobert_id"],
+        "work_type_phobert": pred["work_type_phobert"],
+        "work_type_phobert_conf": pred["work_type_phobert_conf"],
+        "work_type_svm": pred["work_type_svm"],
+        "work_type_svm_conf": pred["work_type_svm_conf"],
+        "infer_ms": pred["infer_ms"],
         "badge": pred["badge"],
     })
 
 
 # =============================================================================
-# TUẦN 5 - MỤC 1: QUẢN LÝ DANH MỤC HỆ THỐNG (CHỨC NĂNG 2)
+# TUẦN 5 - MỤC 1: QUẢN LÝ 4 DANH MỤC HỆ THỐNG (CHỨC NĂNG 2 - CRUD ĐẦY ĐỦ)
 # =============================================================================
 @app.route("/danh-muc")
 @login_required
@@ -1088,19 +1140,19 @@ def catalog_management():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
+        SELECT lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.tuKhoaDacTrung, lv.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
         FROM LinhVuc lv
         LEFT JOIN HoSoKHCN h ON lv.maLinhVuc = h.maLinhVuc AND h.isDeleted = 0
-        GROUP BY lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.trangThai
+        GROUP BY lv.maLinhVuc, lv.maCode, lv.tenLinhVuc, lv.moTa, lv.tuKhoaDacTrung, lv.trangThai
         ORDER BY lv.maLinhVuc
     """)
     linh_vucs = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
+        SELECT lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.gioChuanQuyDoi, lct.trangThai, COUNT(h.maHoSo) AS soHoSoLienKet
         FROM LoaiCongTrinh lct
         LEFT JOIN HoSoKHCN h ON lct.maLoai = h.maLoai AND h.isDeleted = 0
-        GROUP BY lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.trangThai
+        GROUP BY lct.maLoai, lct.maCodeLoai, lct.tenLoai, lct.nhomCongTrinh, lct.gioChuanQuyDoi, lct.trangThai
         ORDER BY lct.maLoai
     """)
     loai_cts = [dict(r) for r in cur.fetchall()]
@@ -1115,12 +1167,22 @@ def catalog_management():
     """)
     tap_chis = [dict(r) for r in cur.fetchall()]
 
+    cur.execute("""
+        SELECT tg.*, lv.tenLinhVuc,
+               (SELECT COUNT(*) FROM HoSoKHCN h WHERE h.isDeleted = 0 AND h.thongTinTacGia LIKE '%' || tg.hoTen || '%') AS soHoSoLienKet
+        FROM DanhMucTacGia tg
+        LEFT JOIN LinhVuc lv ON tg.maLinhVucChinh = lv.maLinhVuc
+        ORDER BY tg.maTacGia
+    """)
+    tac_gias = [dict(r) for r in cur.fetchall()]
+
     conn.close()
     return render_template(
         "catalogs.html",
         linh_vucs=linh_vucs,
         loai_cts=loai_cts,
         tap_chis=tap_chis,
+        tac_gias=tac_gias,
     )
 
 
@@ -1194,6 +1256,97 @@ def catalog_add_tapchi():
     return redirect(url_for("catalog_management"))
 
 
+@app.route("/danh-muc/tac-gia/add", methods=["POST"])
+@role_required("Admin")
+def catalog_add_tacgia():
+    ma_code = request.form.get("maCodeTG", "").strip().upper()
+    ho_ten = request.form.get("hoTen", "").strip()
+    hoc_vi = request.form.get("hocHamHocVi", "TS.").strip()
+    email = request.form.get("email", "").strip()
+    don_vi = request.form.get("donViCongTac", "").strip()
+    ma_lv = int(request.form.get("maLinhVucChinh", 1))
+    orcid = request.form.get("orcid", "").strip()
+
+    if not ma_code or not ho_ten or not don_vi:
+        flash("Mã tác giả, Họ tên và Đơn vị công tác không được để trống.", "danger")
+        return redirect(url_for("catalog_management"))
+
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            """INSERT INTO DanhMucTacGia
+               (maCodeTG, hoTen, hocHamHocVi, email, donViCongTac, maLinhVucChinh, orcid, trangThai)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 1)""",
+            (ma_code, ho_ten, hoc_vi, email, don_vi, ma_lv, orcid),
+        )
+        conn.commit()
+        flash(f"Đã thêm tác giả '{ho_ten}' vào Danh mục Tác giả.", "success")
+    except Exception as e:
+        flash(f"Không thể thêm tác giả (Mã có thể bị trùng): {e}", "danger")
+    finally:
+        conn.close()
+    return redirect(url_for("catalog_management"))
+
+
+@app.route("/danh-muc/edit/<cat_type>/<int:item_id>", methods=["POST"])
+@role_required("Admin")
+def catalog_edit_item(cat_type, item_id):
+    """Cập nhật (Update) thông tin chi tiết cho cả 4 nhóm danh mục hệ thống."""
+    conn = get_db_connection()
+    try:
+        if cat_type == "linhvuc":
+            ma_code = request.form.get("maCode", "").strip().upper()
+            ten_lv = request.form.get("tenLinhVuc", "").strip()
+            mo_ta = request.form.get("moTa", "").strip()
+            conn.execute(
+                "UPDATE LinhVuc SET maCode = ?, tenLinhVuc = ?, moTa = ? WHERE maLinhVuc = ?",
+                (ma_code, ten_lv, mo_ta, item_id),
+            )
+            flash(f"Đã cập nhật danh mục lĩnh vực '{ten_lv}'.", "success")
+        elif cat_type == "loai":
+            ma_code = request.form.get("maCodeLoai", "").strip().upper()
+            ten_loai = request.form.get("tenLoai", "").strip()
+            nhom = request.form.get("nhomCongTrinh", "Bài báo quốc tế").strip()
+            gio_chuan = float(request.form.get("gioChuanQuyDoi", 60.0))
+            conn.execute(
+                "UPDATE LoaiCongTrinh SET maCodeLoai = ?, tenLoai = ?, nhomCongTrinh = ?, gioChuanQuyDoi = ? WHERE maLoai = ?",
+                (ma_code, ten_loai, nhom, gio_chuan, item_id),
+            )
+            flash(f"Đã cập nhật loại công trình '{ten_loai}'.", "success")
+        elif cat_type == "tapchi":
+            ten_tc = request.form.get("tenTapChi", "").strip()
+            issn = request.form.get("chiSoISSN", "").strip()
+            xep_hang = request.form.get("xepHang", "HĐGSNN").strip()
+            uy_tin = int(request.form.get("uyTin", 1))
+            conn.execute(
+                "UPDATE TapChiHopLe SET tenTapChi = ?, chiSoISSN = ?, xepHang = ?, uyTin = ? WHERE maTapChi = ?",
+                (ten_tc, issn, xep_hang, uy_tin, item_id),
+            )
+            flash(f"Đã cập nhật thông tin tạp chí '{ten_tc}'.", "success")
+        elif cat_type == "tacgia":
+            ma_code = request.form.get("maCodeTG", "").strip().upper()
+            ho_ten = request.form.get("hoTen", "").strip()
+            hoc_vi = request.form.get("hocHamHocVi", "TS.").strip()
+            email = request.form.get("email", "").strip()
+            don_vi = request.form.get("donViCongTac", "").strip()
+            ma_lv = int(request.form.get("maLinhVucChinh", 1))
+            conn.execute(
+                """UPDATE DanhMucTacGia
+                   SET maCodeTG = ?, hoTen = ?, hocHamHocVi = ?, email = ?, donViCongTac = ?, maLinhVucChinh = ?
+                   WHERE maTacGia = ?""",
+                (ma_code, ho_ten, hoc_vi, email, don_vi, ma_lv, item_id),
+            )
+            flash(f"Đã cập nhật thông tin tác giả '{ho_ten}'.", "success")
+        else:
+            abort(400)
+        conn.commit()
+    except Exception as e:
+        flash(f"Lỗi khi cập nhật danh mục: {e}", "danger")
+    finally:
+        conn.close()
+    return redirect(url_for("catalog_management"))
+
+
 @app.route("/danh-muc/toggle/<cat_type>/<int:item_id>", methods=["POST"])
 @role_required("Admin")
 def catalog_toggle_status(cat_type, item_id):
@@ -1205,6 +1358,7 @@ def catalog_toggle_status(cat_type, item_id):
         "linhvuc": ("LinhVuc", "maLinhVuc"),
         "loai": ("LoaiCongTrinh", "maLoai"),
         "tapchi": ("TapChiHopLe", "maTapChi"),
+        "tacgia": ("DanhMucTacGia", "maTacGia"),
     }
     if cat_type not in table_map:
         abort(400)
@@ -1388,22 +1542,22 @@ def ai_retrain():
     if mode == "svm":
         svm_m = bench["svm_metrics"]
         flash(
-            f"Đã chạy riêng mô hình TF-IDF + SVM trên bộ dữ liệu chuẩn 12 trường (180 Train / 60 Test): "
+            f"Đã chạy riêng mô hình TF-IDF + LinearSVC trên bộ dữ liệu chuẩn 13 trường (180 Train / 60 Test): "
             f"Precision = {svm_m['precision']}%, Recall = {svm_m['recall']}%, F1-score = {svm_m['f1_score']}% (Thời gian: {svm_m['infer_time_ms']} ms).",
             "info"
         )
     elif mode == "phobert":
         pho_m = bench["phobert_metrics"]
         flash(
-            f"Đã chạy riêng mô hình Fine-tuning PhoBERT trên bộ dữ liệu chuẩn 12 trường (180 Train / 60 Test): "
+            f"Đã chạy riêng mô hình Fine-tuning PhoBERT (PyTorch) trên bộ dữ liệu chuẩn 13 trường (180 Train / 60 Test): "
             f"Precision = {pho_m['precision']}%, Recall = {pho_m['recall']}%, F1-score = {pho_m['f1_score']}% (Thời gian: {pho_m['infer_time_ms']} ms).",
             "success"
         )
     else:
         win = bench["selected_model"]
         flash(
-            f"Đã huấn luyện & đối sánh triệt để 2 mô hình trên cùng bộ dữ liệu 12 trường (240 mẫu). "
-            f"Mô hình tối ưu được chọn làm Mô hình chính của dự án: {win['model_name']} (F1-score đạt {win['f1_score']}%, vượt +{win['delta_f1']}% so với TF-IDF + SVM).",
+            f"Đã đối sánh công bằng 2 mô hình trên cùng bộ dữ liệu chuẩn 13 trường (240 mẫu). "
+            f"Mô hình tối ưu được chọn làm Mô hình chính của dự án: {win['model_name']} (F1-score đạt {win['f1_score']}%, chênh lệch {win['delta_f1']:+.2f}% so với TF-IDF + SVM).",
             "success"
         )
     return redirect(url_for("ai_center"))
