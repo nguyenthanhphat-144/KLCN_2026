@@ -62,20 +62,6 @@
     </div>
 
     <div class="card-body">
-        <!-- Cấu trúc trường dữ liệu đầu vào dùng chung (gọn gàng) -->
-        <div class="mb-3 p-2 rounded bg-light border small">
-            <div class="fw-semibold text-secondary mb-1">
-                Bộ {{ benchmark.dataset_stats.input_columns|length }} trường thông tin chuẩn hóa dùng chung cho cả hai mô hình:
-            </div>
-            <div class="d-flex flex-wrap gap-1">
-                {% for col_name in benchmark.dataset_stats.input_columns %}
-                <span class="badge bg-white text-dark border fw-normal px-2 py-1">
-                    {{ loop.index }}. {{ col_name }}{% if col_name in ['Lĩnh vực đăng ký', 'Loại hình'] %} (Nhãn phân loại){% endif %}
-                </span>
-                {% endfor %}
-            </div>
-        </div>
-
         <div class="row g-3 mb-3">
             <!-- Bảng 1: Thống kê bộ dữ liệu huấn luyện & kiểm thử dùng chung -->
             <div class="col-lg-6">
@@ -131,106 +117,70 @@
 
             <!-- Bảng 2: Kết quả tổng thể theo chế độ đang chọn (chuyển đổi tức thì 0ms) -->
             <div class="col-lg-6">
-                <div class="border rounded h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
-                            <span id="table2Title">
-                                {% if cur_mode == 'svm' %}
-                                    Bảng 2: Kết quả riêng TF-IDF + SVM ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
-                                {% elif cur_mode == 'phobert' %}
-                                    Bảng 2: Kết quả riêng Tinh chỉnh PhoBERT ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
-                                {% else %}
-                                    Bảng 2: Kết quả đánh giá trên {{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử độc lập
-                                {% endif %}
-                            </span>
-                            <span class="text-muted fw-normal">Đo thời gian thực tế</span>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0 small">
-                                <thead>
-                                    <tr>
-                                        <th class="ps-3">Mô hình</th>
-                                        <th class="text-end">Độ chuẩn xác</th>
-                                        <th class="text-end">Độ phủ</th>
-                                        <th class="text-end">Điểm F1 lĩnh vực</th>
-                                        <th class="text-end">Điểm F1 loại hình</th>
-                                        <th class="text-end">Thời gian</th>
-                                        <th class="text-center pe-3">Vai trò</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">
-                                        <td class="ps-3">
-                                            <div class="fw-semibold">TF-IDF + SVM</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">Học máy truyền thống</div>
-                                        </td>
-                                        <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.precision) }}%</td>
-                                        <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.recall) }}%</td>
-                                        <td class="text-end fw-bold">{{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%</td>
-                                        <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.work_type_f1 or 0) }}%</td>
-                                        <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms</td>
-                                        <td class="text-center pe-3">
-                                            <span class="badge bg-secondary-subtle text-secondary border fw-normal">Đối chứng</span>
-                                        </td>
-                                    </tr>
-                                    <tr data-show-modes="phobert,both" class="table-light {% if cur_mode == 'svm' %}d-none{% endif %}">
-                                        <td class="ps-3">
-                                            <div class="fw-bold text-primary">Tinh chỉnh PhoBERT</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">Học sâu ngữ cảnh tiếng Việt</div>
-                                        </td>
-                                        <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.precision) }}%</td>
-                                        <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.recall) }}%</td>
-                                        <td class="text-end fw-bold text-primary">{{ "%.2f"|format(benchmark.phobert_metrics.f1_score) }}%</td>
-                                        <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.work_type_f1 or 0) }}%</td>
-                                        <td class="text-end text-muted">{{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms</td>
-                                        <td class="text-center pe-3">
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Mô hình chính</span>
-                                        </td>
-                                    </tr>
-                                    <tr data-show-modes="both" class="bg-light small {% if cur_mode != 'both' %}d-none{% endif %}">
-                                        <td class="ps-3 fw-semibold text-secondary">Mức chênh lệch</td>
-                                        <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_precision >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_precision) }}%</td>
-                                        <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_recall >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_recall) }}%</td>
-                                        <td class="text-end text-success fw-bold">{% if benchmark.selected_model.delta_f1 >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_f1) }}%</td>
-                                        <td class="text-end text-muted" colspan="3">Trung bình {{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms/hồ sơ</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="border rounded h-100">
+                    <div class="px-3 py-2 bg-light border-bottom fw-semibold small d-flex justify-content-between align-items-center">
+                        <span id="table2Title">
+                            {% if cur_mode == 'svm' %}
+                                Bảng 2: Kết quả riêng TF-IDF + SVM ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
+                            {% elif cur_mode == 'phobert' %}
+                                Bảng 2: Kết quả riêng Tinh chỉnh PhoBERT ({{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử)
+                            {% else %}
+                                Bảng 2: Kết quả đánh giá trên {{ benchmark.dataset_stats.test_samples }} mẫu kiểm thử độc lập
+                            {% endif %}
+                        </span>
+                        <span class="text-muted fw-normal">Đo thời gian thực tế</span>
                     </div>
-
-                    <div class="p-3 border-top bg-light small">
-                        <div data-show-modes="svm" class="{% if cur_mode != 'svm' %}d-none{% endif %}">
-                            <div class="fw-bold text-dark mb-1">
-                                Kết quả riêng: <span class="text-primary">Mô hình TF-IDF + SVM</span>
-                            </div>
-                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
-                                <li class="mb-1">Tốc độ phản hồi cực nhanh ({{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms/hồ sơ; huấn luyện 180 mẫu mất {{ "%.2f"|format(benchmark.svm_metrics.train_time_ms) }} ms).</li>
-                                <li class="mb-1">Đạt điểm F1 trung bình {{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%, phù hợp làm mô hình cơ sở đối chứng.</li>
-                                <li class="mb-0">Hạn chế ở các hồ sơ liên ngành có nhiều từ khóa giao thoa do chỉ dựa trên tần suất từ ghép.</li>
-                            </ul>
-                        </div>
-                        <div data-show-modes="phobert" class="{% if cur_mode != 'phobert' %}d-none{% endif %}">
-                            <div class="fw-bold text-dark mb-1">
-                                Kết quả riêng: <span class="text-primary">Mô hình Tinh chỉnh PhoBERT</span>
-                            </div>
-                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
-                                <li class="mb-1">Đạt điểm F1 lĩnh vực {{ "%.2f"|format(benchmark.phobert_metrics.f1_score) }}% và điểm F1 nhóm loại hình {{ "%.2f"|format(benchmark.phobert_metrics.work_type_f1) }}% trên 60 mẫu kiểm thử.</li>
-                                <li class="mb-1">Nắm bắt ngữ cảnh hai chiều tiếng Việt, nhận diện chính xác chuyên ngành cốt lõi của hồ sơ liên ngành.</li>
-                                <li class="mb-0">Thời gian suy luận trung bình {{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms/hồ sơ từ trọng số nạp sẵn trên bộ nhớ.</li>
-                            </ul>
-                        </div>
-                        <div data-show-modes="both" class="{% if cur_mode != 'both' %}d-none{% endif %}">
-                            <div class="fw-bold text-dark mb-1">
-                                Mô hình chính được chọn:
-                                <span class="text-primary">{{ benchmark.selected_model.short_name }}</span>
-                            </div>
-                            <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.80rem;">
-                                {% for reason in benchmark.selected_model.reasons[:3] %}
-                                <li class="mb-1">{{ reason }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0 small">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Mô hình</th>
+                                    <th class="text-end">Độ chuẩn xác</th>
+                                    <th class="text-end">Độ phủ</th>
+                                    <th class="text-end">Điểm F1 lĩnh vực</th>
+                                    <th class="text-end">Điểm F1 loại hình</th>
+                                    <th class="text-end">Thời gian</th>
+                                    <th class="text-center pe-3">Vai trò</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-show-modes="svm,both" class="{% if cur_mode == 'phobert' %}d-none{% endif %}">
+                                    <td class="ps-3">
+                                        <div class="fw-semibold">TF-IDF + SVM</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">Học máy truyền thống</div>
+                                    </td>
+                                    <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.precision) }}%</td>
+                                    <td class="text-end">{{ "%.2f"|format(benchmark.svm_metrics.recall) }}%</td>
+                                    <td class="text-end fw-bold">{{ "%.2f"|format(benchmark.svm_metrics.f1_score) }}%</td>
+                                    <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.work_type_f1 or 0) }}%</td>
+                                    <td class="text-end text-muted">{{ "%.2f"|format(benchmark.svm_metrics.infer_time_ms) }} ms</td>
+                                    <td class="text-center pe-3">
+                                        <span class="badge bg-secondary-subtle text-secondary border fw-normal">Đối chứng</span>
+                                    </td>
+                                </tr>
+                                <tr data-show-modes="phobert,both" class="table-light {% if cur_mode == 'svm' %}d-none{% endif %}">
+                                    <td class="ps-3">
+                                        <div class="fw-bold text-primary">Tinh chỉnh PhoBERT</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">Học sâu ngữ cảnh tiếng Việt</div>
+                                    </td>
+                                    <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.precision) }}%</td>
+                                    <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.recall) }}%</td>
+                                    <td class="text-end fw-bold text-primary">{{ "%.2f"|format(benchmark.phobert_metrics.f1_score) }}%</td>
+                                    <td class="text-end fw-semibold">{{ "%.2f"|format(benchmark.phobert_metrics.work_type_f1 or 0) }}%</td>
+                                    <td class="text-end text-muted">{{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms</td>
+                                    <td class="text-center pe-3">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Mô hình chính</span>
+                                    </td>
+                                </tr>
+                                <tr data-show-modes="both" class="bg-light small {% if cur_mode != 'both' %}d-none{% endif %}">
+                                    <td class="ps-3 fw-semibold text-secondary">Mức chênh lệch</td>
+                                    <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_precision >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_precision) }}%</td>
+                                    <td class="text-end text-success fw-semibold">{% if benchmark.selected_model.delta_recall >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_recall) }}%</td>
+                                    <td class="text-end text-success fw-bold">{% if benchmark.selected_model.delta_f1 >= 0 %}+{% endif %}{{ "%.2f"|format(benchmark.selected_model.delta_f1) }}%</td>
+                                    <td class="text-end text-muted" colspan="3">Trung bình {{ "%.2f"|format(benchmark.phobert_metrics.infer_time_ms) }} ms/hồ sơ</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
