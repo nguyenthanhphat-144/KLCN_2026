@@ -1411,6 +1411,51 @@ def _fetch_filtered_records_for_export():
     return [dict(r) for r in rows], filter_desc
 
 
+@app.route("/hoso/import-excel", methods=["POST"])
+@login_required
+def hoso_import_excel():
+    """Nạp hàng loạt hồ sơ KH&CN từ tệp Excel chuẩn và tự động kích hoạt AI phân loại & phát hiện bất thường."""
+    file = request.files.get("excel_file")
+    default_excel = os.path.join(BASE_DIR, "docs", "Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
+    
+    if (not file or file.filename == "") and os.path.exists(default_excel):
+        target_path = default_excel
+    elif file and file.filename != "":
+        upload_folder = os.path.join(BASE_DIR, "uploads")
+        os.makedirs(upload_folder, exist_ok=True)
+        target_path = os.path.join(upload_folder, "uploaded_import.xlsx")
+        file.save(target_path)
+    else:
+        flash("Vui lòng chọn tệp Excel (.xlsx) để nạp dữ liệu.", "warning")
+        return redirect(url_for("hoso_list"))
+
+    try:
+        import subprocess
+        res = subprocess.run(
+            [sys.executable, os.path.join(BASE_DIR, "scripts", "import_mau_nhap_lieu.py")],
+            capture_output=True, text=True, encoding="utf-8"
+        )
+        if res.returncode == 0:
+            flash("Đã nạp thành công toàn bộ danh sách hồ sơ từ Excel! Mô hình VinAI PhoBERT đã tự động điền lĩnh vực nghiên cứu cho các đề tài bị khuyết và hoàn tất quét bất thường đa tầng.", "success")
+        else:
+            flash(f"Quá trình nạp dữ liệu gặp lỗi: {res.stderr[:200]}", "danger")
+    except Exception as e:
+        flash(f"Lỗi khi xử lý nạp Excel: {e}", "danger")
+
+    return redirect(url_for("hoso_list"))
+
+
+@app.route("/hoso/download-template")
+@login_required
+def download_excel_template():
+    """Tải xuống tệp Excel mẫu nhập liệu chuẩn 24 trường thông tin."""
+    excel_path = os.path.join(BASE_DIR, "docs", "Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
+    if os.path.exists(excel_path):
+        return send_file(excel_path, as_attachment=True, download_name="Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
+    flash("Không tìm thấy tệp mẫu trên máy chủ.", "warning")
+    return redirect(url_for("hoso_list"))
+
+
 @app.route("/bao-cao/export/excel")
 @login_required
 def export_excel():

@@ -15,6 +15,9 @@
         <a href="{{ url_for('hoso_create') }}" class="btn btn-primary btn-sm" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
             <i class="bi bi-plus-lg me-1"></i>Khai báo mới
         </a>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+            <i class="bi bi-file-earmark-arrow-up me-1"></i>Nhập từ Excel
+        </button>
         <a href="{{ url_for('export_excel', maLinhVuc=filters.maLinhVuc, trangThai=filters.trangThai) }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-file-earmark-spreadsheet me-1"></i>Xuất bảng tính
         </a>
@@ -248,5 +251,47 @@
         </nav>
     </div>
     {% endif %}
+</div>
+
+<!-- Modal Nhập dữ liệu từ Excel -->
+<div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-navy); color: #fff;">
+                <h6 class="modal-title fw-bold" id="importExcelModalLabel">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Nhập Hàng Loạt Hồ Sơ KH&CN Từ Excel
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('hoso_import_excel') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Hệ thống hỗ trợ nạp hàng loạt danh sách công trình, bài báo, đề tài từ tệp bảng tính Excel chuẩn <code>.xlsx</code> (gồm 24 trường thông tin chuẩn hóa của HUIT).
+                    </p>
+                    <div class="alert alert-info py-2 px-3 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Tự động hóa thông minh bằng AI:</strong> Các đề tài bị khuyết <em>"Lĩnh vực đăng ký"</em> sẽ được mô hình <strong>VinAI PhoBERT</strong> tự động phân tích và gán nhãn chính xác. Đồng thời, hệ thống sẽ chạy chuỗi giải thuật phát hiện bất thường và tính điểm rủi ro tự động.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn tệp Excel (.xlsx):</label>
+                        <input type="file" name="excel_file" class="form-control form-control-sm" accept=".xlsx, .xls, .csv">
+                        <div class="form-text small">Nếu để trống, hệ thống sẽ tự động sử dụng tệp dữ liệu mẫu chuẩn <code>Mau_Nhap_Lieu_HoSo_KHCN.xlsx</code> có sẵn trên máy chủ.</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <span class="small text-muted">Chưa có biểu mẫu chuẩn?</span>
+                        <a href="{{ url_for('download_excel_template') }}" class="btn btn-outline-secondary btn-sm py-1">
+                            <i class="bi bi-download me-1"></i>Tải mẫu Excel (24 trường)
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-sm btn-primary" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
+                        <i class="bi bi-cloud-arrow-up me-1"></i>Bắt đầu nạp &amp; Chạy AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
