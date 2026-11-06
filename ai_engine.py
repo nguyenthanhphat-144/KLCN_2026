@@ -4,15 +4,21 @@ Hệ thống Trí tuệ Nhân tạo Tích hợp Thực tế (100% Real PyTorch &
 Đề tài: Hỗ trợ quản lý hồ sơ khoa học công nghệ bằng phương pháp phân loại tự động và phát hiện bất thường (CNTT-KLCN001)
 
 Bao gồm:
-1. Tiền xử lý văn bản tiếng Việt chuẩn hóa (NFC, lọc Stop-words, tách từ ghép chuyên ngành bằng PyVi)
+1. Tiền xử lý văn bản tiếng Việt chuẩn hóa:
+   - Chuẩn hóa Unicode NFC, loại bỏ ký tự đặc biệt, URL, khoảng trắng thừa
+   - Tách từ ghép tiếng Việt chuyên ngành bằng thư viện PyVi (ViTokenizer)
+   - Lọc từ dừng (Stop-words) khoa học công nghệ (chuyên ngành KH&CN)
+
 2. Phân loại tự động đa nhiệm (Lĩnh vực nghiên cứu & Nhóm loại công trình):
-   - Mô hình Baseline: TF-IDF + LinearSVC (CalibratedClassifierCV, scikit-learn)
-   - Mô hình Chính thức: Fine-tuning PhoBERT thực tế (vinai/phobert-base trên PyTorch)
-3. Phát hiện bất thường & Xếp hạng ưu tiên xét duyệt:
-   - Đồ thị tri thức NetworkX (Tác giả - Công trình - Lĩnh vực - Tạp chí)
-   - Rừng cây cô lập Isolation Forest (scikit-learn)
-   - Mạng nơ-ron Tự mã hóa PyTorch Autoencoder (torch.nn.Module + MSELoss + Adam)
-   - Độ tương đồng văn bản Cosine Similarity kiểm tra trùng lặp nội dung
+   - Mô hình Baseline: TF-IDF n-gram (1,2) kết hợp LinearSVC (tối ưu hóa lề phân loại)
+     + Hiệu chỉnh xác suất bằng CalibratedClassifierCV (Platt Scaling)
+   - Mô hình Chính thức: PhoBERT-base (vinai/phobert-base) fine-tuning trên PyTorch
+     + Tự động fallback sang mô hình TF-IDF+SVM nếu môi trường thiếu PyTorch
+
+3. Phát hiện bất thường & Đồ thị Tri thức (Knowledge Graph):
+   - Đồ thị liên kết mạng NetworkX: Đỉnh (Hồ sơ, Tác giả, Lĩnh vực, Tạp chí), Cạnh (Đồng tác giả, Thuộc lĩnh vực)
+   - Rừng cô lập Isolation Forest (scikit-learn): Phát hiện hồ sơ có đặc trưng lệch chuẩn
+   - Độ tương đồng Cosine TF-IDF: Phát hiện trùng lặp tiêu đề/tóm tắt giữa các hồ sơ
 """
 
 import os
