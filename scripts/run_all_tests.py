@@ -29,6 +29,8 @@ TEST_SCRIPTS = [
     ("TEST-3", "test_report_generation.py", "Kiểm thử Kết xuất Báo cáo Động (Excel & PDF)"),
     ("TEST-4", "test_rbac_access_control.py", "Kiểm thử Phân quyền RBAC (Schema & Decorators)"),
     ("TEST-5", "test_hoso_workflow.py", "Kiểm thử Quy trình Xét duyệt Hồ sơ (5 trạng thái & Log)"),
+    ("TEST-6", "test_search_filter.py", "Kiểm thử Tra cứu, Tìm kiếm Từ khóa & Bộ lọc Đa tiêu chí"),
+    ("TEST-7", "test_phobert_pipeline.py", "Kiểm thử Cấu hình & Suy luận Mô hình PhoBERT Tiếng Việt"),
 ]
 
 def main():
@@ -40,7 +42,7 @@ def main():
 
     for idx, (test_id, filename, desc) in enumerate(TEST_SCRIPTS, 1):
         script_path = os.path.join(SCRIPTS_DIR, filename)
-        print(f"\n[{idx}/5] Đang thực thi {test_id}: {desc}...")
+        print(f"\n[{idx}/{len(TEST_SCRIPTS)}] Đang thực thi {test_id}: {desc}...")
         print("-" * 72)
         t0 = time.time()
         
@@ -87,7 +89,7 @@ def main():
     print("=" * 72)
 
     if all_passed:
-        print("==> CHÚC MỪNG: TOÀN BỘ 5/5 KỊCH BẢN KIỂM THỬ ĐÃ ĐẠT TIÊU CHUẨN 100%! <==")
+        print(f"==> CHÚC MỪNG: TOÀN BỘ {len(results)}/{len(results)} KỊCH BẢN KIỂM THỬ ĐÃ ĐẠT TIÊU CHUẨN 100%! <==")
     else:
         print("==> CẢNH BÁO: MỘT SỐ KỊCH BẢN KIỂM THỬ CHƯA ĐẠT! VUI LÒNG KIỂM TRA LẠI <==")
     print("=" * 72)
