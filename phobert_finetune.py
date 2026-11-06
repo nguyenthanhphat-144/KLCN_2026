@@ -23,11 +23,35 @@ import numpy as np
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-import torch
-import torch.nn as nn
-from torch.optim import AdamW
-from torch.utils.data import Dataset, DataLoader
-from transformers import AutoModel, AutoTokenizer
+try:
+    import torch
+    import torch.nn as nn
+    from torch.optim import AdamW
+    from torch.utils.data import Dataset, DataLoader
+    from transformers import AutoModel, AutoTokenizer
+    TORCH_AVAILABLE = True
+    _torch_ver = getattr(torch, "__version__", "2.x")
+    _BaseModule = nn.Module
+    _BaseDataset = Dataset
+
+    def _torch_inference_mode():
+        return torch.inference_mode()
+except ImportError:
+    torch = None
+    nn = None
+    AdamW = None
+    DataLoader = None
+    AutoModel = None
+    AutoTokenizer = None
+    TORCH_AVAILABLE = False
+    _torch_ver = "Chưa cài đặt (Sử dụng dự phòng TF-IDF + SVM)"
+    _BaseModule = object
+    _BaseDataset = object
+
+    def _torch_inference_mode():
+        def decorator(f):
+            return f
+        return decorator
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_SAVE_DIR = os.path.join(BASE_DIR, "models", "phobert_khcn")
@@ -44,7 +68,7 @@ WORK_TYPE_NAME_TO_ID = {v: k for k, v in WORK_TYPE_GROUPS.items()}
 
 HYPERPARAMETERS = {
     "pretrained_model": PHOBERT_MODEL_NAME,
-    "framework": f"PyTorch {torch.__version__} + Transformers",
+    "framework": f"PyTorch {_torch_ver} + Transformers",
     "architecture": "RoBERTa-base Vietnamese (12 Transformer Layers, Hidden=768, Heads=12)",
     "frozen_lower_layers": "Embeddings + Layers 0..9 frozen (encoder.layer.0 to encoder.layer.9)",
     "trainable_upper_layers": "encoder.layer.10, encoder.layer.11 + Multi-task Classification Heads",
@@ -67,19 +91,22 @@ _CACHED_TOKENIZER = None
 def set_deterministic_seed(seed: int = 42):
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
+    if TORCH_AVAILABLE and torch is not None:
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
 
 
 def get_phobert_tokenizer():
     global _CACHED_TOKENIZER
+    if not TORCH_AVAILABLE or AutoTokenizer is None:
+        return None
     if _CACHED_TOKENIZER is None:
         _CACHED_TOKENIZER = AutoTokenizer.from_pretrained(PHOBERT_MODEL_NAME)
     return _CACHED_TOKENIZER
 
 
-class KHCNPhoBERTDataset(Dataset):
+class KHCNPhoBERTDataset(_BaseDataset):
     """Dataset chuẩn hóa văn bản tiếng Việt đã tách từ PyVi cho PhoBERT."""
 
     def __init__(self, segmented_texts, field_labels, work_type_labels, tokenizer, max_len: int = 128):
@@ -93,6 +120,8 @@ class KHCNPhoBERTDataset(Dataset):
         return len(self.texts)
 
     def __getitem__(self, idx):
+        if not TORCH_AVAILABLE or torch is None:
+            return {}
         text = str(self.texts[idx])
         enc = self.tokenizer(
             text,
@@ -109,7 +138,7 @@ class KHCNPhoBERTDataset(Dataset):
         }
 
 
-class PhoBERTForKHCNClassification(nn.Module):
+class PhoBERTForKHCNClassification(_BaseModule):
     """
     Mô hình PyTorch Fine-tuning PhoBERT đa nhiệm:
     - Phân loại đồng thời Lĩnh vực nghiên cứu (6 lớp) và Loại công trình KH&CN (3 nhóm).
@@ -286,6 +315,8 @@ def train_phobert_multitask(
 
 def load_trained_phobert(save_dir: str = DEFAULT_SAVE_DIR):
     """Tải mô hình PhoBERT đã fine-tune từ đĩa cứng (nếu có); trả về (model, tokenizer) hoặc (None, None)."""
+    if not TORCH_AVAILABLE or torch is None:
+        return None, None
     ckpt_path = os.path.join(save_dir, CHECKPOINT_FILENAME)
     if not os.path.exists(ckpt_path):
         return None, None
@@ -303,12 +334,22 @@ def load_trained_phobert(save_dir: str = DEFAULT_SAVE_DIR):
     return model, tokenizer
 
 
-@torch.inference_mode()
+@_torch_inference_mode()
 def predict_phobert_batch(model, tokenizer, segmented_texts, max_len: int = 128, batch_size: int = 16):
     """
     Suy luận thực tế trên tập văn bản bằng mini-batch phân cụm theo độ dài câu
     (giảm đệm dư thừa trên CPU nhưng giữ nguyên kết quả toán học 100%) và đo thời gian thực bằng time.perf_counter().
     """
+    if not TORCH_AVAILABLE or model is None or tokenizer is None:
+        n = len(segmented_texts)
+        return {
+            "field_preds": np.ones(n, dtype=int),
+            "field_probs": np.zeros((n, 6), dtype=float),
+            "work_type_preds": np.ones(n, dtype=int),
+            "work_type_probs": np.zeros((n, 3), dtype=float),
+            "avg_infer_ms": 0.0,
+            "total_infer_ms": 0.0,
+        }
     device = next(model.parameters()).device
     model.eval()
 
@@ -369,7 +410,7 @@ def predict_phobert_batch(model, tokenizer, segmented_texts, max_len: int = 128,
     }
 
 
-@torch.inference_mode()
+@_torch_inference_mode()
 def predict_phobert_single(model, tokenizer, segmented_text: str, max_len: int = 128) -> dict:
     """Dự đoán thực tế cho 1 hồ sơ trên giao diện Web (cả Lĩnh vực và Loại công trình)."""
     res = predict_phobert_batch(model, tokenizer, [segmented_text], max_len=max_len)
