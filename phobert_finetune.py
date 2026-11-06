@@ -11,6 +11,14 @@ Kiến trúc thực tế 100% trên PyTorch:
   1) Field Head (6 nhãn Lĩnh vực chuyên ngành): Dropout(0.2) -> Linear(768, 256) -> GELU -> Dropout(0.1) -> Linear(256, 6)
   2) Work-Type Head (3 nhóm Loại công trình: Bài báo khoa học, Đề tài NCKH, Sáng chế & Giải pháp hữu ích):
      Dropout(0.2) -> Linear(768, 128) -> GELU -> Linear(128, 3)
+
+Hàm mục tiêu tối ưu hóa đa nhiệm (Multi-task Loss):
+  Loss_total = Loss_field(CrossEntropy) + 0.5 * Loss_worktype(CrossEntropy)
+Chiến lược tối ưu:
+  - Thuật toán AdamW với cơ chế phân tầng tốc độ học (Discriminative Learning Rates):
+    + LR encoder layers (10, 11): 5e-5
+    + LR classification heads: 6e-4
+  - Suy luận an toàn với torch.inference_mode() và tự động fallback sang TF-IDF+SVM nếu thiếu PyTorch.
 """
 
 import os
