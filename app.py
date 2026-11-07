@@ -37,6 +37,12 @@ def allowed_file(filename: str) -> bool:
 
 # =============================================================================
 # TUẦN 4 - MỤC 1: XÁC THỰC (SESSION) VÀ PHÂN QUYỀN DỰA TRÊN VAI TRÒ (RBAC)
+# -----------------------------------------------------------------------------
+# Hệ thống sử dụng Flask Session (server-side, ký bằng secret_key) để lưu
+# thông tin đăng nhập.  Mỗi request được kiểm tra qua 2 lớp decorator:
+#   1. login_required  – xác nhận người dùng đã đăng nhập (session['user_id'])
+#   2. role_required   – kiểm tra vai trò (Admin / CanBo / TacGia) trước khi
+#                        cho phép truy cập tài nguyên nhạy cảm
 # =============================================================================
 def login_required(f):
     @wraps(f)
@@ -126,7 +132,16 @@ def inject_globals():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Tuần 4 - Mục 1a: Đăng nhập, kiểm tra check_password_hash và khởi tạo Session."""
+    """
+    Tuần 4 - Mục 1a: Đăng nhập, kiểm tra check_password_hash và khởi tạo Session.
+
+    Luồng xử lý xác thực:
+      1. Kiểm tra email tồn tại trong bảng NguoiDung
+      2. Kiểm tra trangThai == 1 (tài khoản chưa bị vô hiệu hóa)
+      3. So sánh mật khẩu qua check_password_hash (Werkzeug bcrypt)
+      4. Fallback: nếu mật khẩu plain-text khớp → tự nâng cấp lên bcrypt hash
+      5. Nạp thông tin người dùng vào Flask session (server-side, ký bằng secret_key)
+    """
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
@@ -241,6 +256,10 @@ def change_password():
 
 # =============================================================================
 # TUẦN 5 - MỤC 3A: DASHBOARD THỐNG KÊ TRỰC QUAN
+# -----------------------------------------------------------------------------
+# Trang chính hiển thị 6 chỉ số KPI (tổng hồ sơ, chờ duyệt, đang duyệt,
+# đã duyệt, từ chối, yêu cầu bổ sung), biểu đồ phân bố theo lĩnh vực
+# và loại công trình, cùng danh sách cảnh báo bất thường từ Isolation Forest.
 # =============================================================================
 @app.route("/")
 @app.route("/dashboard")
@@ -829,6 +848,11 @@ def hoso_hard_delete(ma_ho_so):
 
 # =============================================================================
 # TUẦN 5 - MỤC 2 & TUẦN 6 - MỤC 2D: CHI TIẾT HỒ SƠ, XÉT DUYỆT & AI FEEDBACK LOOP
+# -----------------------------------------------------------------------------
+# Quy trình xét duyệt 5 trạng thái:
+#   Chờ xét duyệt → Đang xét duyệt → Đã duyệt / Từ chối / Yêu cầu bổ sung
+# Mỗi lần chuyển trạng thái được ghi log vào bảng LichSuXetDuyet và tích hợp
+# AI Feedback Loop (Tuần 6) để lưu kết quả phản hồi người dùng với dự đoán AI.
 # =============================================================================
 @app.route("/hoso/<ma_ho_so>")
 @login_required

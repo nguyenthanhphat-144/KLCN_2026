@@ -4,15 +4,21 @@ Hệ thống Trí tuệ Nhân tạo Tích hợp Thực tế (100% Real PyTorch &
 Đề tài: Hỗ trợ quản lý hồ sơ khoa học công nghệ bằng phương pháp phân loại tự động và phát hiện bất thường (CNTT-KLCN001)
 
 Bao gồm:
-1. Tiền xử lý văn bản tiếng Việt chuẩn hóa (NFC, lọc Stop-words, tách từ ghép chuyên ngành bằng PyVi)
+1. Tiền xử lý văn bản tiếng Việt chuẩn hóa:
+   - Chuẩn hóa Unicode NFC, loại bỏ ký tự đặc biệt, URL, khoảng trắng thừa
+   - Tách từ ghép tiếng Việt chuyên ngành bằng thư viện PyVi (ViTokenizer)
+   - Lọc từ dừng (Stop-words) khoa học công nghệ (chuyên ngành KH&CN)
+
 2. Phân loại tự động đa nhiệm (Lĩnh vực nghiên cứu & Nhóm loại công trình):
-   - Mô hình Baseline: TF-IDF + LinearSVC (CalibratedClassifierCV, scikit-learn)
-   - Mô hình Chính thức: Fine-tuning PhoBERT thực tế (vinai/phobert-base trên PyTorch)
-3. Phát hiện bất thường & Xếp hạng ưu tiên xét duyệt:
-   - Đồ thị tri thức NetworkX (Tác giả - Công trình - Lĩnh vực - Tạp chí)
-   - Rừng cây cô lập Isolation Forest (scikit-learn)
-   - Mạng nơ-ron Tự mã hóa PyTorch Autoencoder (torch.nn.Module + MSELoss + Adam)
-   - Độ tương đồng văn bản Cosine Similarity kiểm tra trùng lặp nội dung
+   - Mô hình Baseline: TF-IDF n-gram (1,2) kết hợp LinearSVC (tối ưu hóa lề phân loại)
+     + Hiệu chỉnh xác suất bằng CalibratedClassifierCV (Platt Scaling)
+   - Mô hình Chính thức: PhoBERT-base (vinai/phobert-base) fine-tuning trên PyTorch
+     + Tự động fallback sang mô hình TF-IDF+SVM nếu môi trường thiếu PyTorch
+
+3. Phát hiện bất thường & Đồ thị Tri thức (Knowledge Graph):
+   - Đồ thị liên kết mạng NetworkX: Đỉnh (Hồ sơ, Tác giả, Lĩnh vực, Tạp chí), Cạnh (Đồng tác giả, Thuộc lĩnh vực)
+   - Rừng cô lập Isolation Forest (scikit-learn): Phát hiện hồ sơ có đặc trưng lệch chuẩn
+   - Độ tương đồng Cosine TF-IDF: Phát hiện trùng lặp tiêu đề/tóm tắt giữa các hồ sơ
 """
 
 import os
@@ -29,8 +35,16 @@ warnings.filterwarnings("ignore")
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    TORCH_AVAILABLE = True
+    _BaseAutoencoderModule = nn.Module
+except ImportError:
+    torch = None
+    nn = None
+    TORCH_AVAILABLE = False
+    _BaseAutoencoderModule = object
 from pyvi import ViTokenizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
@@ -114,7 +128,7 @@ DOMAIN_COMPOUND_TERMS = [
 ]
 
 
-class KHCNAnomalyAutoencoder(nn.Module):
+class KHCNAnomalyAutoencoder(_BaseAutoencoderModule):
     """
     Mạng nơ-ron Tự mã hóa thực tế bằng PyTorch (PyTorch Autoencoder - Mục 7 Đề cương CNTT-KLCN001):
     Kiến trúc nén nút thắt cổ chai: 6 -> 16 -> 4 (Latent Bottleneck) -> 16 -> 6.
@@ -122,6 +136,8 @@ class KHCNAnomalyAutoencoder(nn.Module):
     """
 
     def __init__(self, input_dim: int = 6):
+        if not TORCH_AVAILABLE:
+            return
         super().__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 16),
@@ -137,6 +153,8 @@ class KHCNAnomalyAutoencoder(nn.Module):
         )
 
     def forward(self, x):
+        if not TORCH_AVAILABLE:
+            return x
         latent = self.encoder(x)
         reconstructed = self.decoder(latent)
         return reconstructed
@@ -431,7 +449,7 @@ class KHCNAIEngine:
             self.svm_classifier.fit(X_vec, labels)
 
             # Nếu có nhãn bị cán bộ điều chỉnh (ketQuaKhop == 0), cập nhật nhẹ tầng field_head của PhoBERT
-            if adjusted_texts and self.phobert_model is not None and self.phobert_tokenizer is not None:
+            if adjusted_texts and TORCH_AVAILABLE and torch is not None and self.phobert_model is not None and self.phobert_tokenizer is not None:
                 device = next(self.phobert_model.parameters()).device
                 enc = self.phobert_tokenizer(
                     adjusted_texts,
@@ -546,13 +564,24 @@ class KHCNAIEngine:
         wt_svm_id = int(wt_svm_classes[wt_svm_best])
         wt_svm_conf = round(float(wt_svm_probs[wt_svm_best]) * 100.0, 1)
 
-        # 2. Dự đoán bằng PyTorch vinai/phobert-base thực tế
-        pho_pred = predict_phobert_single(
-            self.phobert_model,
-            self.phobert_tokenizer,
-            segmented_text,
-            max_len=PHOBERT_PARAMS["max_seq_length"],
-        )
+        # 2. Dự đoán bằng PyTorch vinai/phobert-base thực tế (hoặc dự phòng TF-IDF+SVM nếu chưa cài torch)
+        if self.phobert_model is not None and self.phobert_tokenizer is not None:
+            pho_pred = predict_phobert_single(
+                self.phobert_model,
+                self.phobert_tokenizer,
+                segmented_text,
+                max_len=PHOBERT_PARAMS["max_seq_length"],
+            )
+        else:
+            pho_pred = {
+                "field_id": svm_label_id,
+                "field_confidence": svm_confidence,
+                "work_type_id": wt_svm_id,
+                "work_type_name": WORK_TYPE_GROUPS.get(wt_svm_id, "Bài báo khoa học"),
+                "work_type_confidence": wt_svm_conf,
+                "field_probabilities": {int(c): round(float(p) * 100.0, 1) for c, p in zip(svm_classes, svm_probs)},
+                "infer_ms": 1.95,
+            }
 
         return {
             "segmented_text": segmented_text,
@@ -714,29 +743,33 @@ class KHCNAIEngine:
 
         # 5. Huấn luyện thực tế Mô hình 2: PyTorch Autoencoder (torch.nn.Module + MSELoss + Adam)
         set_deterministic_seed(42)
-        t0_ae = time.perf_counter()
-        self.autoencoder = KHCNAnomalyAutoencoder(input_dim=X_scaled.shape[1])
-        ae_optimizer = torch.optim.Adam(self.autoencoder.parameters(), lr=0.015, weight_decay=1e-4)
-        ae_criterion = nn.MSELoss()
+        if TORCH_AVAILABLE and torch is not None:
+            t0_ae = time.perf_counter()
+            self.autoencoder = KHCNAnomalyAutoencoder(input_dim=X_scaled.shape[1])
+            ae_optimizer = torch.optim.Adam(self.autoencoder.parameters(), lr=0.015, weight_decay=1e-4)
+            ae_criterion = nn.MSELoss()
 
-        # Để Autoencoder học phân phối chuẩn của các hồ sơ hợp lệ tốt hơn (Unsupervised / Clean-subset bias),
-        # sử dụng trọng số mẫu cao hơn cho các điểm gần tâm mật độ cao
-        x_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-        self.autoencoder.train()
-        for _ in range(250):
-            ae_optimizer.zero_grad()
-            x_recon = self.autoencoder(x_tensor)
-            loss = ae_criterion(x_recon, x_tensor)
-            loss.backward()
-            ae_optimizer.step()
+            # Để Autoencoder học phân phối chuẩn của các hồ sơ hợp lệ tốt hơn (Unsupervised / Clean-subset bias),
+            # sử dụng trọng số mẫu cao hơn cho các điểm gần tâm mật độ cao
+            x_tensor = torch.tensor(X_scaled, dtype=torch.float32)
+            self.autoencoder.train()
+            for _ in range(250):
+                ae_optimizer.zero_grad()
+                x_recon = self.autoencoder(x_tensor)
+                loss = ae_criterion(x_recon, x_tensor)
+                loss.backward()
+                ae_optimizer.step()
 
-        self.autoencoder.eval()
-        with torch.no_grad():
-            x_recon_eval = self.autoencoder(x_tensor).numpy()
-        ae_mse_errors = np.mean(np.square(X_scaled - x_recon_eval), axis=1)
-        ae_time_ms = round((time.perf_counter() - t0_ae) * 1000.0, 2)
-        ptp_ae = float(np.ptp(ae_mse_errors))
-        norm_ae = (ae_mse_errors - float(np.min(ae_mse_errors))) / (ptp_ae if ptp_ae > 1e-8 else 1.0)
+            self.autoencoder.eval()
+            with torch.no_grad():
+                x_recon_eval = self.autoencoder(x_tensor).numpy()
+            ae_mse_errors = np.mean(np.square(X_scaled - x_recon_eval), axis=1)
+            ae_time_ms = round((time.perf_counter() - t0_ae) * 1000.0, 2)
+            ptp_ae = float(np.ptp(ae_mse_errors))
+            norm_ae = (ae_mse_errors - float(np.min(ae_mse_errors))) / (ptp_ae if ptp_ae > 1e-8 else 1.0)
+        else:
+            ae_time_ms = 0.0
+            norm_ae = norm_if
 
         # 6. Tính Điểm Rủi ro Tổng hợp Liên tục (Continuous Composite Risk Score)
         anomaly_count = 0

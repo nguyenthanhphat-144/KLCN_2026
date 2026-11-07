@@ -1,6 +1,31 @@
 # -*- coding: utf-8 -*-
 """
 Đề tài: Hệ thống Hỗ trợ Quản lý Hồ sơ KH&CN Tích hợp Phân loại Tự động (CNTT-KLCN001)
+
+Module database.py – Tầng truy cập dữ liệu (Data Access Layer)
+----------------------------------------------------------------
+Quản lý kết nối và khởi tạo lược đồ CSDL SQLite (khcn_system.db).
+Hỗ trợ tùy chọn chuyển sang Microsoft SQL Server (SSMS) qua db_config.py
+nhờ các lớp bọc SQLServerCursorWrapper / SQLServerConnectionWrapper tự động
+dịch cú pháp LIMIT ↔ TOP / OFFSET FETCH.
+
+Cấu trúc 8 bảng chính:
+  1. NguoiDung         – Tài khoản người dùng (Admin / CanBo / TacGia)
+  2. LinhVuc           – Danh mục 6 lĩnh vực KH&CN
+  3. LoaiCongTrinh     – Danh mục 6 loại công trình (Bài báo, Sách, Đề tài, ...)
+  4. TapChiHopLe       – Danh mục 10 tạp chí uy tín (ISSN, xếp hạng Q1–Q4)
+  5. DanhMucTacGia     – Danh mục tác giả nghiên cứu
+  6. HoSoKHCN          – Hồ sơ khoa học công nghệ (bảng trung tâm)
+  7. LichSuXetDuyet    – Log chuyển trạng thái xét duyệt hồ sơ
+  8. AIFeedbackLog     – Log phản hồi người dùng với dự đoán AI (Feedback Loop)
+
+Quan hệ khóa ngoại:
+  HoSoKHCN.maLinhVuc      → LinhVuc.maLinhVuc
+  HoSoKHCN.maLoai         → LoaiCongTrinh.maLoai
+  HoSoKHCN.maTapChi       → TapChiHopLe.maTapChi
+  HoSoKHCN.maNguoiNop     → NguoiDung.maNguoiDung
+  LichSuXetDuyet.maHoSo   → HoSoKHCN.maHoSo
+  AIFeedbackLog.maHoSo     → HoSoKHCN.maHoSo
 """
 
 import os
