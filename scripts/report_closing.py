@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-KẾT LUẬN VÀ TÀI LIỆU THAM KHẢO
+KẾT LUẬN, TÀI LIỆU THAM KHẢO VÀ PHỤ LỤC
 Bao gồm:
 - KẾT LUẬN:
   - 1. Kết quả đạt được
@@ -9,10 +9,15 @@ Bao gồm:
   - 4. Hướng phát triển tiếp theo
 - TÀI LIỆU THAM KHẢO:
   - 15 tài liệu tham khảo học thuật chuẩn mực quốc tế và Việt Nam
+- PHỤ LỤC:
+  - Phụ lục A: Danh mục 35 hồ sơ KH&CN thực tế triển khai trong hệ thống
+  - Phụ lục B: Hướng dẫn cài đặt và vận hành hệ thống
 """
 
 import os
+import sqlite3
 from docx.shared import Pt, Cm, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 def add_closing_sections(doc, helpers):
     add_chapter_title = helpers["add_chapter_title"]
@@ -21,6 +26,7 @@ def add_closing_sections(doc, helpers):
     add_body = helpers["add_body"]
     add_bullet_1 = helpers["add_bullet_1"]
     add_bullet_2 = helpers["add_bullet_2"]
+    add_table_custom = helpers["add_table_custom"]
 
     bench_data = helpers["bench_data"]
     pho_m = bench_data["phobert_metrics"]
@@ -81,7 +87,6 @@ def add_closing_sections(doc, helpers):
         "[15] J. Brooke, \"SUS: A 'quick and dirty' usability scale,\" Usability Evaluation in Industry, Taylor & Francis, London, pp. 189–194, 1996."
     ]
 
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
     for ref in refs:
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -95,5 +100,46 @@ def add_closing_sections(doc, helpers):
         r.font.name = "Times New Roman"
         r.font.size = Pt(12)
         r.font.color.rgb = RGBColor(0, 0, 0)
+
+    # ==================== PHỤ LỤC ====================
+    add_chapter_title(doc, "PHỤ LỤC")
+
+    add_h1(doc, "PHỤ LỤC A: BẢNG DANH MỤC 35 HỒ SƠ KH&CN CHUẨN HÓA TRIỂN KHAI TRONG HỆ THỐNG")
+    add_body(doc, "Dưới đây là danh mục toàn bộ 35 hồ sơ nghiên cứu khoa học được chuẩn hóa và triển khai trong cơ sở dữ liệu hệ thống khcn_system.db (bao gồm 10 hồ sơ hạt nhân ban đầu và 25 hồ sơ thực tế chọn lọc từ dữ liệu nộp hồ sơ của Trường Đại học Công Thương TP. Hồ Chí Minh):")
+
+    # Truy vấn DB để lấy 35 hồ sơ
+    db_path = os.path.join(r"d:\Aziel\KLTN_2026", "khcn_system.db")
+    appendix_rows = []
+    if os.path.exists(db_path):
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute("""
+            SELECT h.maHoSo, h.tieuDe, l.tenLinhVuc, lv_ai.tenLinhVuc, h.diemBatThuong, h.coCanhBao
+            FROM HoSoKHCN h
+            LEFT JOIN LinhVuc l ON h.maLinhVuc = l.maLinhVuc
+            LEFT JOIN LinhVuc lv_ai ON h.maLinhVucAI = lv_ai.maLinhVuc
+            ORDER BY h.maHoSo
+        """)
+        for row in c.fetchall():
+            ma_hs = row[0]
+            title = row[1][:65] + "..." if len(row[1]) > 65 else row[1]
+            lv_goc = row[2] if row[2] else "Tự động điền"
+            lv_ai = row[3] if row[3] else "Chưa xác định"
+            r_score = f"{row[4]:.2f}" if row[4] else "0.00"
+            status = "Cảnh báo" if row[5] == 1 else "Bình thường"
+            appendix_rows.append([ma_hs, title, lv_goc, lv_ai, r_score, status])
+        conn.close()
+
+    if appendix_rows:
+        pa_headers = ["Mã hồ sơ", "Tiêu đề công trình nghiên cứu", "Lĩnh vực gốc", "PhoBERT dự đoán", "Điểm R_i", "Trạng thái"]
+        add_table_custom(doc, 0, "Danh mục 35 hồ sơ KH&CN triển khai thực tế trong hệ thống",
+                         pa_headers, appendix_rows, col_widths=[2.3, 5.8, 3.2, 3.2, 1.8, 2.2], has_caption=False)
+
+    add_h1(doc, "PHỤ LỤC B: HƯỚNG DẪN CÀI ĐẶT VÀ VẬN HÀNH HỆ THỐNG")
+    add_body(doc, "Hệ thống quản lý hồ sơ KH&CN tích hợp AI được đóng gói hoàn chỉnh bằng ngôn ngữ Python, tương thích trên các nền tảng hệ điều hành Windows và Linux Ubuntu:")
+    add_bullet_1(doc, "Cài đặt môi trường Python 3.10 trở lên, khuyến nghị tạo môi trường ảo: python -m venv venv && .\\venv\\Scripts\\activate", bold_prefix="Bước 1 - Khởi tạo môi trường ảo: ")
+    add_bullet_1(doc, "Cài đặt các gói thư viện cần thiết: pip install -r requirements.txt (gồm Flask, PyTorch, Transformers, Scikit-learn, NetworkX, PyVi, OpenPyXL, Python-Docx).", bold_prefix="Bước 2 - Cài đặt thư viện: ")
+    add_bullet_1(doc, "Khởi tạo và đồng bộ cơ sở dữ liệu SQLite: python scripts/curate_and_populate_db.py (hệ thống sẽ tự động nạp 35 hồ sơ nghiên cứu chọn lọc, tính toán vector đặc trưng và xây dựng đồ thị tri thức NetworkX).", bold_prefix="Bước 3 - Khởi tạo dữ liệu: ")
+    add_bullet_1(doc, "Khởi chạy ứng dụng máy chủ web: python app.py. Mở trình duyệt truy cập tại địa chỉ http://127.0.0.1:5000 và đăng nhập bằng tài khoản quản trị (admin@uni.edu.vn / admin123).", bold_prefix="Bước 4 - Khởi chạy máy chủ: ")
 
     return

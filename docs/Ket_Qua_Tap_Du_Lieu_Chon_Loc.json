@@ -1,0 +1,649 @@
+{
+  "ten_tap_du_lieu": "Bộ dữ liệu 35 hồ sơ KHCN chọn lọc HUIT (10 hồ sơ hạt nhân + 25 hồ sơ thực tế tiêu biểu)",
+  "tong_so_ho_so": 35,
+  "so_ho_so_goc": 10,
+  "so_ho_so_that_chon_loc": 25,
+  "so_ho_so_co_canh_bao": 13,
+  "danh_sach_canh_bao": [
+    {
+      "maHoSo": "HS-2026-0011",
+      "tieuDe": "Nghiên cứu làm chậm vận tốc nhóm ánh sáng và lưu trữ thông tin quang dựa trên hiệu ứng trong suốt cảm ứng điện từ",
+      "diemBatThuong": 0.79,
+      "doTuongDongMax": 4.5,
+      "hoSoTuongDongNhat": "HS-2026-0001",
+      "chiTiet": {
+        "reasons": [
+          "Khác biệt hướng nghiên cứu: Tác giả đăng ký lĩnh vực mới chưa có công trình hoặc đồng tác giả liên quan."
+        ],
+        "if_score": 0.986,
+        "ae_mse": 0.1194,
+        "ae_score": 1.0,
+        "rule_severity": 0.3,
+        "composite_risk": 0.79,
+        "graph_deviation": 0.67,
+        "max_sim": 4.5,
+        "most_sim_id": "HS-2026-0001"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0003",
+      "tieuDe": "Tổng hợp vật liệu nano ZnO pha tạp bạc ứng dụng xúc tác quang hóa phân hủy chất ô nhiễm hữu cơ và kháng khuẩn trong xử lý nước thải",
+      "diemBatThuong": 0.53,
+      "doTuongDongMax": 29.3,
+      "hoSoTuongDongNhat": "HS-2026-0022",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kinh tế, Quản trị kinh doanh và Tài chính' nhưng nội dung thuộc 'Hóa học, Sinh học, Y Dược và Môi trường' (100.0%).",
+          "Khác biệt hướng nghiên cứu: Tác giả đăng ký lĩnh vực mới chưa có công trình hoặc đồng tác giả liên quan."
+        ],
+        "if_score": 0.847,
+        "ae_mse": 0.0013,
+        "ae_score": 0.01,
+        "rule_severity": 0.75,
+        "composite_risk": 0.53,
+        "graph_deviation": 0.67,
+        "max_sim": 29.3,
+        "most_sim_id": "HS-2026-0022"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0005",
+      "tieuDe": "Ứng dụng mạng nơ ron học sâu và thị giác máy tính trong nhận dạng khuôn mặt điểm danh lớp học thông minh",
+      "diemBatThuong": 0.53,
+      "doTuongDongMax": 49.8,
+      "hoSoTuongDongNhat": "HS-2026-0027",
+      "chiTiet": {
+        "reasons": [
+          "Tạp chí cần lưu ý: 'Tạp chí Đa ngành Quốc tế Chưa Kiểm Định (Cảnh báo)' thuộc danh sách ngừng chỉ mục hoặc không uy tín."
+        ],
+        "if_score": 1.0,
+        "ae_mse": 0.0112,
+        "ae_score": 0.093,
+        "rule_severity": 0.5,
+        "composite_risk": 0.53,
+        "graph_deviation": 0.5,
+        "max_sim": 49.8,
+        "most_sim_id": "HS-2026-0027"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0018",
+      "tieuDe": "All optical switching in a three‑level V‑type atomic medium based on electromagnetically induced transparency",
+      "diemBatThuong": 0.51,
+      "doTuongDongMax": 68.5,
+      "hoSoTuongDongNhat": "HS-2026-0012",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kỹ thuật Cơ khí, Chế tạo máy và Giao thông' nhưng nội dung thuộc 'Hóa học, Sinh học, Y Dược và Môi trường' (43.3%).",
+          "Nghi vấn trùng lặp nội dung: Mức tương đồng 68.5% với hồ sơ HS-2026-0012."
+        ],
+        "if_score": 0.674,
+        "ae_mse": 0.0003,
+        "ae_score": 0.002,
+        "rule_severity": 0.9,
+        "composite_risk": 0.51,
+        "graph_deviation": 0.33,
+        "max_sim": 68.5,
+        "most_sim_id": "HS-2026-0012"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0015",
+      "tieuDe": "Jamming-and-Relaying Strategy for Non-linear Energy Scavenging Networks",
+      "diemBatThuong": 0.47,
+      "doTuongDongMax": 83.4,
+      "hoSoTuongDongNhat": "HS-2026-0014",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kỹ thuật Điện - Điện tử và Tự động hóa' nhưng nội dung thuộc 'Công nghệ thông tin và Truyền thông' (44.1%).",
+          "Nghi vấn trùng lặp nội dung: Mức tương đồng 83.4% với hồ sơ HS-2026-0014."
+        ],
+        "if_score": 0.571,
+        "ae_mse": 0.001,
+        "ae_score": 0.008,
+        "rule_severity": 0.9,
+        "composite_risk": 0.47,
+        "graph_deviation": 0.0,
+        "max_sim": 83.4,
+        "most_sim_id": "HS-2026-0014"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0012",
+      "tieuDe": "Quantum steering in a PT-symmetric system of three cavities with a linear coupling between the active and passive cavities",
+      "diemBatThuong": 0.37,
+      "doTuongDongMax": 21.6,
+      "hoSoTuongDongNhat": "HS-2026-0011",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kỹ thuật Cơ khí, Chế tạo máy và Giao thông' nhưng nội dung thuộc 'Công nghệ thông tin và Truyền thông' (45.8%)."
+        ],
+        "if_score": 0.663,
+        "ae_mse": 0.0009,
+        "ae_score": 0.007,
+        "rule_severity": 0.45,
+        "composite_risk": 0.37,
+        "graph_deviation": 0.33,
+        "max_sim": 21.6,
+        "most_sim_id": "HS-2026-0011"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0017",
+      "tieuDe": "Giải pháp mô phỏng Simatic IOT 2050 trong đào tạo thiết kế webserver cho công nghiệp",
+      "diemBatThuong": 0.37,
+      "doTuongDongMax": 26.2,
+      "hoSoTuongDongNhat": "HS-2026-0009",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kỹ thuật Điện - Điện tử và Tự động hóa' nhưng nội dung thuộc 'Công nghệ thông tin và Truyền thông' (94.6%)."
+        ],
+        "if_score": 0.585,
+        "ae_mse": 0.0099,
+        "ae_score": 0.083,
+        "rule_severity": 0.45,
+        "composite_risk": 0.37,
+        "graph_deviation": 0.0,
+        "max_sim": 26.2,
+        "most_sim_id": "HS-2026-0009"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0013",
+      "tieuDe": "On modules and rings having large absolute direct summands",
+      "diemBatThuong": 0.35,
+      "doTuongDongMax": 77.4,
+      "hoSoTuongDongNhat": "HS-2026-0012",
+      "chiTiet": {
+        "reasons": [
+          "Nghi vấn trùng lặp nội dung: Mức tương đồng 77.4% với hồ sơ HS-2026-0012."
+        ],
+        "if_score": 0.599,
+        "ae_mse": 0.0005,
+        "ae_score": 0.004,
+        "rule_severity": 0.45,
+        "composite_risk": 0.35,
+        "graph_deviation": 0.0,
+        "max_sim": 77.4,
+        "most_sim_id": "HS-2026-0012"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0016",
+      "tieuDe": "Effects of Reflective Thinking On Deep Learning in Theoretical Linguistics Classes",
+      "diemBatThuong": 0.35,
+      "doTuongDongMax": 0.0,
+      "hoSoTuongDongNhat": "",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Khoa học Xã hội, Nhân văn và Giáo dục học' nhưng nội dung thuộc 'Công nghệ thông tin và Truyền thông' (70.7%)."
+        ],
+        "if_score": 0.607,
+        "ae_mse": 0.0016,
+        "ae_score": 0.013,
+        "rule_severity": 0.45,
+        "composite_risk": 0.35,
+        "graph_deviation": 0.0,
+        "max_sim": 0.0,
+        "most_sim_id": ""
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0014",
+      "tieuDe": "Exploring the Influence of Gender and L1 Conceptual Transfer on English Prepositional Usage",
+      "diemBatThuong": 0.32,
+      "doTuongDongMax": 61.3,
+      "hoSoTuongDongNhat": "HS-2026-0013",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Khoa học Xã hội, Nhân văn và Giáo dục học' nhưng nội dung thuộc 'Công nghệ thông tin và Truyền thông' (60.0%)."
+        ],
+        "if_score": 0.48,
+        "ae_mse": 0.0067,
+        "ae_score": 0.056,
+        "rule_severity": 0.45,
+        "composite_risk": 0.32,
+        "graph_deviation": 0.0,
+        "max_sim": 61.3,
+        "most_sim_id": "HS-2026-0013"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0031",
+      "tieuDe": "Ứng dụng tinh bột chuối kết hợp  chitosan lên quá trình bảo quản  quả xoài.",
+      "diemBatThuong": 0.32,
+      "doTuongDongMax": 62.9,
+      "hoSoTuongDongNhat": "HS-2026-0021",
+      "chiTiet": {
+        "reasons": [
+          "Nghi vấn trùng lặp nội dung: Mức tương đồng 62.9% với hồ sơ HS-2026-0021."
+        ],
+        "if_score": 0.526,
+        "ae_mse": 0.0001,
+        "ae_score": 0.0,
+        "rule_severity": 0.45,
+        "composite_risk": 0.32,
+        "graph_deviation": 0.0,
+        "max_sim": 62.9,
+        "most_sim_id": "HS-2026-0021"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0028",
+      "tieuDe": "Numerical study of rectified electroosmotic flow in nanofluidics: Influence of surface charge and geometrical asymmetry",
+      "diemBatThuong": 0.3,
+      "doTuongDongMax": 9.3,
+      "hoSoTuongDongNhat": "HS-2026-0024",
+      "chiTiet": {
+        "reasons": [
+          "Lệch lĩnh vực đăng ký: Khai báo 'Kỹ thuật Cơ khí, Chế tạo máy và Giao thông' nhưng nội dung thuộc 'Hóa học, Sinh học, Y Dược và Môi trường' (62.1%)."
+        ],
+        "if_score": 0.472,
+        "ae_mse": 0.0008,
+        "ae_score": 0.006,
+        "rule_severity": 0.45,
+        "composite_risk": 0.3,
+        "graph_deviation": 0.0,
+        "max_sim": 9.3,
+        "most_sim_id": "HS-2026-0024"
+      }
+    },
+    {
+      "maHoSo": "HS-2026-0008",
+      "tieuDe": "Nghiên cứu ứng dụng mô hình ngôn ngữ tiền huấn luyện PhoBERT và SVM phân loại tự động văn bản hồ sơ khoa học tiếng Việt",
+      "diemBatThuong": 0.28,
+      "doTuongDongMax": 77.1,
+      "hoSoTuongDongNhat": "HS-2026-0001",
+      "chiTiet": {
+        "reasons": [
+          "Nghi vấn trùng lặp nội dung: Mức tương đồng 77.1% với hồ sơ HS-2026-0001."
+        ],
+        "if_score": 0.408,
+        "ae_mse": 0.0011,
+        "ae_score": 0.009,
+        "rule_severity": 0.45,
+        "composite_risk": 0.28,
+        "graph_deviation": 0.0,
+        "max_sim": 77.1,
+        "most_sim_id": "HS-2026-0001"
+      }
+    }
+  ],
+  "chi_tiet_25_ho_so_that": [
+    {
+      "stt": 1,
+      "maHoSo": "HS-2026-0011",
+      "excel_row": 100,
+      "tieuDe": "Nghiên cứu làm chậm vận tốc nhóm ánh sáng và lưu trữ thông tin quang dựa trên hiệu ứng trong suốt cảm ứng điện từ",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Khoa học Ứng dụng",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "was_missing": true,
+      "phoBertDuDoan": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "phoBertConfidence": 52.2,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 56.8
+    },
+    {
+      "stt": 2,
+      "maHoSo": "HS-2026-0012",
+      "excel_row": 51,
+      "tieuDe": "Quantum steering in a PT-symmetric system of three cavities with a linear coupling between the active and passive cavities",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Khoa học Ứng dụng",
+      "linhVucGoc": "Vật lý",
+      "linhVucApDung": "Kỹ thuật Cơ khí, Chế tạo máy và Giao thông",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 45.8,
+      "svmDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "svmConfidence": 33.0
+    },
+    {
+      "stt": 3,
+      "maHoSo": "HS-2026-0013",
+      "excel_row": 17,
+      "tieuDe": "On modules and rings having large absolute direct summands",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Khoa học Ứng dụng",
+      "linhVucGoc": "Toán học",
+      "linhVucApDung": "Công nghệ thông tin và Truyền thông",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 44.5,
+      "svmDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "svmConfidence": 41.3
+    },
+    {
+      "stt": 4,
+      "maHoSo": "HS-2026-0014",
+      "excel_row": 61,
+      "tieuDe": "Exploring the Influence of Gender and L1 Conceptual Transfer on English Prepositional Usage",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Ngoại ngữ",
+      "linhVucGoc": "Ngôn ngữ học",
+      "linhVucApDung": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 60.0,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 24.9
+    },
+    {
+      "stt": 5,
+      "maHoSo": "HS-2026-0015",
+      "excel_row": 54,
+      "tieuDe": "Jamming-and-Relaying Strategy for Non-linear Energy Scavenging Networks",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Công nghệ Điện - Điện tử",
+      "linhVucGoc": "Điện - Điện tử - Tự động hóa",
+      "linhVucApDung": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 44.1,
+      "svmDuDoan": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "svmConfidence": 43.5
+    },
+    {
+      "stt": 6,
+      "maHoSo": "HS-2026-0016",
+      "excel_row": 22,
+      "tieuDe": "Effects of Reflective Thinking On Deep Learning in Theoretical Linguistics Classes",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Ngoại ngữ",
+      "linhVucGoc": "Ngôn ngữ học",
+      "linhVucApDung": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 70.7,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 25.3
+    },
+    {
+      "stt": 7,
+      "maHoSo": "HS-2026-0017",
+      "excel_row": 4,
+      "tieuDe": "Giải pháp mô phỏng Simatic IOT 2050 trong đào tạo thiết kế webserver cho công nghiệp",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Công nghệ Điện - Điện tử",
+      "linhVucGoc": "Điện - Điện tử - Tự động hóa",
+      "linhVucApDung": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 94.6,
+      "svmDuDoan": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "svmConfidence": 45.0
+    },
+    {
+      "stt": 8,
+      "maHoSo": "HS-2026-0018",
+      "excel_row": 50,
+      "tieuDe": "All optical switching in a three‑level V‑type atomic medium based on electromagnetically induced transparency",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Khoa học Ứng dụng",
+      "linhVucGoc": "Vật lý",
+      "linhVucApDung": "Kỹ thuật Cơ khí, Chế tạo máy và Giao thông",
+      "was_missing": false,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 43.3,
+      "svmDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "svmConfidence": 55.0
+    },
+    {
+      "stt": 9,
+      "maHoSo": "HS-2026-0019",
+      "excel_row": 64,
+      "tieuDe": "Nghiên cứu thử  nghiệm sản phẩm thạch jelly atiso đỏ (Hibiscus sabdariffa linn) bổ sung probiotic.",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.7,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 51.5
+    },
+    {
+      "stt": 10,
+      "maHoSo": "HS-2026-0020",
+      "excel_row": 65,
+      "tieuDe": "Thu nhận các chất có hoạt tính sinh học từ lá Xạ đen (Celastrus hindsii) và ứng dụng trong sản xuật Thạch ăn liền",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.4,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 41.6
+    },
+    {
+      "stt": 11,
+      "maHoSo": "HS-2026-0021",
+      "excel_row": 67,
+      "tieuDe": "Nghiên cứu hoạt tính kháng nấm của nano bạc kết hợp với màng bao sinh học và ứng dụng trong bảo quản quả bơ.",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.9,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 74.3
+    },
+    {
+      "stt": 12,
+      "maHoSo": "HS-2026-0022",
+      "excel_row": 3,
+      "tieuDe": "Nghiên cứu công nghệ xử lý vi nhựa và kim loại nặng trong nước thải sinh hoạt đô thị",
+      "loaiHinh": "Đề tài NCKH",
+      "donVi": "Khoa Kỹ thuật Hóa học & Môi trường",
+      "linhVucGoc": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": false,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 100.0,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 92.5
+    },
+    {
+      "stt": 13,
+      "maHoSo": "HS-2026-0023",
+      "excel_row": 68,
+      "tieuDe": "Thiết kế đầm đa năng với nhiều kiểu dáng thay đổi tùy thuộc vào mục đích sử dụng của người tiêu dùng_01",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ May và Thời trang",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Kỹ thuật Cơ khí, Chế tạo máy và Giao thông",
+      "was_missing": true,
+      "phoBertDuDoan": "Kỹ thuật Cơ khí, Chế tạo máy và Giao thông",
+      "phoBertConfidence": 85.7,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 44.6
+    },
+    {
+      "stt": 14,
+      "maHoSo": "HS-2026-0024",
+      "excel_row": 70,
+      "tieuDe": "Nghiên cứu kỹ thuật nhuộm vải Shibori từ màu tự nhiên của hoa đậu biếc.",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Công nghệ May và Thời trang",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 61.8,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 70.4
+    },
+    {
+      "stt": 15,
+      "maHoSo": "HS-2026-0025",
+      "excel_row": 84,
+      "tieuDe": "Nghiên cứu thu nhận peptid giàu hoạt tính sinh học từ rong Lagarosiphon major",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.7,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 64.6
+    },
+    {
+      "stt": 16,
+      "maHoSo": "HS-2026-0026",
+      "excel_row": 76,
+      "tieuDe": "Đánh giá tác động của Chat GPT và các hệ thống AI viết nội dung đối với quá trình học môn viết của sinh viên ngành Ngôn ngữ Anh",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Ngoại ngữ",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "was_missing": true,
+      "phoBertDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "phoBertConfidence": 94.1,
+      "svmDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "svmConfidence": 55.9
+    },
+    {
+      "stt": 17,
+      "maHoSo": "HS-2026-0027",
+      "excel_row": 2,
+      "tieuDe": "Ứng dụng thị giác máy tính YOLOv8 trong nhận dạng biển số phương tiện giao thông thời gian thực",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Công nghệ Thông tin",
+      "linhVucGoc": "Công nghệ thông tin và Truyền thông",
+      "linhVucApDung": "Công nghệ thông tin và Truyền thông",
+      "was_missing": false,
+      "phoBertDuDoan": "Công nghệ thông tin và Truyền thông",
+      "phoBertConfidence": 100.0,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 90.3
+    },
+    {
+      "stt": 18,
+      "maHoSo": "HS-2026-0028",
+      "excel_row": 52,
+      "tieuDe": "Numerical study of rectified electroosmotic flow in nanofluidics: Influence of surface charge and geometrical asymmetry",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Công nghệ Cơ khí",
+      "linhVucGoc": "Cơ khí - Động lực",
+      "linhVucApDung": "Kỹ thuật Cơ khí, Chế tạo máy và Giao thông",
+      "was_missing": false,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 62.1,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 42.7
+    },
+    {
+      "stt": 19,
+      "maHoSo": "HS-2026-0029",
+      "excel_row": 7,
+      "tieuDe": "The effects of extraction conditions on antioxidant activity of sesquiterpene extract from Cyperus rotundus L",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "Công nghệ Thực phẩm",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": false,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 65.2,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 36.5
+    },
+    {
+      "stt": 20,
+      "maHoSo": "HS-2026-0030",
+      "excel_row": 6,
+      "tieuDe": "Nghiên cứu đặc điểm sản xuất kinh doanh trong nông nghiệp có tác động đến việc vận dụng bảng điểm cân bằng của doanh nghiệp nông nghiệp",
+      "loaiHinh": "Bài báo khoa học",
+      "donVi": "Khoa Tài chính - Kế toán",
+      "linhVucGoc": "Kinh tế",
+      "linhVucApDung": "Kinh tế, Quản trị kinh doanh và Tài chính",
+      "was_missing": false,
+      "phoBertDuDoan": "Kinh tế, Quản trị kinh doanh và Tài chính",
+      "phoBertConfidence": 99.2,
+      "svmDuDoan": "Kinh tế, Quản trị kinh doanh và Tài chính",
+      "svmConfidence": 70.7
+    },
+    {
+      "stt": 21,
+      "maHoSo": "HS-2026-0031",
+      "excel_row": 66,
+      "tieuDe": "Ứng dụng tinh bột chuối kết hợp  chitosan lên quá trình bảo quản  quả xoài.",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ Thực phẩm",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.7,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 46.2
+    },
+    {
+      "stt": 22,
+      "maHoSo": "HS-2026-0032",
+      "excel_row": 85,
+      "tieuDe": "Quyền nuôi con và nghĩa vụ cấp dưỡng của cha, mẹ sau ly hôn theo Pháp luật Việt Nam",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Luật",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "was_missing": true,
+      "phoBertDuDoan": "Khoa học Xã hội, Nhân văn và Giáo dục học",
+      "phoBertConfidence": 95.8,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 35.9
+    },
+    {
+      "stt": 23,
+      "maHoSo": "HS-2026-0033",
+      "excel_row": 107,
+      "tieuDe": "Xây dựng quy trình sản xuất hương liệu thực phẩm giàu hàm lượng các chất chứa oxy từ vỏ cam bằng phương pháp kết hợp chiết xuất cơ học và phân đoạn",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Du lịch và Ẩm thực",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 99.3,
+      "svmDuDoan": "Công nghệ thông tin và Truyền thông",
+      "svmConfidence": 29.0
+    },
+    {
+      "stt": 24,
+      "maHoSo": "HS-2026-0034",
+      "excel_row": 128,
+      "tieuDe": "Thiết kế mô hình bộ biến đổi công suất điều khiển phân tán sử dụng kỹ thuật điều chế độ rộng xung sóng mang ngẫu nhiên.",
+      "loaiHinh": "Đề tài KHCN học viên, sinh viên",
+      "donVi": "Khoa Công nghệ Điện - Điện tử",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "was_missing": true,
+      "phoBertDuDoan": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "phoBertConfidence": 99.8,
+      "svmDuDoan": "Kỹ thuật Điện - Điện tử và Tự động hóa",
+      "svmConfidence": 75.6
+    },
+    {
+      "stt": 25,
+      "maHoSo": "HS-2026-0035",
+      "excel_row": 73,
+      "tieuDe": "Điều chế vật liệu composite Cu3Se2 đính trên carbon nitride pha tạp B,P để phân huỷ chất kháng sinh diclofenac trong nước đồng thời sản xuất hydro bằng phương pháp xúc tác quang điện hoá.",
+      "loaiHinh": "Đề tài KHCN giảng viên",
+      "donVi": "Khoa Sinh học và Môi trường",
+      "linhVucGoc": "(Trống - Tự động điền)",
+      "linhVucApDung": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "was_missing": true,
+      "phoBertDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "phoBertConfidence": 92.5,
+      "svmDuDoan": "Hóa học, Sinh học, Y Dược và Môi trường",
+      "svmConfidence": 61.1
+    }
+  ]
+}
