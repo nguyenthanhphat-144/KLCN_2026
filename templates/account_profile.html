@@ -1,9 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Thông tin tài khoản - Quản lý KH&CN{% endblock %}
+{% block title %}Tài khoản - Quản lý KH&CN{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-12 col-md-9 col-lg-7">
+<div class="mb-4">
+    <h4 class="fw-bold" style="color: var(--primary-navy);">Tài khoản</h4>
+    <p class="text-muted mb-0">Cập nhật thông tin cá nhân và theo dõi hồ sơ bạn đã nộp.</p>
+</div>
+<div class="row g-3 mb-4">
+{% for label, count, color in [
+    ('Tổng hồ sơ đã nộp', stats.total, 'dark'),
+    ('Chờ xét duyệt', stats.pending, 'secondary'),
+    ('Đang xét duyệt', stats.reviewing, 'primary'),
+    ('Đã phê duyệt', stats.approved, 'success'),
+    ('Từ chối', stats.rejected, 'danger'),
+    ('Yêu cầu bổ sung', stats.revision, 'warning')
+] %}
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card card-academic h-100 border-start border-3 border-{{ color }}">
+            <div class="card-body">
+                <div class="small text-muted mb-2">{{ label }}</div>
+                <div class="fs-3 fw-bold text-{{ color }}">{{ count }}</div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
         <div class="card card-academic">
             <div class="card-header card-header-academic">
                 <i class="bi bi-person-circle me-2"></i>
@@ -108,6 +131,54 @@
                 </form>
             </div>
         </div>
+    </div>
+    <div class="col-12 col-xl-8">
+        <div class="card card-academic">
+            <div class="card-header card-header-academic d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span><i class="bi bi-folder2-open me-2"></i>Hồ sơ của tôi</span>
+                <a href="{{ url_for('hoso_create') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Nộp hồ sơ mới
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead><tr>
+                            <th class="ps-3">Mã hồ sơ</th>
+                            <th>Tên công trình / Đề tài</th>
+                            <th>Năm</th><th>Trạng thái</th>
+                            <th class="pe-3 text-end">Thao tác</th>
+                        </tr></thead>
+                        <tbody>
+                        {% set colors = {'Chờ xét duyệt': 'secondary', 'Đang xét duyệt': 'primary',
+                            'Đã duyệt': 'success', 'Từ chối': 'danger', 'Yêu cầu bổ sung': 'warning text-dark'} %}
+                        {% for h in my_records %}
+                            <tr>
+                                <td class="ps-3 text-nowrap">{{ h.maHoSo }}</td>
+                                <td class="fw-semibold">{{ h.tieuDe }}</td>
+                                <td>{{ h.namCongBo or '—' }}</td>
+                                <td><span class="badge bg-{{ colors.get(h.trangThai, 'secondary') }}">
+                                    {{ 'Đã phê duyệt' if h.trangThai == 'Đã duyệt' else h.trangThai }}
+                                </span></td>
+                                <td class="pe-3 text-end">
+                                    <a href="{{ url_for('hoso_detail', ma_ho_so=h.maHoSo) }}"
+                                       class="btn btn-sm btn-outline-primary text-nowrap">
+                                        <i class="bi bi-eye me-1"></i>Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>
+                                Bạn chưa nộp hồ sơ nào.
+                            </td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <p class="small text-muted mt-3">Chỉ hiển thị hồ sơ do tài khoản của bạn nộp và chưa bị xóa.</p>
     </div>
 </div>
 {% endblock %}
