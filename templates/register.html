@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Đăng ký tài khoản - Hệ thống KH&CN{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center"
+     style="min-height: 78vh;">
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card card-academic">
+            <div class="card-body p-4">
+                <div class="text-center mb-4 pb-3 border-bottom">
+                    <h5 class="fw-bold"
+                        style="color: var(--primary-navy);">
+                        Đăng ký tài khoản
+                    </h5>
+                    <div class="small text-muted">
+                        Hệ thống Quản lý Hồ sơ KH&CN
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-3">
+                        <label for="registerName"
+                               class="form-label small fw-semibold">
+                            Họ và tên
+                        </label>
+                        <input type="text"
+                               id="registerName"
+                               name="hoTen"
+                               class="form-control"
+                               value="{{ form_data.get('hoTen', '') }}"
+                               maxlength="100"
+                               autocomplete="name"
+                               required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="registerEmail"
+                               class="form-label small fw-semibold">
+                            Email
+                        </label>
+                        <input type="email"
+                               id="registerEmail"
+                               name="email"
+                               class="form-control"
+                               value="{{ form_data.get('email', '') }}"
+                               maxlength="100"
+                               autocomplete="email"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="registerUnit"
+                               class="form-label small fw-semibold">
+                            Đơn vị công tác
+                        </label>
+                        <input type="text"
+                               id="registerUnit"
+                               name="donViCongTac"
+                               class="form-control"
+                               value="{{ form_data.get('donViCongTac', '') }}"
+                               placeholder="Khoa Công nghệ Thông tin"
+                               maxlength="200"
+                               autocomplete="organization"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="registerPassword"
+                               class="form-label small fw-semibold">
+                            Mật khẩu
+                        </label>
+                        <input type="password"
+                            id="registerPassword"
+                            name="matKhau"
+                            class="form-control"
+                            placeholder="Nhập mật khẩu"
+                            minlength="8"
+                            autocomplete="new-password"
+                            aria-describedby="registerPasswordHelp"
+                            required>
+
+                        <div id="registerPasswordHelp" class="form-text">
+                            Ít nhất 8 ký tự, gồm chữ cái in hoa, chữ thường,
+                            số và ký tự đặc biệt.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="registerConfirm"
+                               class="form-label small fw-semibold">
+                            Xác nhận mật khẩu
+                        </label>
+                        <input type="password"
+                               id="registerConfirm"
+                               name="xacNhanMatKhau"
+                               class="form-control"
+                               minlength="8"
+                               autocomplete="new-password"
+                               required>
+                    </div>
+
+                
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 py-2 fw-semibold"
+                            style="background-color: var(--primary-navy);
+                                   border-color: var(--primary-navy);">
+                        Đăng ký
+                    </button>
+                </form>
+
+                <div class="text-center small mt-3">
+                    Đã có tài khoản?
+                    <a href="{{ url_for('login') }}"
+                       class="fw-semibold">
+                        Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
