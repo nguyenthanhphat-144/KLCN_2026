@@ -397,16 +397,16 @@ def seed_author_catalog_if_empty(conn):
     cur.execute("SELECT COUNT(*) FROM DanhMucTacGia")
     if cur.fetchone()[0] == 0:
         tac_gias = [
-            ("TG-001", "Phạm Văn Khoa", "TS.", "khoapv@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0002-1452-8801"),
-            ("TG-002", "Trần Quốc Bảo", "PGS.TS.", "baotq@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0001-9834-2104"),
-            ("TG-003", "Vũ Đình Trọng", "TS.", "trongvd@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0003-4120-5567"),
-            ("TG-004", "Lê Hoàng Việt", "PGS.TS.", "vietlh@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0002-7719-3390"),
-            ("TG-005", "Hoàng Gia Huy", "TS.", "huyhg@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0001-6650-7812"),
-            ("TG-006", "Nguyễn Đức Mạnh", "TS.", "manhnd@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0002-8941-1029"),
-            ("TG-007", "Đặng Thị Mai Hương", "ThS.", "huongdtm@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0003-1198-4502"),
-            ("TG-008", "Lê Thu Trang", "TS.", "tranglt@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0002-5401-6789"),
+            ("TG-001", "Phạm Văn K", "TS.", "khoapv@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0002-1452-8801"),
+            ("TG-002", "Trần Quốc B", "PGS.TS.", "baotq@uni.edu.vn", "Khoa Công nghệ Thông tin", 1, "0000-0001-9834-2104"),
+            ("TG-003", "Vũ Đình T", "TS.", "trongvd@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0003-4120-5567"),
+            ("TG-004", "Lê Hoàng V", "PGS.TS.", "vietlh@uni.edu.vn", "Khoa Điện - Điện tử", 2, "0000-0002-7719-3390"),
+            ("TG-005", "Hoàng Gia H", "TS.", "huyhg@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0001-6650-7812"),
+            ("TG-006", "Nguyễn Đức M", "TS.", "manhnd@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0002-8941-1029"),
+            ("TG-007", "Đặng Thị Mai H", "ThS.", "huongdtm@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0003-1198-4502"),
+            ("TG-008", "Lê Thu T", "TS.", "tranglt@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0002-5401-6789"),
             ("TG-009", "Ngô Thanh H", "PGS.TS.", "hant@uni.edu.vn", "Khoa Kỹ thuật Hóa học & Môi trường", 5, "0000-0001-3349-9012"),
-            ("TG-010", "Đỗ Văn Kiên", "TS.", "kiendv@uni.edu.vn", "Khoa Khoa học Xã hội & Nhân văn", 6, "0000-0003-8821-3456"),
+            ("TG-010", "Đỗ Văn K", "TS.", "kiendv@uni.edu.vn", "Khoa Khoa học Xã hội & Nhân văn", 6, "0000-0003-8821-3456"),
         ]
         cur.executemany("""
             INSERT INTO DanhMucTacGia (maCodeTG, hoTen, hocHamHocVi, email, donViCongTac, maLinhVucChinh, orcid)
@@ -426,12 +426,12 @@ def seed_initial_data(conn):
     users = [
         ("Nguyễn Thành Phát", "admin@uni.edu.vn", generate_password_hash("Admin@123"), "Admin", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
         ("Lê Thanh Phong", "canbo@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Hội đồng KH&CN Trường", "TS."),
-        ("PGS.TS. Lê Hoàng Việt (Cán bộ duyệt)", "vietlh@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
+        ("PGS.TS. Lê Hoàng V (Cán bộ duyệt)", "vietlh@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
         ("Nguyễn Thành Tài", "tacgia@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Công nghệ Thông tin", "TS."),
-        ("ThS. Đặng Thị Mai Hương (GV Kinh tế)", "huongdtm@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kinh tế & Quản trị Kinh doanh", "ThS."),
-        ("TS. Vũ Đình Trọng (GV Điện - ĐT)", "trongvd@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Điện - Điện tử", "TS."),
+        ("ThS. Đặng Thị Mai H (GV Kinh tế)", "huongdtm@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kinh tế & Quản trị Kinh doanh", "ThS."),
+        ("TS. Vũ Đình T (GV Điện - ĐT)", "trongvd@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Điện - Điện tử", "TS."),
         ("PGS.TS. Ngô Thanh H (GV Hóa - Sinh)", "hant@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kỹ thuật Hóa học & Môi trường", "PGS.TS."),
-        ("TS. Hoàng Gia Huy (GV Cơ khí)", "huyhg@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Cơ khí Động lực", "TS."),
+        ("TS. Hoàng Gia H (GV Cơ khí)", "huyhg@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Cơ khí Động lực", "TS."),
     ]
     cur.executemany("""
         INSERT INTO NguoiDung (hoTen, email, matKhau, vaiTro, donViCongTac, hocHamHocVi)
@@ -548,7 +548,7 @@ def seed_sample_records_with_ai(conn):
          "Nghiên cứu tinh chỉnh mô hình ngôn ngữ PhoBERT kết hợp học máy SVM trong phân loại tự động hồ sơ khoa học tiếng Việt",
          "Bài báo đề xuất kiến trúc tiền xử lý tách từ tiếng Việt bằng thư viện PyVi kết hợp fine-tuning mô hình học sâu vinai/phobert-base và thuật toán Support Vector Machine để phân loại chính xác lĩnh vực chuyên ngành cho các công trình nghiên cứu khoa học tại trường đại học.",
          "trí tuệ nhân tạo, học sâu, xử lý ngôn ngữ tự nhiên, phobert, phân loại văn bản, học máy",
-         "TS. Phạm Văn Khoa, PGS.TS. Trần Quốc Bảo",
+         "TS. Phạm Văn K, PGS.TS. Trần Quốc B",
          "Khoa Công nghệ Thông tin", 2026, "Đợt 1 - Năm học 2025-2026",
          4, 1, 1, 1, "Đã duyệt", "MinhChung_HS20260001_PhoBERT_Q1.pdf", 1),
 
@@ -557,7 +557,7 @@ def seed_sample_records_with_ai(conn):
          "Thiết kế bộ điều khiển thích nghi bền vững cho hệ thống nghịch lưu ba pha nối lưới điện thông minh tích hợp điện mặt trời",
          "Nghiên cứu trình bày thuật toán điều khiển tự động trên vi điều khiển DSP TMS320F28335 nhằm ổn định điện áp, giảm méo hài tổng THD và tối ưu công suất phát của biến tần năng lượng mặt trời trong lưới điện thông minh.",
          "lưới điện thông minh, năng lượng mặt trời, điều khiển tự động, điện tử công suất, vi điều khiển",
-         "TS. Vũ Đình Trọng, PGS.TS. Lê Hoàng Việt",
+         "TS. Vũ Đình T, PGS.TS. Lê Hoàng V",
          "Khoa Điện - Điện tử", 2026, "Đợt 1 - Năm học 2025-2026",
          6, 2, 1, 3, "Chờ xét duyệt", "MinhChung_HS20260002_SmartGrid_IEEE.pdf", 0),
 
@@ -566,7 +566,7 @@ def seed_sample_records_with_ai(conn):
          "Tổng hợp vật liệu nano ZnO pha tạp bạc ứng dụng xúc tác quang hóa phân hủy chất ô nhiễm hữu cơ và kháng khuẩn trong xử lý nước thải",
          "Công trình thực hiện tổng hợp hạt vật liệu nano bằng phương pháp thủy nhiệt, phân tích cấu trúc tinh thể XRD, SEM và đánh giá hiệu suất xử lý nước thải dệt nhuộm nhiễm kim loại nặng cùng hoạt tính kháng khuẩn E.coli.",
          "vật liệu nano, xúc tác quang hóa, xử lý nước thải, kháng khuẩn, ô nhiễm môi trường",
-         "PGS.TS. Ngô Thanh H, TS. Bùi Thị Lan",
+         "PGS.TS. Ngô Thanh H, TS. Bùi Thị L",
          "Khoa Kỹ thuật Hóa học & Môi trường", 2026, "Đợt 1 - Năm học 2025-2026",
          7, 4, 1, 6, "Chờ xét duyệt", "MinhChung_HS20260003_Nano_Water.pdf", 0),
 
@@ -575,7 +575,7 @@ def seed_sample_records_with_ai(conn):
          "Tác động của quản trị chuỗi cung ứng xanh và chuyển đổi số đến hiệu quả tài chính của các doanh nghiệp niêm yết trên thị trường chứng khoán",
          "Sử dụng mô hình cấu trúc tuyến tính SEM và dữ liệu bảng từ báo cáo tài chính kiểm toán của 250 doanh nghiệp nhằm đánh giá mối quan hệ giữa chuỗi cung ứng bền vững, quản trị rủi ro tài chính ngân hàng và tăng trưởng kinh tế.",
          "chuỗi cung ứng, tài chính ngân hàng, chứng khoán, kinh tế vĩ mô, kế toán kiểm toán",
-         "ThS. Đặng Thị Mai Hương, TS. Lê Thu Trang",
+         "ThS. Đặng Thị Mai H, TS. Lê Thu T",
          "Khoa Kinh tế & Quản trị Kinh doanh", 2026, "Đợt 1 - Năm học 2025-2026",
          5, 4, 2, 5, "Đã duyệt", "MinhChung_HS20260004_GreenSupplyChain.pdf", 1),
 
@@ -584,7 +584,7 @@ def seed_sample_records_with_ai(conn):
          "Ứng dụng mạng nơ ron học sâu và thị giác máy tính trong nhận dạng khuôn mặt điểm danh lớp học thông minh",
          "Hệ thống tích hợp camera nhận diện khuôn mặt thời gian thực bằng mạng tích chập sâu CNN và cơ sở dữ liệu đám mây hỗ trợ quản lý điểm danh sinh viên tự động.",
          "thị giác máy tính, học sâu, mạng nơ ron, trí tuệ nhân tạo, công nghệ thông tin",
-         "ThS. Đặng Thị Mai Hương",
+         "ThS. Đặng Thị Mai H",
          "Khoa Kinh tế & Quản trị Kinh doanh", 2026, "Đợt 1 - Năm học 2025-2026",
          5, 1, 2, 9, "Đang xét duyệt", "MinhChung_HS20260005_FaceRec_Warning.pdf", 0),
 
@@ -593,7 +593,7 @@ def seed_sample_records_with_ai(conn):
          "Mô phỏng phần tử hữu hạn FEM và tối ưu hóa chế độ cắt khi gia công phay CNC hợp kim titan dùng trong chế tạo máy",
          "Nghiên cứu phân tích trường nhiệt độ, lực cắt cơ học, biến dạng dẻo và mài mòn dụng cụ cắt khi gia công tốc độ cao hợp kim Ti-6Al-4V trên trung tâm gia công CNC 5 trục.",
          "gia công cnc, chế tạo máy, phần tử hữu hạn, ma sát mài mòn, cơ khí động lực",
-         "TS. Hoàng Gia Huy, TS. Nguyễn Đức Mạnh",
+         "TS. Hoàng Gia H, TS. Nguyễn Đức M",
          "Khoa Cơ khí Động lực", 2026, "Đợt 1 - Năm học 2025-2026",
          8, 3, 1, 4, "Đang xét duyệt", "MinhChung_HS20260006_CNC_FEM.pdf", 1),
 
@@ -602,7 +602,7 @@ def seed_sample_records_with_ai(conn):
          "Đề tài nghiên cứu xây dựng và triển khai hệ thống cảm biến đeo tay IoT phân tích tín hiệu sinh học theo dõi nhịp tim cho người cao tuổi",
          "Đề tài nghiên cứu khoa học cấp Trường thực hiện khảo sát thực tiễn, xây dựng thuyết minh, thiết kế mạch thu nhận tín hiệu điện tâm đồ ECG trên vi điều khiển công suất thấp và tổ chức nghiệm thu sản phẩm thiết bị cảnh báo sớm rối loạn nhịp tim.",
          "mạng cảm biến không dây, hệ thống nhúng, y sinh học, xử lý tín hiệu, đề tài nghiên cứu",
-         "TS. Vũ Đình Trọng, TS. Phạm Văn Khoa",
+         "TS. Vũ Đình T, TS. Phạm Văn K",
          "Khoa Điện - Điện tử", 2026, "Đợt 1 - Năm học 2025-2026",
          6, 2, 4, 8, "Chờ xét duyệt", "MinhChung_HS20260007_IoT_Bio.pdf", 0),
 
@@ -611,7 +611,7 @@ def seed_sample_records_with_ai(conn):
          "Nghiên cứu ứng dụng mô hình ngôn ngữ tiền huấn luyện PhoBERT và SVM phân loại tự động văn bản hồ sơ khoa học tiếng Việt",
          "Đề tài trình bày quy trình tiền xử lý tách từ tiếng Việt bằng PyVi kết hợp fine-tuning mô hình học sâu vinai/phobert-base và thuật toán học máy Support Vector Machine nhằm tự động phân loại lĩnh vực chuyên ngành hồ sơ nghiên cứu khoa học.",
          "trí tuệ nhân tạo, học sâu, xử lý ngôn ngữ tự nhiên, phobert, phân loại văn bản",
-         "TS. Phạm Văn Khoa",
+         "TS. Phạm Văn K",
          "Khoa Công nghệ Thông tin", 2025, "Đợt 2 - Năm học 2024-2025",
          4, 1, 5, 2, "Từ chối", "MinhChung_HS20260008_Duplicate.pdf", 1),
 
@@ -620,7 +620,7 @@ def seed_sample_records_with_ai(conn):
          "Đổi mới phương pháp giảng dạy đại học theo tiếp cận CDIO và chuẩn đầu ra AUN-QA nhằm phát triển năng lực tự học cho sinh viên",
          "Nghiên cứu khảo sát thực trạng và đề xuất quy trình thiết kế chương trình đào tạo kết hợp học tập qua dự án giúp nâng cao kỹ năng tư duy phản biện và năng lực nghề nghiệp.",
          "phương pháp giảng dạy, giáo dục đại học, chương trình đào tạo, khoa học giáo dục, năng lực người học",
-         "TS. Đỗ Văn Kiên, TS. Nguyễn Thị Hồng",
+         "TS. Đỗ Văn K, TS. Nguyễn Thị H",
          "Khoa Sư phạm & Khoa học Xã hội Nhân văn", 2026, "Đợt 1 - Năm học 2025-2026",
          4, 6, 3, 7, "Đã duyệt", "MinhChung_HS20260009_GiaoDuc_CDIO.pdf", 1),
 

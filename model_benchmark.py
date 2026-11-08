@@ -99,9 +99,9 @@ def _generate_240_standardized_records():
         1: {
             "don_vi": "Khoa Công nghệ Thông tin",
             "authors": [
-                "TS. Phạm Văn Khoa, PGS.TS. Trần Quốc Bảo",
+                "TS. Phạm Văn K, PGS.TS. Trần Quốc B",
                 "TS. Nguyễn Minh Tâm, ThS. Hoàng Văn Nam",
-                "PGS.TS. Trần Quốc Bảo, TS. Phạm Văn Khoa",
+                "PGS.TS. Trần Quốc B, TS. Phạm Văn K",
             ],
             "tap_chi": [
                 ("Engineering Applications of Artificial Intelligence", "Scopus Q1 / Web of Science (SCIE)", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
@@ -152,9 +152,9 @@ def _generate_240_standardized_records():
         2: {
             "don_vi": "Khoa Điện - Điện tử",
             "authors": [
-                "TS. Vũ Đình Trọng, PGS.TS. Lê Hoàng Việt",
-                "TS. Trần Hữu Phước, TS. Vũ Đình Trọng",
-                "PGS.TS. Lê Hoàng Việt, ThS. Nguyễn Quốc Tuấn",
+                "TS. Vũ Đình T, PGS.TS. Lê Hoàng V",
+                "TS. Trần Hữu Phước, TS. Vũ Đình T",
+                "PGS.TS. Lê Hoàng V, ThS. Nguyễn Quốc Tuấn",
             ],
             "tap_chi": [
                 ("IEEE Transactions on Industrial Electronics", "Scopus Q1 / Web of Science (SCIE)", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
@@ -205,9 +205,9 @@ def _generate_240_standardized_records():
         3: {
             "don_vi": "Khoa Cơ khí Động lực",
             "authors": [
-                "TS. Hoàng Gia Huy, TS. Nguyễn Đức Mạnh",
-                "TS. Nguyễn Đức Mạnh, ThS. Lê Văn Sơn",
-                "TS. Hoàng Gia Huy, PGS.TS. Phan Thanh Tùng",
+                "TS. Hoàng Gia H, TS. Nguyễn Đức M",
+                "TS. Nguyễn Đức M, ThS. Lê Văn Sơn",
+                "TS. Hoàng Gia H, PGS.TS. Phan Thanh Tùng",
             ],
             "tap_chi": [
                 ("International Journal of Mechanical Sciences", "Scopus Q1 / Web of Science (SCIE)", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
@@ -258,9 +258,9 @@ def _generate_240_standardized_records():
         4: {
             "don_vi": "Khoa Kinh tế & Quản trị Kinh doanh",
             "authors": [
-                "ThS. Đặng Thị Mai Hương, TS. Lê Thu Trang",
-                "TS. Lê Thu Trang, PGS.TS. Nguyễn Văn Hòa",
-                "ThS. Đặng Thị Mai Hương, ThS. Trần Minh Châu",
+                "ThS. Đặng Thị Mai H, TS. Lê Thu T",
+                "TS. Lê Thu T, PGS.TS. Nguyễn Văn Hòa",
+                "ThS. Đặng Thị Mai H, ThS. Trần Minh Châu",
             ],
             "tap_chi": [
                 ("Journal of Asian Economics & Management", "Scopus Q2 / Web of Science", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
@@ -311,9 +311,9 @@ def _generate_240_standardized_records():
         5: {
             "don_vi": "Khoa Kỹ thuật Hóa học & Môi trường",
             "authors": [
-                "PGS.TS. Ngô Thanh H, TS. Bùi Thị Lan",
-                "TS. Bùi Thị Lan, ThS. Phan Hoàng Yến",
-                "PGS.TS. Ngô Thanh H, TS. Đặng Quốc Việt",
+                "PGS.TS. Ngô Thanh H, TS. Bùi Thị L",
+                "TS. Bùi Thị L, ThS. Phan Hoàng Y",
+                "PGS.TS. Ngô Thanh H, TS. Đặng Quốc V",
             ],
             "tap_chi": [
                 ("Journal of Cleaner Production & Environmental Tech", "Scopus Q1 / Web of Science (SCIE)", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
@@ -364,9 +364,9 @@ def _generate_240_standardized_records():
         6: {
             "don_vi": "Khoa Khoa học Xã hội & Nhân văn",
             "authors": [
-                "TS. Đỗ Văn Kiên, TS. Nguyễn Thị Hồng",
-                "TS. Nguyễn Thị Hồng, ThS. Lê Thanh Thảo",
-                "TS. Đỗ Văn Kiên, PGS.TS. Võ Minh Hoàng",
+                "TS. Đỗ Văn K, TS. Nguyễn Thị H",
+                "TS. Nguyễn Thị H, ThS. Lê Thanh Thảo",
+                "TS. Đỗ Văn K, PGS.TS. Võ Minh Hoàng",
             ],
             "tap_chi": [
                 ("Tạp chí Khoa học Giáo dục Việt Nam", "Hội đồng GSNN (0.75 điểm)", "Bài báo tạp chí khoa học trong nước thuộc danh mục HĐGSNN"),
