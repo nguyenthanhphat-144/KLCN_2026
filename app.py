@@ -1990,6 +1990,26 @@ def account_profile():
 
         user = dict(row)
 
+        rows = conn.execute(
+            """
+            SELECT maHoSo, tieuDe, namCongBo, trangThai
+            FROM HoSoKHCN
+            WHERE maNguoiNop = ? AND isDeleted = 0
+            ORDER BY maHoSo DESC
+            """,
+            (session["user_id"],),
+        ).fetchall()
+        my_records = [dict(r) for r in rows]
+        stats = {"total": len(my_records), "pending": 0, "reviewing": 0,
+                 "approved": 0, "rejected": 0, "revision": 0}
+        status_keys = {"Chờ xét duyệt": "pending", "Đang xét duyệt": "reviewing",
+                       "Đã duyệt": "approved", "Từ chối": "rejected",
+                       "Yêu cầu bổ sung": "revision"}
+        for record in my_records:
+            key = status_keys.get(record["trangThai"])
+            if key:
+                stats[key] += 1
+
         if request.method == "POST":
             ho_ten = request.form.get("hoTen", "").strip()
             don_vi = request.form.get("donViCongTac", "").strip()
@@ -2015,7 +2035,7 @@ def account_profile():
 
             if error:
                 flash(error, "danger")
-                return render_template("account_profile.html", user=user)
+                return render_template("account_profile.html", user=user, my_records=my_records, stats=stats)
 
             try:
                 conn.execute(
@@ -2035,7 +2055,7 @@ def account_profile():
                     "Không thể cập nhật thông tin. Vui lòng thử lại.",
                     "danger",
                 )
-                return render_template("account_profile.html", user=user)
+                return render_template("account_profile.html", user=user, my_records=my_records, stats=stats)
 
             # Cập nhật ngay tên và đơn vị trên thanh menu.
             session["ho_ten"] = ho_ten
@@ -2045,7 +2065,7 @@ def account_profile():
             flash("Cập nhật thông tin tài khoản thành công.", "success")
             return redirect(url_for("account_profile"))
 
-        return render_template("account_profile.html", user=user)
+        return render_template("account_profile.html", user=user, my_records=my_records, stats=stats)
 
     finally:
         conn.close()
