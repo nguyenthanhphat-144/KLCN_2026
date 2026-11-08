@@ -194,7 +194,7 @@ INSERT INTO dbo.NguoiDung (hoTen, email, matKhau, vaiTro, donViCongTac, hocHamHo
 (N'Nguyễn Thành Tài', 'tacgia@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Công nghệ Thông tin', N'TS.'),
 (N'ThS. Đặng Thị Mai Hương', 'huongdtm@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Kinh tế & Quản trị Kinh doanh', N'ThS.'),
 (N'TS. Vũ Đình Trọng', 'trongvd@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Điện - Điện tử', N'TS.'),
-(N'PGS.TS. Ngô Thanh Hà', 'hant@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Kỹ thuật Hóa học & Môi trường', N'PGS.TS.'),
+(N'PGS.TS. Ngô Thanh H', 'hant@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Kỹ thuật Hóa học & Môi trường', N'PGS.TS.'),
 (N'TS. Hoàng Gia Huy', 'huyhg@uni.edu.vn', 'TacGia@123', 'TacGia', N'Khoa Cơ khí Động lực', N'TS.');
 GO
 
@@ -260,7 +260,7 @@ INSERT INTO dbo.HoSoKHCN (
  N'Tổng hợp vật liệu nano ZnO pha tạp bạc ứng dụng xúc tác quang hóa phân hủy chất ô nhiễm hữu cơ và kháng khuẩn trong xử lý nước thải',
  N'Công trình thực hiện tổng hợp hạt vật liệu nano bằng phương pháp thủy nhiệt, phân tích cấu trúc tinh thể XRD, SEM và đánh giá hiệu suất xử lý nước thải dệt nhuộm nhiễm kim loại nặng cùng hoạt tính kháng khuẩn E.coli.',
  N'vật liệu nano, xúc tác quang hóa, xử lý nước thải, kháng khuẩn, ô nhiễm môi trường',
- N'PGS.TS. Ngô Thanh Hà, TS. Bùi Thị Lan', N'Khoa Kỹ thuật Hóa học & Môi trường', 2026, N'Đợt 1 - Năm học 2025-2026',
+ N'PGS.TS. Ngô Thanh H, TS. Bùi Thị Lan', N'Khoa Kỹ thuật Hóa học & Môi trường', 2026, N'Đợt 1 - Năm học 2025-2026',
  7, 4, 1, 6, N'Chờ xét duyệt', 'MinhChung_HS20260003_Nano_Water.pdf',
  N'tổng_hợp vật_liệu_nano zno pha_tạp bạc ứng_dụng xúc_tác_quang_hóa phân_hủy chất ô_nhiễm hữu_cơ kháng_khuẩn xử_lý_nước_thải kim_loại_nặng',
  5, 91.4, 5, 86.8, 0, 0.82, 1,
@@ -329,7 +329,7 @@ INSERT INTO dbo.HoSoKHCN (
  N'Quy trình sản xuất chế phẩm sinh học giàu enzyme cellulase và than sinh học biến tính xử lý kim loại nặng trong nước thải công nghiệp',
  N'Giải pháp hữu ích đề xuất quy trình lên men chủng xạ khuẩn bản địa kết hợp vật liệu hấp phụ sinh học giúp loại bỏ hiệu quả chì Pb(II) và cadimi Cd(II) bảo vệ môi trường bền vững.',
  N'công nghệ sinh học, enzyme sinh học, kim loại nặng, xử lý nước thải, ô nhiễm môi trường',
- N'PGS.TS. Ngô Thanh Hà', N'Khoa Kỹ thuật Hóa học & Môi trường', 2026, N'Đợt 1 - Năm học 2025-2026',
+ N'PGS.TS. Ngô Thanh H', N'Khoa Kỹ thuật Hóa học & Môi trường', 2026, N'Đợt 1 - Năm học 2025-2026',
  7, 5, 6, 6, N'Chờ xét duyệt', 'MinhChung_HS20260010_SangChe_Bio.pdf',
  N'quy_trình sản_xuất chế_phẩm sinh_học enzyme_sinh_học cellulase than_sinh_học biến_tính xử_lý_nước_thải kim_loại_nặng công_nghệ_sinh_học ô_nhiễm_môi_trường',
  5, 92.9, 5, 87.6, 0, 0.14, 0, N'[]', 24.6, '');

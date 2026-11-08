@@ -405,7 +405,7 @@ def seed_author_catalog_if_empty(conn):
             ("TG-006", "Nguyễn Đức Mạnh", "TS.", "manhnd@uni.edu.vn", "Khoa Cơ khí Động lực", 3, "0000-0002-8941-1029"),
             ("TG-007", "Đặng Thị Mai Hương", "ThS.", "huongdtm@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0003-1198-4502"),
             ("TG-008", "Lê Thu Trang", "TS.", "tranglt@uni.edu.vn", "Khoa Kinh tế & Quản trị Kinh doanh", 4, "0000-0002-5401-6789"),
-            ("TG-009", "Ngô Thanh Hà", "PGS.TS.", "hant@uni.edu.vn", "Khoa Kỹ thuật Hóa học & Môi trường", 5, "0000-0001-3349-9012"),
+            ("TG-009", "Ngô Thanh H", "PGS.TS.", "hant@uni.edu.vn", "Khoa Kỹ thuật Hóa học & Môi trường", 5, "0000-0001-3349-9012"),
             ("TG-010", "Đỗ Văn Kiên", "TS.", "kiendv@uni.edu.vn", "Khoa Khoa học Xã hội & Nhân văn", 6, "0000-0003-8821-3456"),
         ]
         cur.executemany("""
@@ -424,13 +424,13 @@ def seed_initial_data(conn):
 
     # 1. Seed NguoiDung (Mật khẩu mặc định được hash bảo mật bằng Werkzeug)
     users = [
-        ("PGS.TS. Trần Quốc Bảo (Quản trị viên)", "admin@uni.edu.vn", generate_password_hash("Admin@123"), "Admin", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
-        ("TS. Nguyễn Minh Tâm (Cán bộ duyệt)", "canbo@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Hội đồng KH&CN Trường", "TS."),
+        ("Nguyễn Thành Phát", "admin@uni.edu.vn", generate_password_hash("Admin@123"), "Admin", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
+        ("Lê Thanh Phong", "canbo@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Hội đồng KH&CN Trường", "TS."),
         ("PGS.TS. Lê Hoàng Việt (Cán bộ duyệt)", "vietlh@uni.edu.vn", generate_password_hash("CanBo@123"), "CanBo", "Phòng Quản lý Khoa học & HTQT", "PGS.TS."),
-        ("TS. Phạm Văn Khoa (Giảng viên CNTT)", "tacgia@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Công nghệ Thông tin", "TS."),
+        ("Nguyễn Thành Tài", "tacgia@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Công nghệ Thông tin", "TS."),
         ("ThS. Đặng Thị Mai Hương (GV Kinh tế)", "huongdtm@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kinh tế & Quản trị Kinh doanh", "ThS."),
         ("TS. Vũ Đình Trọng (GV Điện - ĐT)", "trongvd@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Điện - Điện tử", "TS."),
-        ("PGS.TS. Ngô Thanh Hà (GV Hóa - Sinh)", "hant@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kỹ thuật Hóa học & Môi trường", "PGS.TS."),
+        ("PGS.TS. Ngô Thanh H (GV Hóa - Sinh)", "hant@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Kỹ thuật Hóa học & Môi trường", "PGS.TS."),
         ("TS. Hoàng Gia Huy (GV Cơ khí)", "huyhg@uni.edu.vn", generate_password_hash("TacGia@123"), "TacGia", "Khoa Cơ khí Động lực", "TS."),
     ]
     cur.executemany("""
@@ -566,7 +566,7 @@ def seed_sample_records_with_ai(conn):
          "Tổng hợp vật liệu nano ZnO pha tạp bạc ứng dụng xúc tác quang hóa phân hủy chất ô nhiễm hữu cơ và kháng khuẩn trong xử lý nước thải",
          "Công trình thực hiện tổng hợp hạt vật liệu nano bằng phương pháp thủy nhiệt, phân tích cấu trúc tinh thể XRD, SEM và đánh giá hiệu suất xử lý nước thải dệt nhuộm nhiễm kim loại nặng cùng hoạt tính kháng khuẩn E.coli.",
          "vật liệu nano, xúc tác quang hóa, xử lý nước thải, kháng khuẩn, ô nhiễm môi trường",
-         "PGS.TS. Ngô Thanh Hà, TS. Bùi Thị Lan",
+         "PGS.TS. Ngô Thanh H, TS. Bùi Thị Lan",
          "Khoa Kỹ thuật Hóa học & Môi trường", 2026, "Đợt 1 - Năm học 2025-2026",
          7, 4, 1, 6, "Chờ xét duyệt", "MinhChung_HS20260003_Nano_Water.pdf", 0),
 
@@ -629,7 +629,7 @@ def seed_sample_records_with_ai(conn):
          "Giải pháp hữu ích đề xuất quy trình độc quyền sản xuất chế phẩm sinh học giàu enzyme cellulase và than sinh học biến tính xử lý kim loại nặng",
          "Giải pháp hữu ích mô tả chi tiết các bước quy trình kỹ thuật lên men chủng xạ khuẩn bản địa kết hợp vật liệu hấp phụ sinh học loại bỏ chì Pb(II) và cadimi Cd(II); hồ sơ đăng ký bảo hộ sở hữu trí tuệ xác lập tính mới, tính sáng tạo và khả năng áp dụng công nghiệp.",
          "giải pháp hữu ích, sở hữu trí tuệ, công nghệ sinh học, enzyme sinh học, xử lý nước thải",
-         "PGS.TS. Ngô Thanh Hà",
+         "PGS.TS. Ngô Thanh H",
          "Khoa Kỹ thuật Hóa học & Môi trường", 2026, "Đợt 1 - Năm học 2025-2026",
          7, 5, 6, 6, "Chờ xét duyệt", "MinhChung_HS20260010_SangChe_Bio.pdf", 0),
     ]

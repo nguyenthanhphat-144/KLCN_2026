@@ -311,9 +311,9 @@ def _generate_240_standardized_records():
         5: {
             "don_vi": "Khoa Kỹ thuật Hóa học & Môi trường",
             "authors": [
-                "PGS.TS. Ngô Thanh Hà, TS. Bùi Thị Lan",
+                "PGS.TS. Ngô Thanh H, TS. Bùi Thị Lan",
                 "TS. Bùi Thị Lan, ThS. Phan Hoàng Yến",
-                "PGS.TS. Ngô Thanh Hà, TS. Đặng Quốc Việt",
+                "PGS.TS. Ngô Thanh H, TS. Đặng Quốc Việt",
             ],
             "tap_chi": [
                 ("Journal of Cleaner Production & Environmental Tech", "Scopus Q1 / Web of Science (SCIE)", "Bài báo tạp chí quốc tế Web of Science / Scopus (Q1/Q2)"),
