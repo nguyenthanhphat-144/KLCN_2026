@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Thông tin tài khoản - Quản lý KH&CN{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-9 col-lg-7">
+        <div class="card card-academic">
+            <div class="card-header card-header-academic">
+                <i class="bi bi-person-circle me-2"></i>
+                Thông tin tài khoản
+            </div>
+
+            <div class="card-body p-4">
+                <p class="text-muted small mb-4">
+                    Xem và cập nhật thông tin cá nhân của bạn.
+                </p>
+
+                <form method="POST"
+                      action="{{ url_for('account_profile') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="profileName"
+                                   class="form-label fw-semibold">
+                                Họ và tên
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   id="profileName"
+                                   name="hoTen"
+                                   class="form-control"
+                                   value="{{ user.hoTen or '' }}"
+                                   maxlength="100"
+                                   autocomplete="name"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="profileEmail"
+                                   class="form-label fw-semibold">
+                                Email đăng nhập
+                            </label>
+                            <input type="email"
+                                   id="profileEmail"
+                                   class="form-control bg-light"
+                                   value="{{ user.email }}"
+                                   readonly>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="profileUnit"
+                                   class="form-label fw-semibold">
+                                Đơn vị công tác
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   id="profileUnit"
+                                   name="donViCongTac"
+                                   class="form-control"
+                                   value="{{ user.donViCongTac or '' }}"
+                                   maxlength="200"
+                                   autocomplete="organization"
+                                   placeholder="Nhập đơn vị công tác"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="profileDegree"
+                                   class="form-label fw-semibold">
+                                Học hàm / Học vị
+                            </label>
+                            <input type="text"
+                                   id="profileDegree"
+                                   name="hocHamHocVi"
+                                   class="form-control"
+                                   value="{{ user.hocHamHocVi or '' }}"
+                                   maxlength="50"
+                                   placeholder="Ví dụ: ThS., TS., PGS.TS.">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="profileRole"
+                                   class="form-label fw-semibold">
+                                Vai trò
+                            </label>
+                            <input type="text"
+                                   id="profileRole"
+                                   class="form-control bg-light"
+                                   value="{% if user.vaiTro == 'Admin' %}Quản trị viên{% elif user.vaiTro == 'CanBo' %}Cán bộ xét duyệt{% else %}Tác giả{% endif %}"
+                                   readonly>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap justify-content-between
+                                align-items-center gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('dashboard') }}"
+                           class="btn btn-outline-secondary">
+                            Quay lại
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                style="background-color: var(--primary-navy);
+                                       border-color: var(--primary-navy);">
+                            <i class="bi bi-check2-circle me-1"></i>
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
