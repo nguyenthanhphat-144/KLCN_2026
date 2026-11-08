@@ -12,52 +12,15 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-lg-4">
-        <div class="card card-academic">
-            <div class="card-header card-header-academic">
-                Thêm tài khoản mới
-            </div>
-            <div class="card-body small">
-                <form method="POST" action="{{ url_for('user_management') }}">
-                    <input type="hidden" name="action" value="create">
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Họ và tên (*)</label>
-                        <input type="text" name="hoTen" class="form-control form-control-sm" placeholder="Nguyễn Văn A" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Thư điện tử đăng nhập (*)</label>
-                        <input type="email" name="email" class="form-control form-control-sm" placeholder="tai_khoan@uni.edu.vn" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Mật khẩu khởi tạo (*)</label>
-                        <input type="password" name="matKhau" class="form-control form-control-sm" value="Uni@2026" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-semibold mb-1">Vai trò (*)</label>
-                        <select name="vaiTro" class="form-select form-select-sm">
-                            <option value="TacGia">Tác giả / Giảng viên</option>
-                            <option value="CanBo">Cán bộ xét duyệt</option>
-                            <option value="Admin">Quản trị viên</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold mb-1">Đơn vị công tác (*)</label>
-                        <input type="text" name="donViCongTac" class="form-control form-control-sm" placeholder="Khoa Công nghệ Thông tin" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm w-100" style="background-color: var(--primary-navy); border-color: var(--primary-navy);">
-                        Tạo tài khoản
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-8">
+    <div class="col-12">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
                 <span>Danh sách người dùng</span>
-                <span class="text-muted small fw-normal">{{ users|length }} tài khoản</span>
+                <span class="text-muted small fw-normal">
+                    {{ users|length }} tài khoản
+                </span>
             </div>
+
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 small">
@@ -65,12 +28,15 @@
                             <tr>
                                 <th class="ps-3">Mã số</th>
                                 <th>Họ và tên</th>
-                                <th>Thư điện tử</th>
+                                <th>Email</th>
                                 <th>Đơn vị công tác</th>
                                 <th>Vai trò</th>
-                                <th class="pe-3 text-end">Phân quyền</th>
+                                <th class="pe-3 text-end">
+                                    Phân quyền / Thao tác
+                                </th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for u in users %}
                             {% set vn_hoten = (u.hoTen or '')
@@ -81,27 +47,97 @@
                                 | replace('TS. Nguyễn Minh Tâm', 'Lê Thanh Phong')
                                 | replace('TS. Phạm Văn Khoa (Giảng viên CNTT)', 'Nguyễn Thành Tài')
                                 | replace('TS. Phạm Văn Khoa', 'Nguyễn Thành Tài') %}
+
                             <tr>
-                                <td class="ps-3">{{ u.maNguoiDung }}</td>
-                                <td class="fw-semibold">{{ vn_hoten }}</td>
-                                <td><code>{{ u.email }}</code></td>
-                                <td>{{ u.donViCongTac }}</td>
+                                <td class="ps-3">
+                                    {{ u.maNguoiDung }}
+                                </td>
+
+                                <td class="fw-semibold">
+                                    {{ vn_hoten }}
+                                </td>
+
+                                <td>
+                                    <code>{{ u.email }}</code>
+                                </td>
+
+                                <td>
+                                    {{ u.donViCongTac }}
+                                </td>
+
                                 <td>
                                     <span class="badge bg-light text-dark border fw-normal">
-                                        {% if u.vaiTro == 'Admin' %}Quản trị viên{% elif u.vaiTro == 'CanBo' %}Cán bộ duyệt{% else %}Tác giả{% endif %}
+                                        {% if u.vaiTro == 'Admin' %}
+                                            Quản trị viên
+                                        {% elif u.vaiTro == 'CanBo' %}
+                                            Cán bộ duyệt
+                                        {% else %}
+                                            Tác giả
+                                        {% endif %}
                                     </span>
                                 </td>
+
                                 <td class="pe-3 text-end">
-                                    <form method="POST" action="{{ url_for('user_management') }}" class="d-inline-flex gap-1">
-                                        <input type="hidden" name="action" value="update_role">
-                                        <input type="hidden" name="maNguoiDung" value="{{ u.maNguoiDung }}">
-                                        <select name="vaiTroMoi" class="form-select form-select-sm" style="width: 135px;">
-                                            <option value="TacGia" {% if u.vaiTro == 'TacGia' %}selected{% endif %}>Tác giả</option>
-                                            <option value="CanBo" {% if u.vaiTro == 'CanBo' %}selected{% endif %}>Cán bộ duyệt</option>
-                                            <option value="Admin" {% if u.vaiTro == 'Admin' %}selected{% endif %}>Quản trị viên</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Lưu</button>
-                                    </form>
+                                    <div class="d-flex justify-content-end align-items-center gap-2">
+                                        <!-- Form cập nhật phân quyền -->
+                                        <form method="POST"
+                                              action="{{ url_for('user_management') }}"
+                                              class="d-inline-flex gap-1">
+
+                                            <input type="hidden"
+                                                   name="action"
+                                                   value="update_role">
+
+                                            <input type="hidden"
+                                                   name="maNguoiDung"
+                                                   value="{{ u.maNguoiDung }}">
+
+                                            <select name="vaiTroMoi"
+                                                    class="form-select form-select-sm"
+                                                    aria-label="Vai trò của {{ vn_hoten }}"
+                                                    style="width: 135px;">
+                                                <option value="TacGia"
+                                                        {% if u.vaiTro == 'TacGia' %}selected{% endif %}>
+                                                    Tác giả
+                                                </option>
+
+                                                <option value="CanBo"
+                                                        {% if u.vaiTro == 'CanBo' %}selected{% endif %}>
+                                                    Cán bộ duyệt
+                                                </option>
+
+                                                <option value="Admin"
+                                                        {% if u.vaiTro == 'Admin' %}selected{% endif %}>
+                                                    Quản trị viên
+                                                </option>
+                                            </select>
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-secondary">
+                                                Lưu
+                                            </button>
+                                        </form>
+
+                                        <!-- Không cho xóa tài khoản đang đăng nhập -->
+                                        {% if u.maNguoiDung != session.get('user_id') %}
+                                        <form method="POST"
+                                              action="{{ url_for('delete_user', ma_nguoi_dung=u.maNguoiDung) }}"
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa vĩnh viễn tài khoản này?');">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {% else %}
+                            <tr>
+                                <td colspan="6"
+                                    class="text-center text-muted py-4">
+                                    Chưa có tài khoản người dùng.
                                 </td>
                             </tr>
                             {% endfor %}
