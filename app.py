@@ -2,7 +2,7 @@
 """
 Ứng dụng Web Chính (Flask Backend & Controllers)
 """
-
+import re
 import os
 import json
 import math
@@ -33,6 +33,58 @@ app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB
 
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+PASSWORD_REQUIREMENT = (
+    "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ cái in hoa, "
+    "chữ thường, số và ký tự đặc biệt."
+)
+
+
+def is_strong_password(password):
+    return (
+        len(password) >= 8
+        and any(c.isupper() for c in password)
+        and any(c.islower() for c in password)
+        and any(c.isdigit() for c in password)
+        and any(
+            not c.isalnum() and not c.isspace()
+            for c in password
+        )
+    )
+
+@app.before_request
+def refresh_logged_in_user():
+    """Cập nhật quyền và chặn phiên của tài khoản đã xóa hoặc vô hiệu hóa."""
+    user_id = session.get("user_id")
+    if user_id is None:
+        return
+
+    conn = get_db_connection()
+    try:
+        user = conn.execute(
+            """
+            SELECT hoTen, email, vaiTro, donViCongTac,
+                   hocHamHocVi, trangThai
+            FROM NguoiDung
+            WHERE maNguoiDung = ?
+            """,
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if user is None or user["trangThai"] != 1:
+        session.clear()
+        flash(
+            "Tài khoản không còn hoạt động. Vui lòng đăng nhập lại.",
+            "warning",
+        )
+        return redirect(url_for("login"))
+
+    session["ho_ten"] = user["hoTen"]
+    session["email"] = user["email"]
+    session["vai_tro"] = user["vaiTro"]
+    session["don_vi"] = user["donViCongTac"]
+    session["hoc_vi"] = user["hocHamHocVi"]
 
 
 # =============================================================================
@@ -156,7 +208,7 @@ def login():
         conn.close()
 
         if user is None:
-            flash("Địa chỉ thư điện tử không tồn tại trong hệ thống.", "danger")
+            flash("Tài khoản không tồn tại.", "danger")
         elif user["trangThai"] == 0:
             flash("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ Quản trị viên.", "danger")
         else:
@@ -195,6 +247,104 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if "user_id" in session:
+        return redirect(url_for("dashboard"))
+
+    form_data = {}
+
+    if request.method == "POST":
+        ho_ten = request.form.get("hoTen", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        don_vi = request.form.get("donViCongTac", "").strip()
+        mat_khau = request.form.get("matKhau", "")
+        xac_nhan = request.form.get("xacNhanMatKhau", "")
+
+        # Chỉ giữ thông tin thường khi biểu mẫu có lỗi.
+        # Không đưa mật khẩu trở lại giao diện.
+        form_data = {
+            "hoTen": ho_ten,
+            "email": email,
+            "donViCongTac": don_vi,
+        }
+
+        error = None
+
+        if not all([ho_ten, email, don_vi, mat_khau, xac_nhan]):
+            error = "Vui lòng nhập đầy đủ thông tin."
+        elif len(ho_ten) > 100 or len(don_vi) > 200:
+            error = "Họ tên tối đa 100 ký tự, đơn vị tối đa 200 ký tự."
+        elif len(email) > 100 or not re.fullmatch(
+            r"[^@\s]+@[^@\s]+\.[^@\s]+", email
+        ):
+            error = "Địa chỉ thư điện tử không hợp lệ."
+        elif not is_strong_password(mat_khau):
+            error = PASSWORD_REQUIREMENT
+        elif mat_khau != xac_nhan:
+            error = "Mật khẩu xác nhận không khớp."
+
+        if error:
+            flash(error, "danger")
+            return render_template("register.html", form_data=form_data)
+
+        conn = get_db_connection()
+
+        try:
+            existing_user = conn.execute(
+                "SELECT maNguoiDung FROM NguoiDung WHERE LOWER(email) = ?",
+                (email,),
+            ).fetchone()
+
+            if existing_user:
+                flash("Thư điện tử này đã được đăng ký.", "danger")
+                return render_template(
+                    "register.html", form_data=form_data
+                )
+
+            conn.execute(
+                """
+                INSERT INTO NguoiDung (
+                    hoTen, email, matKhau, vaiTro,
+                    donViCongTac, hocHamHocVi, trangThai
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    ho_ten,
+                    email,
+                    generate_password_hash(mat_khau),
+                    "TacGia",
+                    don_vi,
+                    "",
+                    1,
+                ),
+            )
+            conn.commit()
+
+        except Exception:
+            conn.rollback()
+            app.logger.exception("Không thể đăng ký tài khoản")
+            flash(
+                "Không thể đăng ký tài khoản. "
+                "Thư điện tử có thể đã tồn tại. Vui lòng thử lại.",
+                "danger",
+            )
+            return render_template(
+                "register.html", form_data=form_data
+            )
+
+        finally:
+            conn.close()
+
+        flash(
+            "Đăng ký thành công! Bạn có thể đăng nhập "
+            "với vai trò Tác giả.",
+            "success",
+        )
+        return redirect(url_for("login"))
+
+    return render_template("register.html", form_data=form_data)
 
 @app.route("/logout")
 def logout():
@@ -231,9 +381,9 @@ def change_password():
             flash("Mật khẩu hiện tại không chính xác!", "danger")
             return redirect(url_for("change_password"))
 
-        if len(mk_moi) < 6:
+        if not is_strong_password(mk_moi):
             conn.close()
-            flash("Mật khẩu mới phải có tối thiểu 6 ký tự.", "warning")
+            flash(PASSWORD_REQUIREMENT, "warning")
             return redirect(url_for("change_password"))
 
         if mk_moi != mk_xac_nhan:
@@ -1662,6 +1812,61 @@ def download_training_dataset():
 @role_required("Admin")
 def user_management():
     conn = get_db_connection()
+
+    try:
+        if request.method == "POST":
+            # Trang Admin chỉ nhận thao tác phân quyền.
+            if request.form.get("action") != "update_role":
+                abort(400)
+
+            ma_nd = request.form.get("maNguoiDung", type=int)
+            vai_tro_moi = request.form.get("vaiTroMoi", "")
+
+            if ma_nd is None or vai_tro_moi not in {
+                "Admin", "CanBo", "TacGia"
+            }:
+                flash("Thông tin phân quyền không hợp lệ.", "danger")
+                return redirect(url_for("user_management"))
+
+            user = conn.execute(
+                "SELECT maNguoiDung FROM NguoiDung "
+                "WHERE maNguoiDung = ?",
+                (ma_nd,),
+            ).fetchone()
+
+            if user is None:
+                flash("Không tìm thấy tài khoản.", "danger")
+                return redirect(url_for("user_management"))
+
+            # Tránh Admin tự mất quyền quản trị khi đang thao tác.
+            if ma_nd == session["user_id"] and vai_tro_moi != "Admin":
+                flash(
+                    "Bạn không thể tự thay đổi vai trò "
+                    "của tài khoản Admin đang đăng nhập.",
+                    "warning",
+                )
+                return redirect(url_for("user_management"))
+
+            conn.execute(
+                "UPDATE NguoiDung SET vaiTro = ? "
+                "WHERE maNguoiDung = ?",
+                (vai_tro_moi, ma_nd),
+            )
+            conn.commit()
+
+            flash("Đã cập nhật phân quyền cho tài khoản.", "success")
+            return redirect(url_for("user_management"))
+
+        rows = conn.execute(
+            "SELECT * FROM NguoiDung ORDER BY maNguoiDung ASC"
+        ).fetchall()
+        users = [dict(row) for row in rows]
+
+        return render_template("users.html", users=users)
+
+    finally:
+        conn.close()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     if request.method == "POST":
@@ -1695,7 +1900,155 @@ def user_management():
     conn.close()
     return render_template("users.html", users=users)
 
+@app.route(
+    "/quan-tri/nguoi-dung/<int:ma_nguoi_dung>/xoa",
+    methods=["POST"],
+)
+@role_required("Admin")
+def delete_user(ma_nguoi_dung):
+    if ma_nguoi_dung == session["user_id"]:
+        flash(
+            "Bạn không thể xóa tài khoản đang đăng nhập.",
+            "warning",
+        )
+        return redirect(url_for("user_management"))
 
+    conn = get_db_connection()
+
+    try:
+        user = conn.execute(
+            "SELECT hoTen FROM NguoiDung WHERE maNguoiDung = ?",
+            (ma_nguoi_dung,),
+        ).fetchone()
+
+        if user is None:
+            flash("Không tìm thấy tài khoản.", "warning")
+            return redirect(url_for("user_management"))
+
+        # Kiểm tra các bảng liên kết trong mã nguồn hiện tại.
+        references = [
+            ("HoSoKHCN", "maNguoiNop"),
+            ("LichSuXetDuyet", "maCanBo"),
+            ("PhanHoiAI", "maCanBo"),
+        ]
+
+        for table, column in references:
+            linked_record = conn.execute(
+                f"SELECT 1 FROM {table} WHERE {column} = ?",
+                (ma_nguoi_dung,),
+            ).fetchone()
+
+            if linked_record:
+                flash(
+                    "Không thể xóa tài khoản đã có hồ sơ, "
+                    "lịch sử xét duyệt hoặc phản hồi AI.",
+                    "warning",
+                )
+                return redirect(url_for("user_management"))
+
+        conn.execute(
+            "DELETE FROM NguoiDung WHERE maNguoiDung = ?",
+            (ma_nguoi_dung,),
+        )
+        conn.commit()
+
+        flash("Đã xóa tài khoản người dùng.", "success")
+
+    except Exception:
+        conn.rollback()
+        app.logger.exception("Không thể xóa tài khoản")
+        flash(
+            "Không thể xóa tài khoản. "
+            "Vui lòng kiểm tra dữ liệu liên quan.",
+            "danger",
+        )
+
+    finally:
+        conn.close()
+
+    return redirect(url_for("user_management"))
+@app.route("/tai-khoan", methods=["GET", "POST"])
+@login_required
+def account_profile():
+    conn = get_db_connection()
+
+    try:
+        row = conn.execute(
+            """
+            SELECT maNguoiDung, hoTen, email, vaiTro,
+                   donViCongTac, hocHamHocVi
+            FROM NguoiDung
+            WHERE maNguoiDung = ?
+            """,
+            (session["user_id"],),
+        ).fetchone()
+
+        if row is None:
+            session.clear()
+            flash("Tài khoản không tồn tại.", "warning")
+            return redirect(url_for("login"))
+
+        user = dict(row)
+
+        if request.method == "POST":
+            ho_ten = request.form.get("hoTen", "").strip()
+            don_vi = request.form.get("donViCongTac", "").strip()
+            hoc_vi = request.form.get("hocHamHocVi", "").strip()
+
+            # Giữ lại nội dung đã nhập nếu kiểm tra không đạt.
+            user.update({
+                "hoTen": ho_ten,
+                "donViCongTac": don_vi,
+                "hocHamHocVi": hoc_vi,
+            })
+
+            error = None
+
+            if not ho_ten or not don_vi:
+                error = "Vui lòng nhập họ tên và đơn vị công tác."
+            elif len(ho_ten) > 100:
+                error = "Họ tên không được vượt quá 100 ký tự."
+            elif len(don_vi) > 200:
+                error = "Đơn vị công tác không được vượt quá 200 ký tự."
+            elif len(hoc_vi) > 50:
+                error = "Học hàm/học vị không được vượt quá 50 ký tự."
+
+            if error:
+                flash(error, "danger")
+                return render_template("account_profile.html", user=user)
+
+            try:
+                conn.execute(
+                    """
+                    UPDATE NguoiDung
+                    SET hoTen = ?, donViCongTac = ?, hocHamHocVi = ?
+                    WHERE maNguoiDung = ?
+                    """,
+                    (ho_ten, don_vi, hoc_vi, session["user_id"]),
+                )
+                conn.commit()
+
+            except Exception:
+                conn.rollback()
+                app.logger.exception("Lỗi cập nhật thông tin tài khoản")
+                flash(
+                    "Không thể cập nhật thông tin. Vui lòng thử lại.",
+                    "danger",
+                )
+                return render_template("account_profile.html", user=user)
+
+            # Cập nhật ngay tên và đơn vị trên thanh menu.
+            session["ho_ten"] = ho_ten
+            session["don_vi"] = don_vi
+            session["hoc_vi"] = hoc_vi
+
+            flash("Cập nhật thông tin tài khoản thành công.", "success")
+            return redirect(url_for("account_profile"))
+
+        return render_template("account_profile.html", user=user)
+
+    finally:
+        conn.close()
 if __name__ == "__main__":
     init_db()
     app.run(host="127.0.0.1", port=5000, debug=False)
