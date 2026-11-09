@@ -743,7 +743,9 @@ class KHCNAIEngine:
 
         # 5. Huấn luyện thực tế Mô hình 2: PyTorch Autoencoder (torch.nn.Module + MSELoss + Adam)
         set_deterministic_seed(42)
-        if TORCH_AVAILABLE and torch is not None:
+        ae_mse_errors = None
+        ae_available = TORCH_AVAILABLE and torch is not None
+        if ae_available:
             t0_ae = time.perf_counter()
             self.autoencoder = KHCNAnomalyAutoencoder(input_dim=X_scaled.shape[1])
             ae_optimizer = torch.optim.Adam(self.autoencoder.parameters(), lr=0.015, weight_decay=1e-4)
@@ -769,6 +771,8 @@ class KHCNAIEngine:
             norm_ae = (ae_mse_errors - float(np.min(ae_mse_errors))) / (ptp_ae if ptp_ae > 1e-8 else 1.0)
         else:
             ae_time_ms = 0.0
+            # Dồn trọng số mô hình sang Isolation Forest khi Autoencoder chưa khả dụng.
+            # Không tạo sai số tái tạo giả cho mô hình chưa chạy.
             norm_ae = norm_if
 
         # 6. Tính Điểm Rủi ro Tổng hợp Liên tục (Continuous Composite Risk Score)
@@ -818,8 +822,9 @@ class KHCNAIEngine:
             warning_payload = {
                 "reasons": reasons,
                 "if_score": round(float(norm_if[idx]), 3),
-                "ae_mse": round(float(ae_mse_errors[idx]), 4),
-                "ae_score": round(float(norm_ae[idx]), 3),
+                "ae_mse": round(float(ae_mse_errors[idx]), 4) if ae_available else None,
+                "ae_score": round(float(norm_ae[idx]), 3) if ae_available else None,
+                "ae_available": ae_available,
                 "rule_severity": round(float(rule_severity), 3),
                 "composite_risk": composite_score,
                 "graph_deviation": meta["graph_anomaly_feat"],
@@ -866,9 +871,9 @@ class KHCNAIEngine:
                 "criterion": "Sai số bình phương trung bình tái tạo",
                 "hyperparams": "Cấu trúc tầng [6 -> 16 -> 4 -> 16 -> 6], 250 vòng huấn luyện",
                 "outlier_rate": f"{round((anomaly_count / max(len(rows), 1)) * 100, 1)}%",
-                "avg_score": round(float(np.mean(ae_mse_errors)), 4),
+                "avg_score": round(float(np.mean(ae_mse_errors)), 4) if ae_available else None,
                 "time_ms": ae_time_ms,
-                "status": "Đang hoạt động",
+                "status": "Đang hoạt động" if ae_available else "Chưa khả dụng (thiếu PyTorch)",
                 "advantage": "Nắm bắt tương quan phi tuyến giữa độ lệch lĩnh vực, tạp chí và mạng đồng tác giả.",
             },
         ]

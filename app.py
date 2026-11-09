@@ -4,6 +4,7 @@
 """
 import re
 import os
+import sys
 import secrets
 import json
 import math
@@ -1643,8 +1644,13 @@ def hoso_import_excel():
     try:
         import subprocess
         res = subprocess.run(
-            [sys.executable, os.path.join(BASE_DIR, "scripts", "import_mau_nhap_lieu.py")],
-            capture_output=True, text=True, encoding="utf-8"
+            [
+                sys.executable,
+                os.path.join(BASE_DIR, "scripts", "import_mau_nhap_lieu.py"),
+                target_path,
+            ],
+            cwd=BASE_DIR,
+            capture_output=True, text=True, encoding="utf-8", errors="replace"
         )
         if res.returncode == 0:
             flash("Đã nạp thành công toàn bộ danh sách hồ sơ từ Excel! Mô hình VinAI PhoBERT đã tự động điền lĩnh vực nghiên cứu cho các đề tài bị khuyết và hoàn tất quét bất thường đa tầng.", "success")
