@@ -128,6 +128,16 @@
         }
     </style>
     {% block extra_head %}{% endblock %}
+
+<style>
+.auth-shell{max-width:1080px;margin:38px auto;display:grid;grid-template-columns:.85fr 1.15fr;border:1px solid #dce5ef;border-radius:24px;overflow:hidden;background:#fff;box-shadow:0 18px 60px #1836580d}
+.auth-intro{background:linear-gradient(150deg,#152e50,#244d75);padding:48px 38px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.auth-intro:after{content:'';position:absolute;width:320px;height:320px;border:1px solid #ffffff16;border-radius:50%;bottom:-190px;left:-60px;box-shadow:0 0 0 55px #ffffff05,0 0 0 110px #ffffff03;pointer-events:none}
+.auth-brand{font-size:13px;letter-spacing:.08em;font-weight:700;display:flex;align-items:center;gap:10px}.auth-brand i{font-size:24px}.auth-intro h2{color:white;font-size:34px;line-height:1.25;font-weight:700;margin:55px 0 18px;max-width:330px}.auth-intro p{color:#d5e1ef;line-height:1.8;font-size:14px}.auth-features{list-style:none;padding:0;margin:30px 0 40px}.auth-features li{display:flex;gap:12px;align-items:center;margin:19px 0;font-size:14px}.auth-features i{color:#99c9e9}.auth-caption{font-size:12px;color:#bdcfe1;position:relative;z-index:1}.auth-panel{padding:42px 44px}.auth-eyebrow{font-size:11px;font-weight:700;letter-spacing:.13em;color:#607d99;text-transform:uppercase}.auth-panel h1{font-size:28px;font-weight:700;color:#193755;margin:10px 0}.auth-subtitle{font-size:14px;color:#718195;line-height:1.65;margin-bottom:28px}.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.auth-field{margin-bottom:19px;min-width:0}.auth-field label{font-size:13px;font-weight:600;margin-bottom:8px;color:#263c54}.auth-field .form-control{font-size:14px;min-height:47px;border-radius:10px;border-color:#d9e2ed;background:#fbfcfe}.auth-field .form-control:focus{background:#fff;border-color:#7698bc;box-shadow:0 0 0 3px #244d7512}.auth-field .input-group{flex-wrap:nowrap}.auth-field .input-group input{border-radius:10px 0 0 10px}.auth-field .input-group button{border-color:#d9e2ed;border-left:0;border-radius:0 10px 10px 0;background:#fbfcfe;color:#506b87;min-width:46px}.auth-field .input-group button:hover{background:#edf3fa;color:#173957}.auth-submit{display:block;width:100%;padding:13px 18px;background:#203f63;border:1px solid #203f63;border-radius:10px;color:#fff;font-size:14px;font-weight:600;transition:background .15s}.auth-submit:hover{background:#142f4f;color:#fff}.auth-submit:focus-visible{outline:3px solid #86b5e4;outline-offset:3px}.auth-switch{text-align:center;font-size:13px;color:#738195;margin:23px 0 0}.auth-switch a{color:#214c77;font-weight:600;text-decoration:none}.auth-demo{margin-top:25px;padding-top:20px;border-top:1px solid #e8edf4;font-size:12px;color:#748397}.auth-demo summary{cursor:pointer}.auth-demo button{width:100%;text-align:left;background:#f5f8fc;border:1px solid #e2e9f2;border-radius:8px;padding:10px 12px;margin-top:8px;color:#355271;font-size:12px}.auth-demo button:hover{background:#eaf1f9}.auth-rules{padding:12px 14px;border:1px solid #e5ebf3;border-radius:10px;background:#f7f9fc;margin:-5px 0 18px;font-size:12px;color:#708196}.auth-rule-list{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:7px}.auth-rule-list span:before{content:'○';margin-right:5px}.auth-rule-list span.met{color:#168056}.auth-rule-list span.met:before{content:'✓'}.auth-match{font-size:12px;min-height:18px;margin-top:5px}.auth-back{display:inline-block;font-size:13px;color:#55708b;text-decoration:none;margin-top:20px}.auth-change{max-width:900px}.auth-change .auth-intro h2{font-size:30px;margin-top:35px}.auth-field .form-text{font-size:12px}
+@media(max-width:767px){.auth-shell{grid-template-columns:1fr;margin:15px auto;border-radius:18px}.auth-intro{padding:25px}.auth-intro h2{font-size:24px;margin:20px 0 8px;max-width:none}.auth-features,.auth-caption{display:none}.auth-intro p{margin-bottom:0}.auth-panel{padding:28px 24px}.auth-panel h1{font-size:25px}.auth-grid{grid-template-columns:1fr;gap:0}}
+@media(prefers-reduced-motion:reduce){.auth-submit{transition:none}}
+</style>
+
 </head>
 
 <body>
@@ -325,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "btn btn-outline-secondary";
-        button.textContent = "Hiện";
+        button.innerHTML = '<i class="bi bi-eye" aria-hidden="true"></i>';
         button.setAttribute("aria-controls", input.id);
         button.setAttribute("aria-label", "Hiện mật khẩu");
         button.setAttribute("aria-pressed", "false");
@@ -334,7 +344,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const showPassword = input.type === "password";
 
             input.type = showPassword ? "text" : "password";
-            button.textContent = showPassword ? "Ẩn" : "Hiện";
+            button.innerHTML = showPassword
+                ? '<i class="bi bi-eye-slash" aria-hidden="true"></i>'
+                : '<i class="bi bi-eye" aria-hidden="true"></i>';
             button.setAttribute(
                 "aria-label",
                 showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
@@ -346,5 +358,43 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('[data-auth-password-form]');
+    if (!form) return;
+    const password = form.querySelector('[data-new-password]');
+    const confirm = form.querySelector('[data-confirm-password]');
+    const message = form.querySelector('[data-password-match]');
+    const tests = {
+        length: value => Array.from(value).length >= 8,
+        upper: value => /\p{Lu}/u.test(value),
+        lower: value => /\p{Ll}/u.test(value),
+        digit: value => /\p{Nd}/u.test(value),
+        special: value => /[^\p{L}\p{N}\s]/u.test(value)
+    };
+    function validate() {
+        const results = Object.entries(tests).map(([key, test]) => {
+            const valid = test(password.value);
+            form.querySelector('[data-rule="' + key + '"]').classList.toggle('met', valid);
+            return valid;
+        });
+        password.setCustomValidity(password.value && !results.every(Boolean)
+            ? 'Mật khẩu cần ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.' : '');
+        const mismatch = confirm.value && password.value !== confirm.value;
+        confirm.setCustomValidity(mismatch ? 'Mật khẩu xác nhận chưa khớp.' : '');
+        message.textContent = confirm.value ? (mismatch ? 'Mật khẩu xác nhận chưa khớp.' : 'Mật khẩu xác nhận đã khớp.') : '';
+        message.className = 'auth-match ' + (mismatch ? 'text-danger' : 'text-success');
+    }
+    password.addEventListener('input', validate);
+    confirm.addEventListener('input', validate);
+    form.addEventListener('submit', function(event) {
+        validate();
+        if (!form.checkValidity()) { event.preventDefault(); form.reportValidity(); }
+    });
+    validate();
+});
+</script>
+
 </body>
 </html>
