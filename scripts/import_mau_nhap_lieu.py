@@ -36,7 +36,11 @@ if BASE_DIR not in sys.path:
 from ai_engine import ai_engine
 from database import get_db_connection
 
-EXCEL_PATH = os.path.join(BASE_DIR, "docs", "Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
+EXCEL_PATH = (
+    os.path.abspath(sys.argv[1])
+    if len(sys.argv) > 1
+    else os.path.join(BASE_DIR, "docs", "Mau_Nhap_Lieu_HoSo_KHCN.xlsx")
+)
 OUTPUT_JSON_PATH = os.path.join(BASE_DIR, "docs", "Ket_Qua_Nhap_Lieu_Mau_149_HoSo.json")
 DB_PATH = os.path.join(BASE_DIR, "khcn_system.db")
 BACKUP_DB_PATH = os.path.join(BASE_DIR, "khcn_system_backup_before_import.db")
