@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hệ thống Quản lý Hồ sơ Khoa học và Công nghệ{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons.css') }}" rel="stylesheet">
     <style>
         :root {
             --primary-navy: #1e3a5f;
@@ -138,78 +138,40 @@
 @media(prefers-reduced-motion:reduce){.auth-submit{transition:none}}
 </style>
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
 </head>
 
-<body>
+<body class="{% if current_user %}workspace-app{% else %}auth-app{% endif %}" data-page="{{ request.endpoint }}">
     {% if current_user.id %}
-    <nav class="navbar navbar-expand-xl navbar-dark navbar-academic sticky-top">
-        <div class="container-fluid px-3 px-lg-4">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('dashboard') }}">
-                <i class="bi bi-journal-bookmark"></i>
-                <span>Quản lý KH&CN</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav me-auto mb-2 mb-xl-0 ms-xl-3">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
-                            Tổng quan
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'hoso_list' %}active{% endif %}" href="{{ url_for('hoso_list') }}">
-                            Hồ sơ KH&CN
-                            {% if current_user.vai_tro == 'TacGia' and pending_corrections and pending_corrections > 0 %}
-                            <span class="badge bg-warning text-dark ms-1">{{ pending_corrections }}</span>
-                            {% elif current_user.vai_tro in ['CanBo', 'Admin'] and pending_reviews and pending_reviews > 0 %}
-                            <span class="badge bg-danger ms-1">{{ pending_reviews }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'hoso_create' %}active{% endif %}" href="{{ url_for('hoso_create') }}">
-                            Khai báo mới
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'ai_center' %}active{% endif %}" href="{{ url_for('ai_center') }}">
-                            Phân tích & Kiểm định
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'catalog_management' %}active{% endif %}" href="{{ url_for('catalog_management') }}">
-                            Danh mục
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'account_profile' %}active{% endif %}"
-                           href="{{ url_for('account_profile') }}">
-                            <i class="bi bi-person-circle me-1"></i>Tài khoản
-                        </a>
-                    </li>
-                    {% if current_user.vai_tro == 'Admin' %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'user_management' %}active{% endif %}" href="{{ url_for('user_management') }}">
-                            Người dùng
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
 
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{{ url_for('notifications') }}"
-                       class="btn btn-outline-light position-relative me-2"
-                       aria-label="Thông báo, {{ notification_unread }} chưa đọc"
-                       title="Thông báo">
-                        <i class="bi bi-bell"></i>
-                        {% if notification_unread %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ '99+' if notification_unread > 99 else notification_unread }}
-                        </span>
-                        {% endif %}
-                    </a>
+    {% set page_titles = {'dashboard':'Tổng quan', 'hoso_list':'Hồ sơ KH&CN', 'hoso_create':'Khai báo hồ sơ', 'hoso_edit':'Chỉnh sửa hồ sơ', 'hoso_detail':'Chi tiết hồ sơ', 'ai_center':'Phân tích & kiểm định', 'catalog_management':'Danh mục', 'account_profile':'Tài khoản', 'user_management':'Người dùng', 'notifications':'Thông báo', 'change_password':'Đổi mật khẩu'} %}
+    <a class="ui-skip" href="#workspaceMain">Đến nội dung chính</a>
+    <button class="ui-sidebar-backdrop" type="button" aria-label="Đóng menu" tabindex="-1" hidden></button>
+    <aside class="ui-sidebar" id="workspaceSidebar" aria-label="Điều hướng chính">
+        <a class="ui-brand" href="{{ url_for('dashboard') }}"><span class="ui-brand-mark"><i class="bi bi-journal-bookmark-fill"></i></span><span>HUIT <strong>Research</strong><small>QUẢN LÝ KHOA HỌC & CÔNG NGHỆ</small></span></a>
+        <div class="ui-nav-caption">KHÔNG GIAN LÀM VIỆC</div>
+        <nav class="ui-navigation">
+        {% for endpoint, label, icon in [('dashboard','Tổng quan','grid-1x2'),('hoso_list','Hồ sơ KH&CN','folder2-open'),('hoso_create','Khai báo mới','file-earmark-plus'),('ai_center','Phân tích & kiểm định','bar-chart-line'),('catalog_management','Danh mục','collection')] %}
+            <a class="ui-nav-link {% if request.endpoint == endpoint or (endpoint == 'hoso_list' and request.endpoint in ['hoso_detail','hoso_edit']) %}active{% endif %}" href="{{ url_for(endpoint) }}" {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+                <i class="bi bi-{{ icon }}"></i><span>{{ label }}</span>
+                {% if endpoint == 'hoso_list' %}
+                    {% if current_user.vai_tro in ['Admin','CanBo'] and pending_reviews %}<span class="ui-nav-count">{{ pending_reviews }}</span>{% elif current_user.vai_tro == 'TacGia' and pending_corrections %}<span class="ui-nav-count">{{ pending_corrections }}</span>{% endif %}
+                {% endif %}
+            </a>
+        {% endfor %}
+        </nav>
+        <div class="ui-nav-caption mt-4">CÁ NHÂN & QUẢN TRỊ</div>
+        <nav class="ui-navigation">
+            <a class="ui-nav-link {% if request.endpoint in ['account_profile','change_password'] %}active{% endif %}" href="{{ url_for('account_profile') }}"><i class="bi bi-person-circle"></i><span>Tài khoản</span></a>
+            <a class="ui-nav-link {% if request.endpoint == 'notifications' %}active{% endif %}" href="{{ url_for('notifications') }}"><i class="bi bi-bell"></i><span>Thông báo</span>{% if notification_unread %}<span class="ui-nav-count">{{ notification_unread }}</span>{% endif %}</a>
+            {% if current_user.vai_tro == 'Admin' %}<a class="ui-nav-link {% if request.endpoint == 'user_management' %}active{% endif %}" href="{{ url_for('user_management') }}"><i class="bi bi-people"></i><span>Người dùng</span></a>{% endif %}
+        </nav>
+        <div class="ui-sidebar-bottom"><div class="ui-university"><i class="bi bi-building"></i><span>Đại học Công Thương<small>TP. Hồ Chí Minh</small></span></div><a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></div>
+    </aside>
+    <header class="ui-topbar">
+        <div class="d-flex align-items-center gap-3 min-w-0"><button class="btn ui-menu-toggle" type="button" aria-controls="workspaceSidebar" aria-expanded="false" aria-label="Mở menu"><i class="bi bi-list"></i></button><div class="ui-breadcrumb"><span>Không gian làm việc</span><i class="bi bi-chevron-right"></i><strong>{{ page_titles.get(request.endpoint, 'Quản lý KH&CN') }}</strong></div></div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('notifications') }}" class="ui-notification" aria-label="Thông báo: {{ notification_unread }} chưa đọc"><i class="bi bi-bell"></i>{% if notification_unread %}<span>{{ '99+' if notification_unread > 99 else notification_unread }}</span>{% endif %}</a>
                     <div class="dropdown">
                         {% set display_user_name = (current_user.ho_ten or '')
                             | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
@@ -250,15 +212,13 @@
                                 </a>
                             </li>
                         </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+</div></div>
+    </header>
+
     {% endif %}
 
-    <main class="container-fluid px-3 px-lg-4 py-3">
-        {% if current_user.vai_tro == 'TacGia' and pending_corrections and pending_corrections > 0 %}
+    <main id="workspaceMain" class="container-fluid px-3 px-lg-4 py-3">
+        {% if request.endpoint == 'dashboard' and current_user.vai_tro == 'TacGia' and pending_corrections and pending_corrections > 0 %}
         <div class="alert alert-warning alert-dismissible fade show d-flex flex-wrap align-items-center justify-content-between py-2 px-3 mb-3 small" role="alert">
             <div>
                 <i class="bi bi-exclamation-circle me-1"></i>
@@ -271,7 +231,7 @@
                 <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
             </div>
         </div>
-        {% elif current_user.vai_tro in ['CanBo', 'Admin'] and pending_reviews and pending_reviews > 0 %}
+        {% elif request.endpoint == 'dashboard' and current_user.vai_tro in ['CanBo', 'Admin'] and pending_reviews and pending_reviews > 0 %}
         <div class="alert alert-secondary alert-dismissible fade show d-flex flex-wrap align-items-center justify-content-between py-2 px-3 mb-3 small" role="alert">
             <div>
                 <i class="bi bi-inbox me-1"></i>
@@ -307,7 +267,7 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
     <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -396,5 +356,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
 </body>
 </html>

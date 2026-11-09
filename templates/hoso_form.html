@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-xl-9">
+    <div class="col-xl-11">
         <div class="card card-academic">
             <div class="card-header card-header-academic d-flex justify-content-between align-items-center">
                 <span>
@@ -20,6 +20,8 @@
 
             <div class="card-body p-4">
                 <form method="POST" enctype="multipart/form-data" id="hosoForm">
+<div class="ui-form-guide"><i class="bi bi-info-circle"></i><span>Hoàn thành các trường có dấu <strong>*</strong>. Kết quả AI là gợi ý để bạn kiểm tra trước khi nộp.</span></div>
+<div class="ui-form-section" id="researchContent"><span>01</span><div><h6>Nội dung nghiên cứu</h6><p>Thông tin nhận diện và tóm tắt công trình</p></div></div>
                     <!-- 1. Loại hình -->
                     <div class="mb-3 pb-3 border-bottom">
                         <label class="form-label fw-semibold mb-2">1. Loại hình (*)</label>
@@ -73,6 +75,7 @@
                             </datalist>
                         </div>
 
+                        <div class="col-12"><div class="ui-form-section"><span>02</span><div><h6>Thông tin công bố</h6><p>Đơn vị, thời gian và phân loại công trình</p></div></div></div>
                         <div class="col-md-5">
                             <label class="form-label fw-semibold">6. Đơn vị chủ trì (*)</label>
                             <input type="text" name="donViChuTri" id="inpDonViChuTri" class="form-control"
@@ -188,6 +191,7 @@
                         </div>
 
                         <div class="col-12">
+                            <div class="ui-form-section"><span>03</span><div><h6>Minh chứng đính kèm</h6><p>Tài liệu phục vụ xét duyệt hồ sơ</p></div></div>
                             <label class="form-label fw-semibold">Tệp minh chứng đính kèm (tùy chọn)</label>
                             <input type="file" name="fileDinhKem" id="fileDinhKemInput" class="form-control">
                             {% if hoso and hoso.fileDinhKem %}

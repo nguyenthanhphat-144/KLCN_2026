@@ -2,7 +2,7 @@
 {% block title %}Tổng quan & Thống kê Quản lý KH&CN - HUIT{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
 <style>
     /* Bảng cuộn mượt đồng bộ cho các khối thống kê */
     .dashboard-table-scroll {
@@ -53,7 +53,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
     <div>
         <h5 class="fw-bold mb-1" style="color: var(--primary-navy);">
-            <i class="bi bi-bar-chart-steps me-2"></i>Tổng Quan Quản Lý Hoạt Động Khoa Học & Công Nghệ
+            <i class="bi bi-bar-chart-steps me-2"></i>Tổng quan hoạt động nghiên cứu
         </h5>
         <p class="text-muted small mb-0">
             Trường Đại học Công Thương TP. Hồ Chí Minh — Báo cáo tổng hợp tiến độ thẩm định, phân loại công trình và danh mục nghiên cứu

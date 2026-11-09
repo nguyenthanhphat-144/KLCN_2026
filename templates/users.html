@@ -4,13 +4,14 @@
 {% block content %}
 <div class="mb-3">
     <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
-        Quản Lý Tài Khoản & Phân Quyền
+        Người dùng & phân quyền
     </h5>
     <p class="text-muted small mb-0">
         Danh sách tài khoản giảng viên, cán bộ thẩm định và quản trị viên
     </p>
 </div>
 
+<div class="ui-table-tools mb-3"><label class="ui-search"><i class="bi bi-search"></i><input type="search" id="userSearch" placeholder="Tìm tên, email hoặc đơn vị" aria-label="Tìm người dùng"></label><select id="userRoleFilter" class="form-select" aria-label="Lọc vai trò"><option value="">Tất cả vai trò</option><option value="Quản trị viên">Quản trị viên</option><option value="Cán bộ duyệt">Cán bộ duyệt</option><option value="Tác giả">Tác giả</option></select><span id="userFilterCount" class="small text-muted" role="status" aria-live="polite"></span></div>
 <div class="row g-3">
     <div class="col-12">
         <div class="card card-academic">

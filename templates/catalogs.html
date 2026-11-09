@@ -4,14 +4,15 @@
 {% block content %}
 <div class="mb-3">
     <h5 class="fw-bold mb-0" style="color: var(--primary-navy);">
-        Quản Lý Danh Mục Hệ Thống
+        Danh mục hệ thống
     </h5>
     <p class="text-muted small mb-0">
         Thêm mới, chỉnh sửa và ẩn/hiện danh mục lĩnh vực, loại công trình, tạp chí và tác giả
     </p>
 </div>
 
-<div class="row g-3">
+<div class="ui-tabs" id="catalogTabs" aria-label="Nhóm danh mục" hidden></div>
+<div class="row g-3" id="catalogPanels">
     <!-- 1. Danh mục Lĩnh vực nghiên cứu -->
     <div class="col-12">
         <div class="card card-academic">
