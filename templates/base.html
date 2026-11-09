@@ -189,6 +189,17 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
+                    <a href="{{ url_for('notifications') }}"
+                       class="btn btn-outline-light position-relative me-2"
+                       aria-label="Thông báo, {{ notification_unread }} chưa đọc"
+                       title="Thông báo">
+                        <i class="bi bi-bell"></i>
+                        {% if notification_unread %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ '99+' if notification_unread > 99 else notification_unread }}
+                        </span>
+                        {% endif %}
+                    </a>
                     <div class="dropdown">
                         {% set display_user_name = (current_user.ho_ten or '')
                             | replace('PGS.TS. Trần Quốc Bảo (Admin)', 'Nguyễn Thành Phát')
