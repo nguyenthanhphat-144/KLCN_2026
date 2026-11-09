@@ -772,7 +772,7 @@ def hoso_create():
             ma_ho_so = f"HS-2026-{next_num:04d}"
 
         # Xử lý tệp đính kèm
-        file_name_saved = "MinhChung_MacDinh.pdf"
+        file_name_saved = None
         uploaded_file = request.files.get("fileDinhKem")
         if uploaded_file and uploaded_file.filename:
             if allowed_file(uploaded_file.filename):
@@ -897,7 +897,7 @@ def hoso_edit(ma_ho_so):
         chi_muc_tap_chi = request.form.get("chiMucTapChi", "").strip() or None
         san_pham_du_kien = request.form.get("sanPhamDuKien", "").strip() or None
 
-        file_name_saved = hoso["fileDinhKem"]
+        file_name_saved = real_attachment_name(hoso["fileDinhKem"])
         uploaded_file = request.files.get("fileDinhKem")
         if uploaded_file and uploaded_file.filename and allowed_file(uploaded_file.filename):
             safe_name = secure_filename(uploaded_file.filename)
@@ -1062,6 +1062,10 @@ def hoso_detail(ma_ho_so):
         return redirect(url_for("hoso_list"))
 
     hoso = dict(row)
+    hoso["fileDinhKem"] = real_attachment_name(hoso.get("fileDinhKem"))
+    hoso["attachment_exists"] = attachment_path(hoso["fileDinhKem"]) is not None
+    hoso["attachment_is_pdf"] = bool(hoso["fileDinhKem"] and hoso["fileDinhKem"].lower().endswith(".pdf"))
+
     try:
         raw_cb = json.loads(hoso.get("chiTietCanhBao") or "{}")
         if isinstance(raw_cb, dict):
@@ -2243,6 +2247,65 @@ def read_all_notifications():
     finally:
         conn.close()
     return redirect(url_for("notifications"))
+
+
+def real_attachment_name(value):
+    """Tên mặc định trong dữ liệu cũ không phải một minh chứng thật."""
+    value = (value or "").strip()
+    if not value or value.casefold() == "minhchung_macdinh.pdf":
+        return None
+    return value
+
+
+def attachment_path(filename):
+    """Chỉ cho phép file nằm trực tiếp trong uploads, kể cả khi có symlink."""
+    if not filename or "/" in filename or "\\" in filename or ":" in filename:
+        return None
+    folder = os.path.realpath(app.config["UPLOAD_FOLDER"])
+    path = os.path.realpath(os.path.join(folder, filename))
+    if os.path.dirname(path) != folder or not os.path.isfile(path):
+        return None
+    return path
+
+
+@app.route("/hoso/<ma_ho_so>/tep-dinh-kem")
+@login_required
+def hoso_attachment(ma_ho_so):
+    conn = get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT maNguoiNop, fileDinhKem FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0",
+            (ma_ho_so,),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        abort(404)
+    if session.get("vai_tro") not in ("Admin", "CanBo") and row["maNguoiNop"] != session["user_id"]:
+        abort(403)
+    filename = real_attachment_name(row["fileDinhKem"])
+    path = attachment_path(filename)
+    if path is None:
+        abort(404)
+    download = request.args.get("download") == "1"
+    is_pdf = filename.lower().endswith(".pdf")
+    if not download and not is_pdf:
+        abort(415)
+    if is_pdf:
+        with open(path, "rb") as stream:
+            if b"%PDF-" not in stream.read(1024):
+                abort(415)
+    response = send_file(
+        path,
+        mimetype="application/pdf" if is_pdf else "application/octet-stream",
+        as_attachment=download,
+        download_name=filename,
+        conditional=True,
+        max_age=0,
+    )
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 if __name__ == "__main__":
     init_db()
