@@ -141,8 +141,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
 </head>
 
-<body class="{% if current_user %}workspace-app{% else %}auth-app{% endif %}" data-page="{{ request.endpoint }}">
-    {% if current_user.id %}
+<body class="{% if current_user.id %}workspace-app{% else %}auth-app{% endif %}"
+      data-page="{{ request.endpoint }}">    {% if current_user.id %}
 
     {% set page_titles = {'dashboard':'Tổng quan', 'hoso_list':'Hồ sơ KH&CN', 'hoso_create':'Khai báo hồ sơ', 'hoso_edit':'Chỉnh sửa hồ sơ', 'hoso_detail':'Chi tiết hồ sơ', 'ai_center':'Phân tích & kiểm định', 'catalog_management':'Danh mục', 'account_profile':'Tài khoản', 'user_management':'Người dùng', 'notifications':'Thông báo', 'change_password':'Đổi mật khẩu'} %}
     <a class="ui-skip" href="#workspaceMain">Đến nội dung chính</a>
