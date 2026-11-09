@@ -145,7 +145,27 @@
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top small text-muted">
                     <div>
-                        Tệp đính kèm: <code>{{ hoso.fileDinhKem or 'Không có tệp' }}</code>
+                        {% if hoso.fileDinhKem %}
+                        <div class="mb-2">Tệp đính kèm: <code style="overflow-wrap:anywhere">{{ hoso.fileDinhKem }}</code></div>
+                        {% if hoso.attachment_exists %}
+                            {% if current_user.vai_tro in ['Admin', 'CanBo'] or hoso.maNguoiNop == session.get('user_id') %}
+                                {% if hoso.attachment_is_pdf %}
+                                <a href="{{ url_for('hoso_attachment', ma_ho_so=hoso.maHoSo) }}"
+                                   target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>Mở PDF
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('hoso_attachment', ma_ho_so=hoso.maHoSo, download=1) }}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-download me-1"></i>Tải xuống
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-warning">Không tìm thấy tệp trên máy chủ.</span>
+                        {% endif %}
+                        {% else %}
+                            <span>Không có tệp đính kèm.</span>
+                        {% endif %}
                     </div>
                     <div>
                         Người nộp: <strong>{{ hoso.tenNguoiNop }}</strong> · {{ hoso.ngayNop }}
