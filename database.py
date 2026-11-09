@@ -126,9 +126,55 @@ class SQLServerConnectionWrapper:
     def commit(self):
         self._conn.commit()
 
+    def rollback(self):
+        self._conn.rollback()
+
     def close(self):
         self._conn.close()
 
+
+
+def ensure_notification_schema(conn):
+    """Bổ sung bảng thông báo, giữ nguyên dữ liệu hiện có."""
+    if isinstance(conn, SQLServerConnectionWrapper):
+        conn.execute("""
+            IF OBJECT_ID(N'dbo.ThongBao', N'U') IS NULL
+            BEGIN
+                CREATE TABLE dbo.ThongBao (
+                    maThongBao INT IDENTITY(1,1) PRIMARY KEY,
+                    maNguoiNhan INT NOT NULL,
+                    maHoSo NVARCHAR(100) NOT NULL,
+                    noiDung NVARCHAR(MAX) NOT NULL,
+                    daDoc INT NOT NULL DEFAULT 0,
+                    ngayTao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (maNguoiNhan) REFERENCES NguoiDung(maNguoiDung) ON DELETE CASCADE
+                );
+                CREATE INDEX IX_ThongBao_NguoiNhan ON dbo.ThongBao(maNguoiNhan, daDoc, maThongBao);
+            END
+        """)
+    else:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS ThongBao (
+                maThongBao INTEGER PRIMARY KEY AUTOINCREMENT,
+                maNguoiNhan INTEGER NOT NULL,
+                maHoSo TEXT NOT NULL,
+                noiDung TEXT NOT NULL,
+                daDoc INTEGER NOT NULL DEFAULT 0 CHECK (daDoc IN (0, 1)),
+                ngayTao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (maNguoiNhan) REFERENCES NguoiDung(maNguoiDung) ON DELETE CASCADE
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS IX_ThongBao_NguoiNhan ON ThongBao(maNguoiNhan, daDoc, maThongBao)")
+    if isinstance(conn, SQLServerConnectionWrapper):
+        conn.execute("""
+            IF COL_LENGTH('dbo.ThongBao', 'loaiThongBao') IS NULL
+                ALTER TABLE dbo.ThongBao ADD loaiThongBao NVARCHAR(30) NOT NULL DEFAULT 'hoso_status';
+        """)
+    else:
+        columns = {r[1] for r in conn.execute("PRAGMA table_info(ThongBao)").fetchall()}
+        if "loaiThongBao" not in columns:
+            conn.execute("ALTER TABLE ThongBao ADD COLUMN loaiThongBao TEXT NOT NULL DEFAULT 'hoso_status'")
+    conn.commit()
 
 _MIGRATED_ONCE = False
 
@@ -145,13 +191,16 @@ def get_db_connection():
             import pyodbc
             conn_str = db_config.get_sql_server_connection_string()
             raw_conn = pyodbc.connect(conn_str, timeout=3)
-            return SQLServerConnectionWrapper(raw_conn)
+            conn = SQLServerConnectionWrapper(raw_conn)
+            ensure_notification_schema(conn)
+            return conn
     except Exception as exc:
         print(f"[DB Notice] Không kết nối được SQL Server ({exc}), tự động chuyển sang SQLite.")
 
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
+    ensure_notification_schema(conn)
     if not _MIGRATED_ONCE and os.path.exists(DB_PATH):
         try:
             cur = conn.cursor()
@@ -353,6 +402,7 @@ def init_db():
 
     conn.commit()
     ensure_schema_columns_and_tables(conn)
+    ensure_notification_schema(conn)
     seed_initial_data(conn)
     seed_author_catalog_if_empty(conn)
     conn.close()
