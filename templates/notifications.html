@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Thông báo - Quản lý KH&CN{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="color:var(--primary-navy)"><i class="bi bi-bell me-2"></i>Thông báo</h4>
+        <p class="text-muted small mb-0">Theo dõi cập nhật hồ sơ và tài khoản. Thời gian hiển thị theo giờ Việt Nam.</p>
+    </div>
+    {% if notification_unread %}
+    <form method="POST" action="{{ url_for('read_all_notifications') }}">
+        <input type="hidden" name="csrf_token" value="{{ session.get('notification_csrf', '') }}">
+        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-check2-all me-1"></i>Đánh dấu tất cả đã đọc</button>
+    </form>
+    {% endif %}
+</div>
+<div class="card card-academic">
+    <div class="card-header card-header-academic">Thông báo của tôi <span class="badge bg-danger ms-2">{{ notification_unread }} chưa đọc</span></div>
+    <div class="list-group list-group-flush">
+        {% for n in notifications %}
+        <div class="list-group-item p-4 {% if not n.daDoc %}bg-primary bg-opacity-10{% endif %}">
+            <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                <strong>{% if n.loaiThongBao == 'new_account' %}Tài khoản mới đăng ký{% elif n.loaiThongBao == 'new_submission' %}Hồ sơ mới {{ n.maHoSo }}{% else %}Hồ sơ {{ n.maHoSo }}{% endif %}</strong>
+                <span class="badge {% if n.daDoc %}bg-secondary{% else %}bg-primary{% endif %}">{{ 'Đã đọc' if n.daDoc else 'Chưa đọc' }}</span>
+            </div>
+            <p class="mb-2" style="white-space:pre-line;overflow-wrap:anywhere">{{ n.noiDung }}</p>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted">{{ n.ngayTao }}</small>
+                <form method="POST" action="{{ url_for('open_notification', notification_id=n.maThongBao) }}">
+                    <input type="hidden" name="csrf_token" value="{{ session.get('notification_csrf', '') }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">
+                        {% if n.loaiThongBao == 'new_account' %}Xem người dùng{% elif n.hoSoDaXoa == 0 %}<i class="bi bi-eye me-1"></i>Xem hồ sơ{% else %}Đánh dấu đã đọc{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5"><i class="bi bi-bell fs-1 d-block mb-3"></i>Bạn chưa có thông báo nào.</div>
+        {% endfor %}
+    </div>
+</div>
+{% if pages > 1 %}
+<nav aria-label="Phân trang thông báo" class="mt-3 d-flex justify-content-center align-items-center gap-3">
+    {% if page > 1 %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('notifications', page=page-1) }}">Trang trước</a>{% endif %}
+    <span class="small">Trang {{ page }} / {{ pages }}</span>
+    {% if page < pages %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('notifications', page=page+1) }}">Trang sau</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
