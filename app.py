@@ -4,10 +4,11 @@
 """
 import re
 import os
+import secrets
 import json
 import math
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from flask import (
     Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, send_file, abort
@@ -319,6 +320,10 @@ def register():
                     "",
                     1,
                 ),
+            )
+            notify_staff(
+                conn, ("Admin",), "new_account",
+                f"Có tài khoản mới đăng ký: {ho_ten} ({email}). Đơn vị: {don_vi}.",
             )
             conn.commit()
 
@@ -807,6 +812,11 @@ def hoso_create():
             VALUES (?, ?, ?, ?, ?)
         """, (ma_ho_so, session["user_id"], "Khởi tạo mới", "Chờ xét duyệt", "Tác giả khai báo và nộp mới hồ sơ KH&CN lên hệ thống."))
 
+        notify_staff(
+            conn, ("Admin", "CanBo"), "new_submission",
+            f"Có hồ sơ mới {ma_ho_so}: {tieu_de}. Người nộp: {session.get('ho_ten', '')}. Trạng thái: Chờ xét duyệt.",
+            ma_ho_so,
+        )
         conn.commit()
         # Cập nhật đồ thị NetworkX & Phát hiện bất thường Isolation Forest
         ai_engine.build_networkx_graph_and_detect_anomalies(conn)
@@ -929,6 +939,24 @@ def hoso_edit(ma_ho_so):
             chi_muc_tap_chi, san_pham_du_kien,
             ma_ho_so
         ))
+
+        # Báo cho Admin/Cán bộ khi chính người nộp bổ sung và gửi lại hồ sơ.
+        if (
+            hoso["trangThai"] == "Yêu cầu bổ sung"
+            and hoso["maNguoiNop"] == session["user_id"]
+        ):
+            notify_staff(
+                conn,
+                ("Admin", "CanBo"),
+                "new_submission",
+                (
+                    f"Hồ sơ {ma_ho_so} đã được bổ sung và nộp lại. "
+                    f"Tên công trình: {tieu_de}. "
+                    f"Người nộp: {session.get('ho_ten', '')}. "
+                    "Trạng thái: Chờ xét duyệt."
+                ),
+                ma_ho_so,
+            )
 
         conn.commit()
         ai_engine.build_networkx_graph_and_detect_anomalies(conn)
@@ -1062,6 +1090,10 @@ def hoso_detail(ma_ho_so):
             INSERT INTO LichSuXetDuyet (maHoSo, maCanBo, trangThaiCu, trangThaiMoi, yKienDanhGia)
             VALUES (?, ?, ?, ?, ?)
         """, (ma_ho_so, session["user_id"], "Chờ xét duyệt", "Đang xét duyệt", "Cán bộ xét duyệt mở hồ sơ tiếp nhận thẩm định tính hợp lệ (hệ thống tự động chuyển trạng thái)."))
+        create_status_notification(
+            conn, ma_ho_so, "Chờ xét duyệt", "Đang xét duyệt",
+            "Hồ sơ đã được cán bộ tiếp nhận để thẩm định.",
+        )
         conn.commit()
         hoso["trangThai"] = "Đang xét duyệt"
 
@@ -1134,7 +1166,7 @@ def hoso_review_action(ma_ho_so):
 
     conn = get_db_connection()
     cur = conn.cursor()
-    hoso = cur.execute("SELECT trangThai FROM HoSoKHCN WHERE maHoSo = ?", (ma_ho_so,)).fetchone()
+    hoso = cur.execute("SELECT trangThai FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0", (ma_ho_so,)).fetchone()
     if not hoso:
         conn.close()
         flash("Hồ sơ không tồn tại.", "danger")
@@ -1152,6 +1184,7 @@ def hoso_review_action(ma_ho_so):
         VALUES (?, ?, ?, ?, ?)
     """, (ma_ho_so, session["user_id"], trang_thai_cu, trang_thai_moi, y_kien))
 
+    create_status_notification(conn, ma_ho_so, trang_thai_cu, trang_thai_moi, y_kien)
     conn.commit()
     conn.close()
 
@@ -2069,6 +2102,148 @@ def account_profile():
 
     finally:
         conn.close()
+
+
+def notify_staff(conn, roles, kind, text, ma_ho_so=""):
+    """Thông báo tới các tài khoản đang hoạt động thuộc vai trò nhận."""
+    placeholders = ", ".join("?" for _ in roles)
+    recipients = conn.execute(
+        f"SELECT maNguoiDung FROM NguoiDung WHERE trangThai = 1 AND vaiTro IN ({placeholders})",
+        tuple(roles),
+    ).fetchall()
+    created_at = datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d %H:%M:%S")
+    for recipient in recipients:
+        conn.execute(
+            """INSERT INTO ThongBao (maNguoiNhan, maHoSo, noiDung, ngayTao, loaiThongBao)
+               VALUES (?, ?, ?, ?, ?)""",
+            (recipient["maNguoiDung"], ma_ho_so, text, created_at, kind),
+        )
+
+def create_status_notification(conn, ma_ho_so, old_status, new_status, opinion=""):
+    """Ghi thông báo trong cùng transaction với cập nhật hồ sơ."""
+    if old_status == new_status:
+        return
+    record = conn.execute(
+        "SELECT maNguoiNop, tieuDe FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0",
+        (ma_ho_so,),
+    ).fetchone()
+    if record is None:
+        return
+    labels = {"Đã duyệt": "đã được phê duyệt", "Từ chối": "bị từ chối",
+              "Yêu cầu bổ sung": "cần bổ sung thông tin", "Đang xét duyệt": "đang được xét duyệt",
+              "Chờ xét duyệt": "đang chờ xét duyệt"}
+    text = f"Hồ sơ {ma_ho_so} — {record['tieuDe']}: {labels.get(new_status, new_status)}."
+    if opinion:
+        text += f"\nÝ kiến xét duyệt: {opinion}"
+    conn.execute(
+        "INSERT INTO ThongBao (maNguoiNhan, maHoSo, noiDung, ngayTao) VALUES (?, ?, ?, ?)",
+        (record["maNguoiNop"], ma_ho_so, text, datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d %H:%M:%S")),
+    )
+
+
+@app.context_processor
+def inject_notifications():
+    if "user_id" not in session:
+        return {"notification_unread": 0}
+    if "notification_csrf" not in session:
+        session["notification_csrf"] = secrets.token_urlsafe(32)
+    conn = get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS total FROM ThongBao WHERE maNguoiNhan = ? AND daDoc = 0",
+            (session["user_id"],),
+        ).fetchone()
+        return {"notification_unread": row["total"]}
+    finally:
+        conn.close()
+
+
+def check_notification_csrf():
+    expected = session.get("notification_csrf", "")
+    supplied = request.form.get("csrf_token", "")
+    if not expected or not secrets.compare_digest(expected, supplied):
+        abort(400)
+
+
+@app.route("/thong-bao")
+@login_required
+def notifications():
+    page = max(1, request.args.get("page", 1, type=int))
+    conn = get_db_connection()
+    try:
+        total = conn.execute(
+            "SELECT COUNT(*) AS total FROM ThongBao WHERE maNguoiNhan = ?",
+            (session["user_id"],),
+        ).fetchone()["total"]
+        pages = max(1, math.ceil(total / 20))
+        page = min(page, pages)
+        rows = conn.execute(
+            """SELECT n.*, h.isDeleted AS hoSoDaXoa
+               FROM ThongBao n LEFT JOIN HoSoKHCN h ON n.maHoSo = h.maHoSo
+               WHERE n.maNguoiNhan = ?
+               ORDER BY n.maThongBao DESC LIMIT ? OFFSET ?""",
+            (session["user_id"], 20, (page - 1) * 20),
+        ).fetchall()
+        return render_template("notifications.html", notifications=[dict(r) for r in rows], page=page, pages=pages)
+    finally:
+        conn.close()
+
+
+@app.route("/thong-bao/<int:notification_id>/mo", methods=["POST"])
+@login_required
+def open_notification(notification_id):
+    check_notification_csrf()
+    conn = get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT maHoSo, loaiThongBao FROM ThongBao WHERE maThongBao = ? AND maNguoiNhan = ?",
+            (notification_id, session["user_id"]),
+        ).fetchone()
+        if row is None:
+            abort(404)
+        kind = row["loaiThongBao"]
+        role = session.get("vai_tro")
+        if kind == "new_account" and role != "Admin":
+            abort(403)
+        if kind == "new_submission" and role not in ("Admin", "CanBo"):
+            abort(403)
+        conn.execute(
+            "UPDATE ThongBao SET daDoc = 1 WHERE maThongBao = ? AND maNguoiNhan = ?",
+            (notification_id, session["user_id"]),
+        )
+        conn.commit()
+        if kind == "new_account":
+            return redirect(url_for("user_management"))
+        if kind == "new_submission":
+            record = conn.execute(
+                "SELECT maHoSo FROM HoSoKHCN WHERE maHoSo = ? AND isDeleted = 0",
+                (row["maHoSo"],),
+            ).fetchone()
+        else:
+            record = conn.execute(
+                "SELECT maHoSo FROM HoSoKHCN WHERE maHoSo = ? AND maNguoiNop = ? AND isDeleted = 0",
+                (row["maHoSo"], session["user_id"]),
+            ).fetchone()
+        if record is None:
+            flash("Hồ sơ không còn khả dụng.", "warning")
+            return redirect(url_for("notifications"))
+        return redirect(url_for("hoso_detail", ma_ho_so=row["maHoSo"]))
+    finally:
+        conn.close()
+
+
+@app.route("/thong-bao/doc-tat-ca", methods=["POST"])
+@login_required
+def read_all_notifications():
+    check_notification_csrf()
+    conn = get_db_connection()
+    try:
+        conn.execute("UPDATE ThongBao SET daDoc = 1 WHERE maNguoiNhan = ? AND daDoc = 0", (session["user_id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect(url_for("notifications"))
+
 if __name__ == "__main__":
     init_db()
     app.run(host="127.0.0.1", port=5000, debug=False)
