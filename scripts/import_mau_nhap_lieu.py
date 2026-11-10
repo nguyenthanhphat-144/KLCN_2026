@@ -303,7 +303,7 @@ def main():
 
         # Xác định trạng thái
        # Hồ sơ nhập Excel phải chờ cán bộ xét duyệt.
-            trang_thai = "Chờ xét duyệt"
+        trang_thai = "Chờ xét duyệt"
 
         # Chuẩn bị bản ghi chèn CSDL
         record_tuple = (
