@@ -302,12 +302,8 @@ def main():
         stats["by_work_type"][raw_loai_hinh] = stats["by_work_type"].get(raw_loai_hinh, 0) + 1
 
         # Xác định trạng thái
-        if ket_qua_nt in ["Đã nghiệm thu", "Xuất sắc"]:
-            trang_thai = "Đã duyệt"
-        elif "bài báo" in raw_loai_hinh.lower():
-            trang_thai = "Đã duyệt"
-        else:
-            trang_thai = "Chờ duyệt"
+       # Hồ sơ nhập Excel phải chờ cán bộ xét duyệt.
+            trang_thai = "Chờ xét duyệt"
 
         # Chuẩn bị bản ghi chèn CSDL
         record_tuple = (
