@@ -2,6 +2,8 @@
 """Báo cáo KH&CN: giao diện, bộ lọc, Excel và PDF trong một tệp."""
 
 import io
+import json
+import math
 import os
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -23,6 +25,7 @@ from flask import (
 from openpyxl import Workbook
 from openpyxl.chart import BarChart, Reference
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.utils import get_column_letter
 
 from reportlab.lib import colors
@@ -232,6 +235,132 @@ def excel_value(value):
     return value
 
 
+def _excel_status_colors(sheet, headers):
+    """Rules remain live when users change a status in Excel."""
+    if "Trạng thái xét duyệt" not in headers or sheet.max_row < 6:
+        return
+    column = get_column_letter(headers.index("Trạng thái xét duyệt") + 1)
+    palette = {
+        "Chờ xét duyệt": ("FFF0CD", "936006"),
+        "Đang xét duyệt": ("DFEEFF", "1957A5"),
+        "Đã duyệt": ("DFF2E8", "146C43"),
+        "Từ chối": ("FCE3E6", "A1263B"),
+        "Yêu cầu bổ sung": ("FCE9D7", "934D13"),
+    }
+    for state, (fill, color) in palette.items():
+        sheet.conditional_formatting.add(
+            f"{column}6:{column}{sheet.max_row}",
+            FormulaRule(formula=[f'{column}6="{state}"'],
+                        fill=PatternFill("solid", fgColor=fill),
+                        font=Font(bold=True, color=color)),
+        )
+
+
+def _excel_summary(sheet, listing, stats, description):
+    """Dashboard generated from the current filtered records, never fixed demo data."""
+    navy, teal, pale, muted = "193653", "087F8C", "F1F5F9", "61758A"
+    sheet.sheet_properties.tabColor = navy
+    sheet.sheet_view.showGridLines = False
+    sheet.freeze_panes = "A4"
+    for col in range(1, 13):
+        sheet.column_dimensions[get_column_letter(col)].width = 12
+    for row in range(1, 51):
+        sheet.row_dimensions[row].height = 23
+        for col in range(1, 13):
+            cell = sheet.cell(row, col)
+            cell.font = Font(name="Arial", size=11, color=navy)
+            cell.alignment = Alignment(vertical="center", wrap_text=True)
+
+    def merged(address, value, fill=None, size=11, bold=False, color=navy, align="left"):
+        sheet.merge_cells(address)
+        cell = sheet[address.split(":")[0]]
+        cell.value = excel_value(value)
+        cell.font = Font(name="Arial", size=size, bold=bold, color=color)
+        cell.alignment = Alignment(vertical="center", horizontal=align, wrap_text=True)
+        if fill:
+            for row in sheet[address]:
+                for target in row:
+                    target.fill = PatternFill("solid", fgColor=fill)
+        return cell
+
+    merged("A1:L2", "HUIT | BÁO CÁO HỒ SƠ KHOA HỌC & CÔNG NGHỆ", navy, 19, True, "FFFFFF")
+    merged("A3:L3", "Phạm vi: " + description, pale, 10, color=muted)
+    sheet.row_dimensions[3].height = 32
+    merged("A4:L4", "Ngày xuất: " + datetime.now().strftime("%d/%m/%Y %H:%M"), size=10, color=muted)
+    last = max(6, listing.max_row)
+    statuses = f"DanhSach!$J$6:$J${last}"
+    types = f"DanhSach!$C$6:$C${last}"
+    cards = [
+        ("A", "C", "TỔNG HỒ SƠ", f"=COUNTA(DanhSach!B6:B{last})", navy, "#,##0"),
+        ("D", "F", "CHỜ XÉT DUYỆT", f'=COUNTIF({statuses},"Chờ xét duyệt")', "A56B08", "#,##0"),
+        ("G", "I", "ĐÃ DUYỆT", f'=COUNTIF({statuses},"Đã duyệt")', "13845B", "#,##0"),
+        ("J", "L", "TỶ LỆ ĐÃ DUYỆT", '=IF(A6=0,0,G6/A6)', teal, "0.00%"),
+    ]
+    for left, right, title, formula, color, fmt in cards:
+        merged(f"{left}5:{right}5", title, color, 11, True, "FFFFFF")
+        cell = merged(f"{left}6:{right}8", "", pale, 30, True, color, "center")
+        cell.value, cell.number_format = formula, fmt
+    merged("A10:F10", "01  TIẾN ĐỘ XÉT DUYỆT", navy, bold=True, color="FFFFFF")
+    merged("H10:L10", "02  CƠ CẤU CÔNG TRÌNH", navy, bold=True, color="FFFFFF")
+    merged("A12:D12", "Trạng thái", pale, bold=True, color=muted)
+    merged("H12:J12", "Loại hình", pale, bold=True, color=muted)
+    for address, label in [("E12", "Số lượng"), ("F12", "Tỷ trọng"), ("K12", "Số lượng"), ("L12", "Tỷ trọng")]:
+        sheet[address] = label
+        sheet[address].fill = PatternFill("solid", fgColor=pale)
+        sheet[address].font = Font(name="Arial", size=10, bold=True, color=muted)
+    sheet.row_dimensions[12].height = 30
+    for row, state in enumerate(STATES, 13):
+        merged(f"A{row}:D{row}", state)
+        sheet[f"E{row}"] = f'=COUNTIF({statuses},A{row})'
+        sheet[f"F{row}"] = f'=IF($A$6=0,0,E{row}/$A$6)'
+        sheet[f"F{row}"].number_format = "0.0%"
+        sheet.row_dimensions[row].height = 29
+    for row, name in enumerate(["Bài báo", "Đề tài", "Công trình khác"], 13):
+        merged(f"H{row}:J{row}", name)
+        sheet[f"K{row}"] = f'=COUNTIF({types},H{row})' if row < 15 else '=$A$6-SUM(K13:K14)'
+        sheet[f"L{row}"] = f'=IF($A$6=0,0,K{row}/$A$6)'
+        sheet[f"L{row}"].number_format = "0.0%"
+
+    for title, cat_col, val_col, end, anchor, width, color in [
+        ("Số hồ sơ theo trạng thái", 1, 5, 17, "A20", 17.5, teal),
+        ("Số hồ sơ theo loại hình", 8, 11, 15, "H20", 12.5, navy),
+    ]:
+        chart = BarChart()
+        chart.title, chart.legend = title, None
+        chart.add_data(Reference(sheet, min_col=val_col, min_row=12, max_row=end), titles_from_data=True)
+        chart.set_categories(Reference(sheet, min_col=cat_col, min_row=13, max_row=end))
+        chart.width, chart.height = width, 10
+        chart.y_axis.numFmt = "0"
+        chart.series[0].graphicalProperties.solidFill = color
+        chart.series[0].graphicalProperties.line.solidFill = color
+        sheet.add_chart(chart, anchor)
+
+    merged("A36:L36", "03  KINH PHÍ ĐỀ TÀI & CÁCH ĐỌC BÁO CÁO", navy, bold=True, color="FFFFFF")
+    for row, (label, value) in enumerate([
+        ("Tổng kinh phí đã kê khai (đồng)", stats["funding"]),
+        ("Đề tài chưa có kinh phí", stats["missing_funding"]),
+        ("Đề tài lưu kinh phí bằng 0", stats["zero_funding"]),
+    ], 38):
+        fill = pale if row % 2 == 0 else "FFFFFF"
+        merged(f"A{row}:H{row}", label, fill)
+        merged(f"I{row}:L{row}", value, fill, align="right").number_format = "#,##0"
+        sheet.row_dimensions[row].height = 28
+    for row, note in [
+        (43, "Tỷ lệ đã duyệt = số hồ sơ đã duyệt / tổng hồ sơ trong phạm vi báo cáo."),
+        (45, "Phê duyệt tính hợp lệ của hồ sơ không đồng nghĩa với nghiệm thu đề tài."),
+        (47, "Chỉ số số lượng liên kết với DanhSach. Kinh phí và ThongKe là số liệu tại thời điểm xuất."),
+        (49, "Đơn vị chủ trì giữ nguyên theo dữ liệu nguồn; các tên gần giống chưa được tự động gộp."),
+    ]:
+        merged(f"A{row}:L{row+1}", note, size=10, color=muted)
+    sheet.sheet_properties.pageSetUpPr.fitToPage = True
+    sheet.page_setup.orientation = "portrait"
+    sheet.page_setup.paperSize = sheet.PAPERSIZE_A3
+    sheet.page_setup.fitToWidth = sheet.page_setup.fitToHeight = 1
+    sheet.print_area = "A1:L50"
+    sheet.print_title_rows = "1:3"
+    sheet.oddFooter.center.text = "Trang &P / &N"
+
+
 def excel_table(
     workbook,
     name,
@@ -266,8 +395,9 @@ def excel_table(
             name="Arial",
             size=16 if row == 1 else 10,
             bold=row == 1,
-            color=BLUE,
+            color="FFFFFF" if row == 1 else "61758A",
         )
+        cell.fill = PatternFill("solid", fgColor="193653" if row == 1 else "F1F5F9")
 
         cell.alignment = Alignment(
             wrap_text=True,
@@ -323,7 +453,7 @@ def excel_table(
             if column in percentage_columns:
                 cell.number_format = "0.0%"
             elif isinstance(value, (int, float)):
-                cell.number_format = "#,##0.##"
+                cell.number_format = "0" if headers[column - 1] in ("Năm công bố", "STT") else "#,##0.##"
 
             capacity = max(
                 6, int(widths[column - 1] * 0.8)
@@ -351,6 +481,8 @@ def excel_table(
             get_column_letter(column)
         ].width = width
 
+    sheet.sheet_properties.tabColor = "193653"
+    _excel_status_colors(sheet, headers)
     sheet.sheet_view.showGridLines = False
     sheet.freeze_panes = "A6"
 
@@ -392,7 +524,7 @@ def detail_columns(group):
             ("tenLoai", "Loại công trình"),
             ("tenTapChi", "Tên tạp chí / Hội thảo"),
             ("chiMucTapChi", "Chỉ mục tạp chí"),
-            ("trangThai", "Trạng thái hợp lệ"),
+            ("trangThai", "Trạng thái xét duyệt"),
         ]
 
     return [
@@ -404,8 +536,116 @@ def detail_columns(group):
         ("tenLinhVuc", "Lĩnh vực đăng ký"),
         ("tenLoai", "Loại công trình"),
         ("sanPhamDuKien", "Sản phẩm dự kiến"),
-        ("trangThai", "Trạng thái hợp lệ"),
+        ("trangThai", "Trạng thái xét duyệt"),
     ]
+
+
+def review_support_statistics(records):
+    """Summarize stored analysis and active alerts in the export scope."""
+    reason_labels = {
+        "nghi vấn trùng lặp nội dung": "Nghi vấn trùng nội dung",
+        "lệch lĩnh vực đăng ký": "Lệch lĩnh vực đăng ký",
+        "tạp chí cần lưu ý": "Tạp chí cần lưu ý",
+        "khác biệt hướng nghiên cứu": "Khác biệt hướng nghiên cứu",
+    }
+    categories = dict.fromkeys([*reason_labels.values(), "Lý do khác", "Chưa ghi lý do"], 0)
+    analyzed = warned = 0
+    priority = []
+
+    for record in records:
+        try:
+            payload = json.loads(record.get("chiTietCanhBao") or "{}")
+        except (ValueError, TypeError):
+            payload = {}
+        raw_reasons = payload.get("reasons", []) if isinstance(payload, dict) else payload
+        reasons = (
+            [item.strip() for item in raw_reasons if isinstance(item, str) and item.strip()]
+            if isinstance(raw_reasons, list) else []
+        )
+        active_alert = text(record.get("coCanhBao")).strip().casefold() in {"1", "true"}
+        has_score = isinstance(payload, dict) and payload.get("composite_risk") is not None
+        if record.get("maLinhVucAI") or record.get("maLinhVucSVM") or has_score or reasons or active_alert:
+            analyzed += 1
+        if not active_alert:
+            continue
+
+        warned += 1
+        groups = {
+            reason_labels.get(reason.partition(":")[0].casefold().strip(), "Lý do khác")
+            for reason in reasons
+        }
+        for group in groups or {"Chưa ghi lý do"}:
+            categories[group] += 1
+
+        state = record.get("trangThai")
+        if state not in ("Chờ xét duyệt", "Đang xét duyệt"):
+            continue
+        try:
+            score = float(record.get("diemBatThuong"))
+            if not math.isfinite(score):
+                score = None
+        except (TypeError, ValueError):
+            score = None
+        priority.append([
+            record.get("maHoSo"), record.get("tieuDe"), state,
+            score, "\n".join(dict.fromkeys(reasons)) or "Chưa ghi lý do",
+        ])
+
+    priority.sort(key=lambda row: (row[3] is None, -(row[3] or 0), text(row[0])))
+    return {
+        "metrics": [
+            ("Tổng hồ sơ trong phạm vi báo cáo", len(records)),
+            ("Hồ sơ có kết quả phân tích đã lưu", analyzed),
+            ("Hồ sơ có cảnh báo đang bật", warned),
+            ("Hồ sơ cần ưu tiên xem xét", len(priority)),
+        ],
+        "categories": list(categories.items()),
+        "priority": priority,
+    }
+
+
+REVIEW_NOTE = (
+    "Mỗi hồ sơ được đếm một lần trong tổng cảnh báo và một lần trong mỗi nhóm lý do. "
+    "Danh sách ưu tiên gồm hồ sơ chờ hoặc đang xét duyệt có cảnh báo đang bật, "
+    "sắp theo điểm bất thường giảm dần."
+)
+REVIEW_HEADERS = ["Mã hồ sơ", "Tên công trình", "Trạng thái xét duyệt", "Điểm bất thường", "Lý do cảnh báo"]
+
+
+def _excel_review_support(workbook, review, filter_desc):
+    rows = [
+        *[list(row) for row in review["metrics"]],
+        ["Lý do cảnh báo", "Số hồ sơ"],
+        *[list(row) for row in review["categories"]],
+        ["HỒ SƠ CẦN ƯU TIÊN XEM XÉT"],
+        REVIEW_HEADERS,
+        *(review["priority"] or [["Không có hồ sơ cần ưu tiên"]]),
+    ]
+    sheet = excel_table(
+        workbook, "HoTroXetDuyet", "KẾT QUẢ HỖ TRỢ XÉT DUYỆT",
+        filter_desc, ["Chỉ tiêu", "Số hồ sơ", "", "", ""], rows, [32, 49, 23, 17, 58],
+    )
+    workbook.move_sheet(sheet, offset=1 - workbook.index(sheet))
+    heading_row = 6 + len(review["metrics"])
+    priority_title = heading_row + 1 + len(review["categories"])
+    priority_header = priority_title + 1
+    sheet.merge_cells(start_row=priority_title, start_column=1, end_row=priority_title, end_column=5)
+    for row in (heading_row, priority_title, priority_header):
+        for cell in sheet[row]:
+            cell.fill = PatternFill("solid", fgColor="193653")
+            cell.font = Font(name="Arial", bold=True, color="FFFFFF")
+    sheet.auto_filter.ref = (
+        f"A{priority_header}:E{sheet.max_row}" if review["priority"] else None
+    )
+    for row in range(priority_header + 1, sheet.max_row + 1):
+        sheet.cell(row, 4).number_format = "0.00"
+    note_row = sheet.max_row + 2
+    sheet.merge_cells(start_row=note_row, start_column=1, end_row=note_row, end_column=5)
+    note = sheet.cell(note_row, 1, REVIEW_NOTE)
+    note.alignment = Alignment(wrap_text=True, vertical="center")
+    sheet.row_dimensions[note_row].height = 32
+    sheet.print_area = f"A1:E{note_row}"
+    sheet.print_title_rows = "1:3"
 
 
 def generate_excel_report(
@@ -418,70 +658,7 @@ def generate_excel_report(
     workbook = Workbook()
     workbook.remove(workbook.active)
 
-    summary_rows = [
-        [label, value]
-        for label, value in stats["summary"]
-    ]
-
-    summary_rows.extend([
-        ["", ""],
-        ["Tổng kinh phí đề tài đã kê khai (đồng)", stats["funding"]],
-        ["Đề tài chưa có kinh phí", stats["missing_funding"]],
-        ["Đề tài lưu kinh phí bằng 0", stats["zero_funding"]],
-        [
-            "Cách tính tỷ lệ",
-            "Số đã duyệt / Tổng hồ sơ trong phạm vi lọc.",
-        ],
-        [
-            "Lưu ý",
-            "Duyệt tính hợp lệ không đồng nghĩa nghiệm thu đề tài.",
-        ],
-    ])
-
-    summary = excel_table(
-        workbook,
-        "TongHop",
-        "BÁO CÁO TỔNG HỢP HỒ SƠ KH&CN",
-        filter_desc,
-        ["Chỉ tiêu", "Giá trị"],
-        summary_rows,
-        [55, 42],
-    )
-
-    for row in range(6, summary.max_row + 1):
-        if text(summary.cell(row, 1).value).startswith("Tỷ lệ"):
-            summary.cell(row, 2).number_format = "0.0%"
-
-    summary.auto_filter.ref = None
-
-    chart = BarChart()
-    chart.title = "Hồ sơ theo trạng thái"
-    chart.y_axis.title = "Số hồ sơ"
-    chart.add_data(
-        Reference(
-            summary,
-            min_col=2,
-            min_row=10,
-            max_row=14,
-        ),
-        titles_from_data=False,
-    )
-    chart.set_categories(
-        Reference(
-            summary,
-            min_col=1,
-            min_row=10,
-            max_row=14,
-        )
-    )
-    chart.legend = None
-    chart.width = 20
-    chart.height = 10
-    summary.add_chart(chart, "D5")
-
-    summary.print_area = (
-        f"A1:N{max(30, summary.max_row)}"
-    )
+    summary = workbook.create_sheet("TongHop")
 
     statistical_rows = []
 
@@ -535,6 +712,14 @@ def generate_excel_report(
     )
 
     analysis.auto_filter.ref = None
+    analysis.sheet_properties.tabColor = "087F8C"
+    for row in range(6, analysis.max_row + 1):
+        if analysis.cell(row, 1).value and analysis.cell(row, 2).value is None:
+            analysis.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+            cell = analysis.cell(row, 1)
+            cell.fill = PatternFill("solid", fgColor="087F8C")
+            cell.font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+            analysis.row_dimensions[row].height = 30
 
     list_rows = []
 
@@ -567,7 +752,7 @@ def generate_excel_report(
             "Kỳ báo cáo",
             "Lĩnh vực đăng ký",
             "Loại công trình",
-            "Trạng thái hợp lệ",
+            "Trạng thái xét duyệt",
         ],
         list_rows,
         [6, 18, 16, 56, 32, 16, 26, 30, 32, 22],
@@ -583,9 +768,6 @@ def generate_excel_report(
             record for record in records
             if group_name(record) == group
         ]
-
-        if not subset:
-            continue
 
         columns = detail_columns(group)
         detail_rows = []
@@ -627,6 +809,8 @@ def generate_excel_report(
 
         sheet.freeze_panes = "C6"
 
+    _excel_summary(summary, listing, stats, filter_desc)
+    _excel_review_support(workbook, review_support_statistics(records), filter_desc)
     workbook.active = 0
 
     output = io.BytesIO()
@@ -684,360 +868,249 @@ def generate_pdf_report(
     records: list,
     filter_desc: str = "Tất cả hồ sơ KH&CN",
 ) -> io.BytesIO:
+    """Báo cáo PDF với tổng hợp một trang, thống kê và danh sách chi tiết."""
+    from reportlab.platypus import PageBreak, KeepTogether
+    from reportlab.pdfgen.canvas import Canvas
+
     records = [dict(record) for record in records]
     stats = report_statistics(records)
-
     regular, bold = register_fonts()
+    navy = colors.HexColor("#193653")
+    teal = colors.HexColor("#087F8C")
+    pale = colors.HexColor("#F1F5F9")
+    muted = colors.HexColor("#61758A")
+    white = colors.white
+    palette = {
+        "Chờ xét duyệt": ("#FFF0CD", "#936006"),
+        "Đang xét duyệt": ("#DFEEFF", "#1957A5"),
+        "Đã duyệt": ("#DFF2E8", "#146C43"),
+        "Từ chối": ("#FCE3E6", "#A1263B"),
+        "Yêu cầu bổ sung": ("#FCE9D7", "#934D13"),
+    }
+    stamp = datetime.now().strftime("%d/%m/%Y %H:%M")
     output = io.BytesIO()
-
-    document = SimpleDocTemplate(
-        output,
-        pagesize=landscape(A4),
-        leftMargin=30,
-        rightMargin=30,
-        topMargin=28,
-        bottomMargin=34,
+    doc = SimpleDocTemplate(
+        output, pagesize=landscape(A4),
+        leftMargin=32, rightMargin=32, topMargin=46, bottomMargin=36,
+        title="Báo cáo thống kê hồ sơ KH&CN", author="HUIT Research",
     )
+    body = ParagraphStyle("ReportBody", fontName=regular, fontSize=8.5,
+                          leading=12, textColor=navy, splitLongWords=True)
+    small = ParagraphStyle("ReportSmall", parent=body, fontSize=8, leading=11, textColor=muted)
+    title_style = ParagraphStyle("ReportTitle", parent=body, fontName=bold,
+                                fontSize=19, leading=25, spaceAfter=8)
+    heading = ParagraphStyle("ReportHeading", parent=body, fontName=bold,
+                             fontSize=12, leading=17, spaceBefore=10,
+                             spaceAfter=8, keepWithNext=True)
+    header = ParagraphStyle("ReportHeader", parent=body, fontName=bold,
+                            fontSize=8.5, textColor=white)
 
-    body_style = ParagraphStyle(
-        "BodyVN",
-        fontName=regular,
-        fontSize=9,
-        leading=12,
-    )
+    def p(value, style=body):
+        return Paragraph(escape(text(value)).replace("\n", "<br/>") or "-", style)
 
-    header_style = ParagraphStyle(
-        "HeaderVN",
-        parent=body_style,
-        fontName=bold,
-        textColor=colors.white,
-    )
-
-    heading_style = ParagraphStyle(
-        "HeadingVN",
-        parent=body_style,
-        fontName=bold,
-        fontSize=12,
-        leading=17,
-        spaceBefore=14,
-        spaceAfter=8,
-        keepWithNext=True,
-        textColor=colors.HexColor("#" + BLUE),
-    )
-
-    def paragraph(value, style=body_style):
-        content = escape(text(value)).replace(
-            "\n", "<br/>"
+    def table(headers, rows, ratios, status_column=None, caption=None):
+        rows = list(rows)
+        if not rows:
+            rows = [["Không có dữ liệu"] + [""] * (len(headers) - 1)]
+        data = [[p(h, header) for h in headers]]
+        for row in rows:
+            cells = []
+            for i, value in enumerate(row):
+                style = body
+                if i == status_column and value in palette:
+                    style = ParagraphStyle("ReportState", parent=body, fontName=bold,
+                                           textColor=colors.HexColor(palette[value][1]))
+                cells.append(p(value, style))
+            data.append(cells)
+        if caption:
+            data.insert(0, [p(caption, header)] + [""] * (len(headers) - 1))
+        first_data = 2 if caption else 1
+        # Keep ordinary records together; split within a row only for exceptionally long content.
+        oversized_row = any(
+            isinstance(cell, Paragraph)
+            and cell.wrap(doc.width * ratios[col] - 16, doc.height)[1] > doc.height - 100
+            for row in data[first_data:] for col, cell in enumerate(row)
         )
-        return Paragraph(content or "—", style)
-
-    def make_table(headers, rows, ratios):
-        data = [[
-            paragraph(label, header_style)
-            for label in headers
-        ]]
-
-        data.extend(
-            [paragraph(value) for value in row]
-            for row in rows
-        )
-
-        table = Table(
-            data,
-            colWidths=[
-                document.width * ratio
-                for ratio in ratios
-            ],
-            repeatRows=1,
-            hAlign="LEFT",
-        )
-
-        table.setStyle(TableStyle([
-            (
-                "BACKGROUND",
-                (0, 0),
-                (-1, 0),
-                colors.HexColor("#" + BLUE),
-            ),
-            (
-                "ROWBACKGROUNDS",
-                (0, 1),
-                (-1, -1),
-                [
-                    colors.white,
-                    colors.HexColor("#F3F6FA"),
-                ],
-            ),
+        result = Table(data, colWidths=[doc.width * r for r in ratios],
+                       repeatRows=first_data, hAlign="LEFT", splitByRow=1,
+                       splitInRow=1 if oversized_row else 0)
+        commands = [
+            ("BACKGROUND", (0, 0), (-1, first_data - 1), navy),
+            ("ROWBACKGROUNDS", (0, first_data), (-1, -1), [white, pale]),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            (
-                "LINEBELOW",
-                (0, 0),
-                (-1, -1),
-                0.4,
-                colors.HexColor("#DCE3EB"),
-            ),
-        ]))
-
-        return table
-
-    elements = []
-
-    logo_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "static",
-        "logo.png",
-    )
-
-    if os.path.isfile(logo_path):
-        from reportlab.lib.utils import ImageReader
-
-        width, height = ImageReader(
-            logo_path
-        ).getSize()
-
-        scale = min(100 / width, 45 / height)
-
-        elements.append(
-            Image(
-                logo_path,
-                width=width * scale,
-                height=height * scale,
-                hAlign="LEFT",
-            )
-        )
-
-    elements.extend([
-        paragraph(
-            "BÁO CÁO THỐNG KÊ HỒ SƠ KH&CN",
-            heading_style,
-        ),
-        paragraph("Phạm vi: " + filter_desc),
-        paragraph(
-            "Ngày xuất: "
-            + datetime.now().strftime("%d/%m/%Y %H:%M")
-        ),
-        paragraph("Tổng hợp", heading_style),
-    ])
-
-    summary_rows = [
-        [
-            label,
-            f"{value:.1%}"
-            if label.startswith("Tỷ lệ")
-            else str(value),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+            ("LINEBELOW", (0, 0), (-1, 0), 1, teal),
+            ("LINEBELOW", (0, 1), (-1, -1), .35, colors.HexColor("#DBE4ED")),
         ]
-        for label, value in stats["summary"]
-    ]
+        if caption:
+            commands.extend([("SPAN", (0, 0), (-1, 0)),
+                             ("BACKGROUND", (0, 0), (-1, 0), teal)])
+        if status_column is not None:
+            for i, row in enumerate(rows, first_data):
+                value = row[status_column]
+                if value in palette:
+                    commands.append(("BACKGROUND", (status_column, i), (status_column, i),
+                                     colors.HexColor(palette[value][0])))
+        result.setStyle(TableStyle(commands))
+        return result
 
-    elements.append(
-        make_table(
-            ["Chỉ tiêu", "Giá trị"],
-            summary_rows,
-            [0.75, 0.25],
-        )
-    )
+    elements = [p("BÁO CÁO HỒ SƠ KHOA HỌC & CÔNG NGHỆ", title_style),
+                p("Phạm vi: " + filter_desc, small),
+                p("Thời điểm xuất: " + stamp, small), Spacer(1, 14)]
+    labels = ["TỔNG HỒ SƠ", "CHỜ XÉT DUYỆT", "ĐÃ DUYỆT", "TỶ LỆ ĐÃ DUYỆT"]
+    values = [str(stats["total"]), str(dict(stats["states"])["Chờ xét duyệt"]),
+              str(stats["approved"]), f'{stats["approval_rate"]:.2%}']
+    card_colors = [navy, colors.HexColor("#A56B08"), colors.HexColor("#13845B"), teal]
+    card_cells = []
+    for label, value, color in zip(labels, values, card_colors):
+        label_style = ParagraphStyle("CardLabel", parent=small, fontName=bold, textColor=color)
+        value_style = ParagraphStyle("CardValue", parent=body, fontName=bold,
+                                    fontSize=25, leading=32, textColor=color)
+        card_cells.append([p(label, label_style), Spacer(1, 5), p(value, value_style)])
+    cards = Table([card_cells], colWidths=[doc.width / 4] * 4)
+    cards.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), pale),
+                              ("BOX", (0, 0), (-1, -1), .4, colors.HexColor("#DBE4ED")),
+                              ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                              ("TOPPADDING", (0, 0), (-1, -1), 12),
+                              ("BOTTOMPADDING", (0, 0), (-1, -1), 12)]))
+    elements.extend([cards, Spacer(1, 14)])
 
+    # Vector charts remain crisp in print. Counts and percentages are explicit.
+    drawing = Drawing(doc.width, 178)
+    half = doc.width / 2
+    for x, title in [(0, "01  TIẾN ĐỘ XÉT DUYỆT"), (half + 12, "02  CƠ CẤU CÔNG TRÌNH")]:
+        drawing.add(String(x, 164, title, fontName=bold, fontSize=10, fillColor=navy))
+    for offset, pairs in [(0, stats["states"]), (half + 12, [
+        ["Bài báo", stats["articles"]], ["Đề tài", stats["projects"]],
+        ["Công trình khác", stats["total"] - stats["articles"] - stats["projects"]],
+    ])]:
+        maximum = max([count for _, count in pairs] + [1])
+        for i, (label, count) in enumerate(pairs):
+            y = 137 - i * 27
+            color = colors.HexColor(palette[label][1]) if label in palette else teal
+            drawing.add(String(offset, y, label, fontName=regular, fontSize=8.5, fillColor=navy))
+            bar_x = offset + 108
+            width = (half - 190) * count / maximum
+            drawing.add(Rect(bar_x, y - 3, half - 190, 11, fillColor=pale, strokeColor=None))
+            if count:
+                drawing.add(Rect(bar_x, y - 3, width, 11, fillColor=color, strokeColor=None))
+            percent = count / stats["total"] if stats["total"] else 0
+            drawing.add(String(offset + half - 73, y, f"{count} | {percent:.1%}",
+                               fontName=bold, fontSize=8, fillColor=color))
+    elements.extend([drawing, p("03  KINH PHÍ ĐỀ TÀI", heading),
+                     p(f"Tổng kinh phí đã kê khai: {stats['funding']:,.0f} đồng. "
+                       f"Chưa kê khai: {stats['missing_funding']} đề tài. "
+                       f"Lưu bằng 0: {stats['zero_funding']} đề tài."),
+                     Spacer(1, 8),
+                     p("Tỷ lệ đã duyệt = số đã duyệt / tổng hồ sơ trong phạm vi lọc. "
+                       "Phê duyệt tính hợp lệ không đồng nghĩa với nghiệm thu đề tài.", small)])
+
+    review = review_support_statistics(records)
     elements.extend([
-        Spacer(1, 6),
-        paragraph(
-            "Tỷ lệ đã duyệt tính trên tổng hồ sơ trong "
-            "phạm vi lọc. Duyệt tính hợp lệ không đồng "
-            "nghĩa nghiệm thu đề tài."
-        ),
-        paragraph(
-            "Phân bố theo trạng thái",
-            heading_style,
-        ),
+        PageBreak(),
+        p("KẾT QUẢ HỖ TRỢ XÉT DUYỆT", title_style),
+        table(["Chỉ tiêu", "Số hồ sơ"], review["metrics"], [.78, .22]),
+        Spacer(1, 12),
+        table(["Nhóm lý do", "Số hồ sơ"], review["categories"], [.78, .22],
+              caption="Lý do của các cảnh báo đang bật"),
+        Spacer(1, 9),
+        p(REVIEW_NOTE, small),
+        Spacer(1, 12),
     ])
+    priority_rows = [
+        [code, title, status, f"{score:.2f}" if score is not None else "", reasons]
+        for code, title, status, score, reasons in review["priority"]
+    ]
+    elements.append(table(
+        REVIEW_HEADERS, priority_rows, [.13, .27, .15, .10, .35],
+        status_column=2, caption="Hồ sơ cần ưu tiên xem xét",
+    ))
 
-    drawing = Drawing(document.width, 165)
-
-    maximum = max(
-        [count for _, count in stats["states"]] + [1]
-    )
-
-    for index, (label, count) in enumerate(stats["states"]):
-        y = 140 - index * 28
-        bar_width = (
-            count / maximum * (document.width - 210)
-        )
-
-        drawing.add(String(
-            0, y, label,
-            fontName=regular,
-            fontSize=9,
-        ))
-
-        drawing.add(Rect(
-            140,
-            y - 3,
-            bar_width,
-            14,
-            fillColor=colors.HexColor("#" + BLUE),
-            strokeColor=None,
-        ))
-
-        drawing.add(String(
-            146 + bar_width,
-            y,
-            str(count),
-            fontName=regular,
-            fontSize=9,
-        ))
-
-    elements.append(drawing)
-
-    for title, rows in [
-        ["Theo đơn vị", stats["units"]],
-        ["Theo lĩnh vực đang lưu", stats["fields"]],
-    ]:
-        elements.append(
-            paragraph(title, heading_style)
-        )
-
-        if rows:
-            elements.append(
-                make_table(
-                    [
-                        "Phân nhóm",
-                        "Tổng",
-                        "Đã duyệt",
-                        "Tỷ lệ duyệt",
-                    ],
-                    [
-                        [label, total, approved, f"{rate:.1%}"]
-                        for label, total, approved, rate in rows
-                    ],
-                    [0.55, 0.15, 0.15, 0.15],
-                )
-            )
-        else:
-            elements.append(
-                paragraph("Không có dữ liệu.")
-            )
-
-    for title, rows in stats["sections"]:
+    elements.extend([PageBreak(), p("THỐNG KÊ THEO NHÓM", title_style)])
+    for label, rows in [("Theo đơn vị chủ trì", stats["units"]),
+                        ("Theo lĩnh vực đang lưu", stats["fields"])]:
+        elements.append(table(["Phân nhóm", "Số hồ sơ", "Đã duyệt", "Tỷ lệ duyệt"],
+                              [[name, total, approved, f"{rate:.1%}"]
+                               for name, total, approved, rate in rows], [.58, .14, .14, .14], caption=label))
+        elements.append(Spacer(1, 12))
+    for label, rows in stats["sections"]:
         if not rows:
             continue
-
-        elements.extend([
-            paragraph(title, heading_style),
-            make_table(
-                ["Phân nhóm", "Số hồ sơ"],
-                rows,
-                [0.85, 0.15],
-            ),
-        ])
-
-    elements.extend([
-        paragraph(
-            "Kinh phí đề tài",
-            heading_style,
-        ),
-        paragraph(
-            f"Tổng kinh phí đã kê khai: "
-            f"{stats['funding']:,.0f} đồng. "
-            f"Chưa kê khai: {stats['missing_funding']} đề tài. "
-            f"Lưu bằng 0: {stats['zero_funding']} đề tài."
-        ),
-    ])
+        elements.extend([table(["Phân nhóm", "Số hồ sơ"], rows, [.85, .15], caption=label), Spacer(1, 12)])
 
     for group in ["Bài báo", "Đề tài", "Khác"]:
-        subset = [
-            record for record in records
-            if group_name(record) == group
-        ]
-
+        subset = [r for r in records if group_name(r) == group]
         if not subset:
             continue
-
-        elements.append(
-            paragraph(
-                "Danh sách " + group.lower(),
-                heading_style,
-            )
-        )
-
+        elements.extend([PageBreak(), p("DANH SÁCH " + group.upper(), title_style),
+                         p(f"{len(subset)} hồ sơ trong phạm vi báo cáo", small), Spacer(1, 10)])
         rows = []
-
-        for record in subset:
-            description = text(record.get("tieuDe"))
-            extra = []
-            missing = []
-
+        for r in subset:
+            lines = [text(r.get("tieuDe")) or "Chưa kê khai tên công trình"]
+            authors = r.get("thongTinTacGia")
+            if authors:
+                lines.append("Tác giả: " + text(authors))
             if group != "Khác":
+                missing = []
                 for key, label in detail_columns(group):
-                    if key in (
-                        "maHoSo",
-                        "tieuDe",
-                        "thongTinTacGia",
-                        "donViChuTri",
-                        "trangThai",
-                    ):
+                    if key in ("maHoSo", "tieuDe", "donViChuTri", "trangThai", "kyBaoCao"):
                         continue
-
-                    value = record.get(key)
-
+                    value = r.get(key)
                     if value is None or value == "":
                         missing.append(label)
                     else:
-                        extra.append(
-                            label + ": " + text(value)
-                        )
+                        lines.append(label + ": " + text(value))
+                if missing:
+                    lines.append("Chưa kê khai: " + ", ".join(missing))
+            rows.append([r.get("maHoSo", ""), "\n".join(lines),
+                         (text(r.get("donViChuTri")) or "Chưa kê khai đơn vị")
+                         + "\n" + text(r.get("kyBaoCao")), r.get("trangThai", "")])
+        elements.append(table(["Mã hồ sơ", "Công trình và thông tin chi tiết",
+                               "Đơn vị chủ trì / Kỳ báo cáo", "Trạng thái xét duyệt"],
+                              rows, [.13, .49, .23, .15], status_column=3))
+    if not records:
+        elements.append(p("Không có hồ sơ phù hợp với phạm vi lọc.", heading))
 
-            if extra:
-                description += "\n" + "; ".join(extra)
-
-            if missing:
-                description += (
-                    "\nChưa kê khai: "
-                    + ", ".join(missing)
-                    + "."
-                )
-
-            rows.append([
-                record.get("maHoSo", ""),
-                description,
-                text(record.get("donViChuTri"))
-                + "\n"
-                + text(record.get("kyBaoCao")),
-                record.get("trangThai", ""),
-            ])
-
-        elements.append(
-            make_table(
-                [
-                    "Mã hồ sơ",
-                    "Công trình và thông tin chi tiết",
-                    "Đơn vị chủ trì / Kỳ báo cáo",
-                    "Trạng thái",
-                ],
-                rows,
-                [0.14, 0.48, 0.24, 0.14],
-            )
-        )
-
-    def footer(canvas, doc):
+    def page_header(canvas, document):
         canvas.saveState()
+        width, height = landscape(A4)
+        canvas.setFillColor(navy)
+        canvas.rect(0, height - 30, width, 30, fill=1, stroke=0)
+        canvas.setFillColor(white)
+        canvas.setFont(bold, 9)
+        canvas.drawString(32, height - 19, "HUIT RESEARCH  |  QUẢN LÝ KHOA HỌC & CÔNG NGHỆ")
         canvas.setFont(regular, 8)
-        canvas.drawString(
-            30, 17, "Báo cáo quản lý KH&CN"
-        )
-        canvas.drawRightString(
-            landscape(A4)[0] - 30,
-            17,
-            f"Trang {doc.page}",
-        )
+        canvas.drawRightString(width - 32, height - 19, stamp)
         canvas.restoreState()
 
-    document.build(
-        elements,
-        onFirstPage=footer,
-        onLaterPages=footer,
-    )
+    class NumberedCanvas(Canvas):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._report_pages = []
 
+        def showPage(self):
+            self._report_pages.append(dict(self.__dict__))
+            self._startPage()
+
+        def save(self):
+            total = len(self._report_pages)
+            for state in self._report_pages:
+                self.__dict__.update(state)
+                self.saveState()
+                self.setStrokeColor(colors.HexColor("#DBE4ED"))
+                self.line(32, 28, landscape(A4)[0] - 32, 28)
+                self.setFillColor(muted)
+                self.setFont(regular, 8)
+                self.drawString(32, 16, "Báo cáo hồ sơ KH&CN | Theo phạm vi lọc tại thời điểm xuất")
+                self.drawRightString(landscape(A4)[0] - 32, 16, f"Trang {self._pageNumber} / {total}")
+                self.restoreState()
+                super().showPage()
+            super().save()
+
+    doc.build(elements, onFirstPage=page_header, onLaterPages=page_header, canvasmaker=NumberedCanvas)
     output.seek(0)
     return output
 
